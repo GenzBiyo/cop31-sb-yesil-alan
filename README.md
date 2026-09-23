@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# COP31 Sağlık Pavilionu Hazırlık
 
-## Getting Started
+T.C. Sağlık Bakanlığı (SGGM) COP31 Antalya yeşil alan / Health Pavilion hazırlık ve program yönetim uygulaması.
 
-First, run the development server:
+## Roller
+
+- **Admin** — tüm modüller, Excel senkron, anons, kullanıcı görünümü
+- **Sağlık Bakanlığı** — to-do, takvim, gündem, paneller, firmalar, Q&A
+- **Firma** — kendi profili, atanan kurallar, takvim/başvuru, mesaj, açık soru-cevap
+
+## Çalıştırma
 
 ```bash
+npm install
+npm run db:setup
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayıcı: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Demo şifre: `Cop31!2026`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rol | E-posta |
+| --- | --- |
+| Admin | admin@cop31.saglik.gov.tr |
+| Sağlık Bakanlığı | sggm@cop31.saglik.gov.tr |
+| Firma | atabay-ilac@firma.cop31.tr, sanofi@firma.cop31.tr, … |
 
-## Learn More
+## Excel bağlantısı
 
-To learn more about Next.js, take a look at the following resources:
+To-do sayfasında **Excel'den çek** Google Sheet'i indirir ve satır numarasına göre birleştirir. **Excel yükle** / **Excel indir** çift yönlü düzenlemeye izin verir.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+SMTP tanımlı değilse anonslar uygulama içi kutuya anlık düşer; e-posta günlüğünde “Simüle edildi” olarak görünür. `.env` içine `SMTP_HOST` ekleyerek gerçek gönderim açılır.

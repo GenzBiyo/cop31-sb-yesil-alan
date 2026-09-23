@@ -31,7 +31,12 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
+/prisma/dev.db
+/prisma/dev.db-journal
+/prisma/dev.db-shm
+/prisma/dev.db-wal
 
 # vercel
 .vercel
@@ -39,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploaded game media
+/public/uploads/games/*
+!/public/uploads/games/.gitkeep
+/public/uploads/hatira/*
+!/public/uploads/hatira/.gitkeep

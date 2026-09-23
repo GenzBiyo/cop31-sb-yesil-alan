@@ -1,0 +1,19 @@
+---
+description: COP31 Türkiye Antalya kurumsal renk paleti
+alwaysApply: true
+---
+
+# COP31 Türkiye renkleri
+
+Logo canlıdır: gök mavisi küre, lale kırmızısı, yaprak yeşili. UI kapalı lacivert/siyah olmasın.
+
+| Token | Hex | Kullanım |
+| sky | `#00A3E0` | birincil buton, vurgu |
+| navy | `#0077C2` | başlık, bağlantı |
+| header | `#0088C8` | üst bar, kenar menü |
+| wall | `#0678B8` | duvar/sunucu zemin (siyah değil) |
+| tulip | `#E31C23` | lale, hata, yüksek öncelik |
+| leaf | `#32C45A` | başarı, doğa |
+| paper | `#EEF8FD` | açık sayfa |
+
+Kaynak: `src/lib/brand.ts`, `src/app/globals.css` `:root`.

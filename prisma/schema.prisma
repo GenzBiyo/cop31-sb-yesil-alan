@@ -1,0 +1,443 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String
+  phone        String   @default("")
+  title          String   @default("")
+  accountStatus  String   @default("Onaylandı")
+  companyId      String?
+  company      Company? @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Company {
+  id                 String               @id @default(cuid())
+  slug               String               @unique
+  name               String
+  nameEn             String               @default("")
+  scope              String               @default("Local")
+  topic              String               @default("")
+  topicEn            String               @default("")
+  context            String               @default("")
+  contextEn          String               @default("")
+  participationDates String               @default("")
+  contribution       String               @default("")
+  contributionEn     String               @default("")
+  website            String               @default("")
+  status             String               @default("Onaylandı")
+  booth              String               @default("")
+  contactName        String               @default("")
+  contactEmail       String               @default("")
+  contactPhone       String               @default("")
+  notes              String               @default("")
+  users              User[]
+  rules              CompanyRule[]
+  submissions        CompanySubmission[]
+}
+
+model CompanyRule {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  dueDate   String   @default("")
+  mandatory Boolean  @default(true)
+  status    String   @default("Bekliyor")
+}
+
+model CompanySubmission {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  payload   String   @default("")
+  status    String   @default("Taslak")
+  eventDate String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Todo {
+  id          String   @id @default(cuid())
+  no          Int
+  workPackage String
+  activity    String
+  detail      String   @default("")
+  startDate   String   @default("")
+  dueDate     String   @default("")
+  unit        String   @default("")
+  owner       String   @default("")
+  status      String   @default("Başlanmadı")
+  progress    Int      @default(0)
+  risk        String   @default("")
+  priority    String   @default("Orta")
+  notes       String   @default("")
+  updatedAt   DateTime @updatedAt
+}
+
+model ThematicDay {
+  id      String       @id @default(cuid())
+  date    String       @unique
+  themeTr String
+  themeEn String       @default("")
+  topic1  String       @default("")
+  topic2  String       @default("")
+  notes   String       @default("")
+  agenda  AgendaItem[]
+}
+
+model AgendaItem {
+  id          String      @id @default(cuid())
+  dayId       String
+  day         ThematicDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  startTime   String
+  endTime     String
+  title       String
+  description String      @default("")
+  location    String      @default("Sağlık Pavilionu — Ana Sahne")
+  type        String      @default("Panel")
+  panelId     String?
+  companyId   String?
+  status      String      @default("Planlandı")
+  sortOrder   Int         @default(0)
+}
+
+model Panel {
+  id           String         @id @default(cuid())
+  title        String
+  kind         String         @default("panel")
+  date         String
+  startTime    String         @default("10:00")
+  endTime      String         @default("11:30")
+  theme        String         @default("")
+  topic        String         @default("")
+  location     String         @default("Health Pavilion — Ana Sahne")
+  partners     String         @default("")
+  status       String         @default("Planlama")
+  notes        String         @default("")
+  participants PanelPerson[]
+  messages     PanelMessage[]
+}
+
+model Person {
+  id           String        @id @default(cuid())
+  name         String
+  role         String        @default("")
+  organization String        @default("")
+  email        String        @default("")
+  phone        String        @default("")
+  track        String        @default("")
+  kind         String        @default("speaker")
+  note         String        @default("")
+  companySlug  String        @default("")
+  panels       PanelPerson[]
+}
+
+model PanelPerson {
+  id        String @id @default(cuid())
+  panelId   String
+  personId  String
+  role      String @default("panelist")
+  confirmed String @default("Beklemede")
+  panel     Panel  @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+}
+
+model PanelMessage {
+  id        String   @id @default(cuid())
+  panelId   String
+  panel     Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Thread {
+  id          String        @id @default(cuid())
+  type        String
+  title       String
+  status      String        @default("Açık")
+  companyId   String?
+  createdById String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  messages    ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  body        String
+  createdById String
+  createdAt   DateTime @default(now())
+  emailStatus String   @default("Kuyrukta")
+}
+
+model InboxItem {
+  id             String   @id @default(cuid())
+  userId         String
+  announcementId String?
+  title          String
+  body           String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model SpaceZone {
+  id          String @id @default(cuid())
+  name        String
+  description String @default("")
+  x           Float
+  y           Float
+  w           Float
+  h           Float
+  color       String @default("#7A1C2B")
+  companySlug String @default("")
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  body      String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model FormField {
+  id        String  @id @default(cuid())
+  formKey   String  @default("ambassador")
+  key       String
+  label     String
+  type      String  @default("text")
+  required  Boolean @default(true)
+  options   String  @default("")
+  help      String  @default("")
+  sortOrder Int     @default(0)
+  enabled   Boolean @default(true)
+}
+
+model AmbassadorApplication {
+  id             String                 @id @default(cuid())
+  fullName       String
+  email          String
+  phone          String                 @default("")
+  school         String                 @default("")
+  schoolType     String                 @default("")
+  department     String                 @default("")
+  city           String                 @default("")
+  englishLevel   String                 @default("")
+  otherLanguages String                 @default("")
+  linkedin       String                 @default("")
+  instagram      String                 @default("")
+  daysCount      Int                    @default(0)
+  availableDates String                 @default("")
+  motivation     String                 @default("")
+  skills         String                 @default("")
+  extra          String                 @default("{}")
+  status         String                 @default("Beklemede")
+  adminNote      String                 @default("")
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  placements     AmbassadorPlacement[]
+}
+
+model AmbassadorActivity {
+  id          String                 @id @default(cuid())
+  title       String
+  date        String
+  startTime   String                 @default("09:00")
+  endTime     String                 @default("18:00")
+  location    String                 @default("Sağlık Pavilionu")
+  description String                 @default("")
+  roleNeed    String                 @default("")
+  capacity    Int                    @default(8)
+  placements  AmbassadorPlacement[]
+}
+
+model AmbassadorPlacement {
+  id            String                 @id @default(cuid())
+  applicationId String
+  activityId    String
+  role          String                 @default("Saha desteği")
+  application   AmbassadorApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  activity      AmbassadorActivity     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+}
+
+model PavilionEvent {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  type        String
+  companyName String        @default("")
+  topic       String        @default("")
+  date        String        @default("")
+  startTime   String        @default("10:00")
+  endTime     String        @default("18:00")
+  location    String        @default("Sağlık Pavilionu")
+  description String        @default("")
+  gift        String        @default("")
+  config      String        @default("{}")
+  published   Boolean       @default(true)
+  signups     EventSignup[]
+}
+
+model Visitor {
+  id             String        @id @default(cuid())
+  fullName       String
+  email          String
+  phone          String        @default("")
+  organization   String        @default("")
+  city           String        @default("")
+  visitorType    String        @default("Ziyaretçi")
+  consent        Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  signups        EventSignup[]
+}
+
+model EventSignup {
+  id               String         @id @default(cuid())
+  eventId          String
+  visitorId        String
+  collectedByName  String         @default("")
+  collectedByRole  String         @default("qr")
+  answers          String         @default("{}")
+  prize            String         @default("")
+  score            Int            @default(0)
+  createdAt        DateTime       @default(now())
+  event            PavilionEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  visitor          Visitor        @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+}
+
+model Game {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  title          String
+  type           String         @default("quiz")
+  description    String         @default("")
+  gift           String         @default("Birinci ödül: COP31 Sağlık Pavilionu hediye seti")
+  location       String         @default("Sağlık Pavilionu — Etkileşim alanı")
+  status             String         @default("draft")
+  phase              String         @default("lobby")
+  currentIndex       Int            @default(-1)
+  questionStartedAt  DateTime?
+  pausedAt           DateTime?
+  seconds            Int            @default(15)
+  spinAngle          Int            @default(0)
+  view               String         @default("question")
+  published          Boolean        @default(true)
+  winnerPlayerId     String?
+  awardedAt          DateTime?
+  logoPath           String         @default("")
+  videoUrl           String         @default("")
+  videoPath          String         @default("")
+  comment            String         @default("")
+  lockedTeamId       String         @default("")
+  seedTeamId         String         @default("")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  questions      GameQuestion[]
+  teams          GameTeam[]
+  players        GamePlayer[]
+  slices         GameSlice[]
+}
+
+model GameSlice {
+  id     String @id @default(cuid())
+  gameId String
+  order  Int    @default(0)
+  label  String
+  color  String @default("#4f101c")
+  kind   String @default("prize")
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model GameQuestion {
+  id        String       @id @default(cuid())
+  gameId    String
+  order     Int          @default(0)
+  prompt    String
+  options   String       @default("[]")
+  answer    Int          @default(0)
+  points    Int          @default(10)
+  seconds   Int          @default(15)
+  videoUrl  String       @default("")
+  videoPath String       @default("")
+  game      Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  answers   GameAnswer[]
+}
+
+model GameTeam {
+  id        String       @id @default(cuid())
+  gameId    String
+  name      String
+  color     String       @default("#2f5d46")
+  score     Int          @default(0)
+  createdAt DateTime     @default(now())
+  game      Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  players   GamePlayer[]
+
+  @@unique([gameId, name])
+}
+
+model GamePlayer {
+  id        String       @id @default(cuid())
+  gameId    String
+  teamId    String?
+  nickname  String
+  token     String       @unique
+  status    String       @default("pending")
+  score     Int          @default(0)
+  bonus     Int          @default(0)
+  winner    Boolean      @default(false)
+  photoPath String       @default("")
+  createdAt DateTime     @default(now())
+  game      Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  team      GameTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  answers   GameAnswer[]
+
+  @@unique([gameId, nickname])
+  @@index([gameId, status])
+}
+
+model GameAnswer {
+  id         String       @id @default(cuid())
+  playerId   String
+  questionId String
+  choice     Int
+  correct    Boolean
+  points     Int          @default(0)
+  createdAt  DateTime     @default(now())
+  player     GamePlayer   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  question   GameQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, questionId])
+  @@index([questionId])
+}
