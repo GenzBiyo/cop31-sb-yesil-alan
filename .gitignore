@@ -38,6 +38,10 @@ yarn-error.log*
 /prisma/dev.db-shm
 /prisma/dev.db-wal
 
+# deploy keys (never commit)
+deploy_key
+deploy_key.pub
+
 # vercel
 .vercel
 
