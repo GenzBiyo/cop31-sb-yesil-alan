@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Person } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import seed from "./seed-data.json";
 import { DEMO_PASSWORD, THEME_TR } from "../src/lib/constants";
@@ -225,7 +225,7 @@ async function main() {
     days.push(created);
   }
 
-  const people = [];
+  const people: Person[] = [];
   for (const s of seed.speakers) {
     const person = await prisma.person.create({
       data: {

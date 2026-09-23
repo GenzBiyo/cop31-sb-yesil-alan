@@ -66,10 +66,11 @@ export default function ProgramPage() {
 
   async function saveDay() {
     if (!day) return;
-    await api("/api/days", { method: "PATCH", body: JSON.stringify({ id: day.id, ...day, ...draft }) });
+    await api("/api/days", { method: "PATCH", body: JSON.stringify({ ...day, ...draft, id: day.id }) });
     setDraft({});
     await reload();
     await reloadPlan();
+  }
 
   async function copySubscribe() {
     await navigator.clipboard.writeText(subscribeUrl);
