@@ -12,6 +12,7 @@ import { KiloPlay } from "@/components/game/KiloPlay";
 import { HatiraPlay } from "@/components/game/HatiraPlay";
 import type { PlayerMatchView } from "@/lib/match-live";
 import type { HatiraLogos } from "@/lib/hatira";
+import { GameStage } from "@/components/game/GameStage";
 import { useI18n } from "@/components/I18nProvider";
 
 type Payload = {
@@ -178,31 +179,25 @@ function Join({ slug }: { slug: string }) {
 
   if (data.type === "hatira") {
     return (
-      <main className="min-h-screen bg-[#EEF8FD]">
-        <header className="px-5 py-6 text-[#EEF8FD]" style={{ background: "#00A3E0" }}>
-          <p className="text-xs tracking-[0.18em] uppercase opacity-80">COP31 Türkiye · Hatıra / Souvenir</p>
-          <h1 className="display text-3xl mt-1">{tx(data.title)}</h1>
-          <p className="text-sm text-[#b8e4ef] mt-1">{tx("Selfie çekin. Hazırla deyince Antalya doğası ve COP31 fonu gelir.")}</p>
-        </header>
-        <div className="max-w-lg mx-auto p-5">
-          <HatiraPlay slug={slug} logos={data.logos} />
-        </div>
-      </main>
+      <GameStage
+        kicker="COP31 Türkiye · Hatıra / Souvenir"
+        title={data.title}
+        lead="Selfie çekin. Hazırla deyince Antalya doğası ve COP31 fonu gelir."
+      >
+        <HatiraPlay slug={slug} logos={data.logos} />
+      </GameStage>
     );
   }
 
   if (data.type === "kilo") {
     return (
-      <main className="min-h-screen bg-[#EEF8FD]">
-        <header className="px-5 py-6 text-[#EEF8FD]" style={{ background: "#0088C8" }}>
-          <p className="text-xs tracking-[0.18em] uppercase opacity-80">{tx("COP31 · Etkileşim")}</p>
-          <h1 className="display text-3xl mt-1">{tx(data.title)}</h1>
-          <p className="text-sm text-[#C8EEFA] mt-1">{tx("Cinsiyet, yaş, boy ve kilonu gir. BKİ tablosu ve 2035 gıda izi.")}</p>
-        </header>
-        <div className="max-w-lg mx-auto p-5">
-          <KiloPlay slug={slug} />
-        </div>
-      </main>
+      <GameStage
+        kicker="COP31 · Etkileşim"
+        title={data.title}
+        lead="Cinsiyet, yaş, boy ve kilonu gir. BKİ tablosu ve 2035 gıda izi."
+      >
+        <KiloPlay slug={slug} />
+      </GameStage>
     );
   }
 
@@ -210,15 +205,15 @@ function Join({ slug }: { slug: string }) {
   const reveal = data.phase === "reveal" || data.phase === "closed";
 
   return (
-    <main className="min-h-screen bg-[#EEF8FD]">
-      <header className="px-5 py-6 text-[#EEF8FD]" style={{ background: "#0088C8" }}>
-        <p className="text-xs tracking-[0.18em] uppercase opacity-80">{tx("COP31 · Etkileşim")}</p>
-        <h1 className="display text-3xl mt-1">{tx(data.title)}</h1>
-        <p className="text-sm text-[#C8EEFA] mt-1">{tx("Rumuzunu yaz. Admin onaylayınca duvarda görünürsün.")}</p>
-      </header>
-      <div className="max-w-lg mx-auto p-5 space-y-4">
+    <GameStage
+      live={data.phase === "asking" || data.wheelMode === "coast" || data.wheelMode === "stop"}
+      kicker="COP31 · Etkileşim"
+      title={data.title}
+      lead="Rumuzunu yaz. Admin onaylayınca duvarda görünürsün."
+    >
+      <div className="space-y-4">
         {!data.me || status === "rejected" ? (
-          <form className="card p-4 space-y-3" onSubmit={(e) => void join(e)}>
+          <form className="game-panel space-y-3" onSubmit={(e) => void join(e)}>
             {status === "rejected" ? (
               <div className="p-3 text-sm" style={{ background: "#FAD4D6" }}>
                 {tx("Rumuzun onaylanmadı.")} <strong>{tx("Rumuzu değiştir")}</strong> {tx("ve yeniden gönder.")}
@@ -231,7 +226,7 @@ function Join({ slug }: { slug: string }) {
         ) : null}
 
         {status === "pending" ? (
-          <div className="card p-5">
+          <div className="game-panel">
             <h2 className="display text-3xl">{data.me?.nickname}</h2>
             <p className="mt-2">{tx("Admin rumuzunu onaylasın bekleniyor. Duvar ekranında henüz görünmezsin.")}</p>
           </div>
@@ -239,7 +234,7 @@ function Join({ slug }: { slug: string }) {
 
         {status === "approved" ? (
           <>
-            <div className="card p-4 flex justify-between">
+            <div className="game-panel flex justify-between">
               <div>
                 <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">{tx("Oyuncu")}</div>
                 <div className="display text-3xl">{data.me?.nickname}</div>
@@ -251,7 +246,7 @@ function Join({ slug }: { slug: string }) {
             </div>
 
             {data.phase === "lobby" ? (
-              <div className="card p-4">
+              <div className="game-panel">
                 {data.type === "wheel"
                   ? tx("Onaylandın. Çevir’e bas; çark dönünce Durdur ile yavaş yavaş dursun. Duvar ekranı da aynı dönüşü gösterir.")
                   : data.type === "match"
@@ -260,15 +255,15 @@ function Join({ slug }: { slug: string }) {
               </div>
             ) : null}
             {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.phase === "closed" ? (
-              <div className="card p-4">
+              <div className="game-panel">
                 <div className="display text-3xl">{tx("Yarışma bitti")}</div>
                 <p className="mt-2">{t("quiz.endedScore", { n: data.me?.score ?? 0 })}</p>
               </div>
             ) : null}
-            {data.paused ? <div className="card p-4">{tx("Oyun durdu.")}</div> : null}
+            {data.paused ? <div className="game-panel">{tx("Oyun durdu.")}</div> : null}
 
             {data.type === "wheel" ? (
-              <div className="card p-4 space-y-3">
+              <div className="game-panel space-y-3">
                 <div className="flex justify-center">
                   <PrizeWheel
                     slices={data.slices || []}
@@ -309,12 +304,12 @@ function Join({ slug }: { slug: string }) {
             {data.type === "match" ? (
               <div className="space-y-3">
                 {data.match ? (
-                  <div className="card p-4 space-y-3">
+                  <div className="game-panel space-y-3">
                     <TouchMeters meters={data.match.meters} />
                   </div>
                 ) : null}
                 {data.phase === "asking" ? (
-                  <div className="card p-4 space-y-3">
+                  <div className="game-panel space-y-3">
                     <TimerRing remaining={left} total={data.seconds} />
                     {data.matchBoard ? (
                       <MatchPhone slug={slug} view={data.matchBoard} onReload={reload} />
@@ -324,7 +319,7 @@ function Join({ slug }: { slug: string }) {
                   </div>
                 ) : null}
                 {reveal ? (
-                  <div className="card p-4">
+                  <div className="game-panel">
                     <div className="display text-4xl" style={{ color: "#22A34A" }}>{data.me?.score} {tx("puan")}</div>
                     <p className="mt-2">{tx("Tur bitti. Doğru eşleşmeler puanına yazıldı.")}</p>
                   </div>
@@ -333,7 +328,7 @@ function Join({ slug }: { slug: string }) {
             ) : null}
 
             {data.type !== "wheel" && data.type !== "match" && data.phase === "asking" && data.question ? (
-              <div className="card p-4 space-y-3">
+              <div className="game-panel space-y-3">
                 <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">
                   {t("common.qProgress", { n: (data.question.index ?? 0) + 1, total: data.total })}
                 </div>
@@ -380,7 +375,7 @@ function Join({ slug }: { slug: string }) {
             ) : null}
 
             {data.type !== "wheel" && data.type !== "match" && reveal && data.question ? (
-              <div className="card p-4 space-y-3">
+              <div className="game-panel space-y-3">
                 <div className="display text-5xl" style={{ color: data.me?.correct ? "#22A34A" : "#0077C2" }}>
                   {data.me?.answered ? (data.me.correct ? tx("Doğru") : tx("Yanlış")) : tx("Yanıt yok")}
                 </div>
@@ -418,7 +413,7 @@ function Join({ slug }: { slug: string }) {
         ) : null}
         {msg ? <p className="text-sm text-[#0077C2]">{tx(msg)}</p> : null}
       </div>
-    </main>
+    </GameStage>
   );
 }
 

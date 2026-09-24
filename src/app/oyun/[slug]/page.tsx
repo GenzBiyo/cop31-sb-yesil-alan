@@ -56,7 +56,7 @@ function Wall({ slug }: { slug: string }) {
   const origin = usePublicOrigin();
   const [left, setLeft] = useState(0);
 
-  useGameLive(reload, 12000);
+  useGameLive(reload, 2000);
 
   useEffect(() => {
     setLeft(data?.remaining ?? 0);
@@ -107,7 +107,12 @@ function Wall({ slug }: { slug: string }) {
   return (
     <main className="cop-wall min-h-screen text-[#EEF8FD] grid lg:grid-cols-[1fr_300px]">
       <section className="p-6 md:p-10 flex flex-col">
-        <p className="text-xs tracking-[0.28em] uppercase opacity-70">{wall.location} · {tx("duvar ekranı")}</p>
+        <p className="text-xs tracking-[0.28em] uppercase opacity-70 flex items-center gap-3">
+          {wall.location} · {tx("duvar ekranı")}
+          {wall.phase === "asking" || wall.wheelMode === "coast" || wall.wheelMode === "stop" ? (
+            <span className="game-live">{tx("CANLI")}</span>
+          ) : null}
+        </p>
         <h1 className="display text-4xl md:text-6xl mt-2">{tx(wall.title)}</h1>
 
         {isHatira ? (

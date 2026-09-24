@@ -113,6 +113,39 @@ model AgendaItem {
   companyId   String?
   status      String      @default("Planlandı")
   sortOrder   Int         @default(0)
+  slotKey     String      @default("")
+  reminded24h Boolean     @default(false)
+  reminded2h  Boolean     @default(false)
+  signups     AgendaSignup[]
+  notices     AgendaNotice[]
+}
+
+model AgendaSignup {
+  id           String     @id @default(cuid())
+  agendaId     String
+  agenda       AgendaItem @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  fullName     String
+  email        String
+  phone        String     @default("")
+  organization String     @default("")
+  role         String     @default("katilimci")
+  createdAt    DateTime   @default(now())
+
+  @@unique([agendaId, email])
+}
+
+model AgendaNotice {
+  id        String     @id @default(cuid())
+  agendaId  String
+  agenda    AgendaItem @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  email     String
+  title     String
+  body      String
+  kind      String
+  seen      Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  @@index([email, seen])
 }
 
 model Panel {

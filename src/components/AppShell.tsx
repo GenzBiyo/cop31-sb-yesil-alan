@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { api, copCountdown, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { AgendaAlerts } from "@/components/AgendaAlerts";
 
 type Me = {
   id: string;
@@ -81,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useRealtime(
     useCallback(
       (type) => {
-        if (type === "inbox" || type === "announcement" || type === "qa" || type === "message" || type === "account") void load();
+        if (type === "inbox" || type === "announcement" || type === "qa" || type === "message" || type === "account" || type === "agenda") void load();
       },
       [load]
     )
@@ -134,6 +135,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </aside>
+      <AgendaAlerts />
       <div className="min-w-0">
         <header className="no-print flex items-center justify-between px-6 py-3 border-b border-[#D4ECF6] bg-white pr-28">
           <div>

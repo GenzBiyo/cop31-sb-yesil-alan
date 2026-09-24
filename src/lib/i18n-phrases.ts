@@ -17,6 +17,7 @@ export const EN: Record<string, string> = {
   "Şifre": "Password",
   "← Kapılara dön": "← Back to gates",
   "Kapıyı aç →": "Open gate →",
+  "CANLI": "LIVE",
   "Yeniden dene": "Try again",
   "Seçin": "Select",
   "Teşekkürler": "Thank you",
@@ -784,6 +785,7 @@ export const EN: Record<string, string> = {
   "Selfie çekin. Hazırla deyince Antalya doğası ve COP31 fonu gelir.":
     "Take a selfie. When you tap Prepare, Antalya nature and the COP31 backdrop appear.",
   "COP31 · Etkileşim": "COP31 · Interaction",
+  "COP31 Türkiye · Hatıra / Souvenir": "COP31 Türkiye · Souvenir",
   "Cinsiyet, yaş, boy ve kilonu gir. BKİ tablosu ve 2035 gıda izi.":
     "Enter your sex, age, height and weight. BMI table and 2035 food footprint.",
   "Rumuzunu yaz. Admin onaylayınca duvarda görünürsün.":
@@ -814,4 +816,41 @@ export const EN: Record<string, string> = {
   "Giriş alınamadı": "Could not join",
   "Yanıt gönderilemedi": "Could not send the answer",
   "Sağlıklı insan, sağlıklı gezegen": "Healthy people, healthy planet",
+  "Her gün 1 etkinlik, 2 sunum ve 2 panel boşluğu. Saatleri kaydırın; QR ile kayıt ve otomatik haber.":
+    "Each day has 1 event, 2 talks and 2 panel slots. Drag times; register by QR; alerts go out automatically.",
+  "Günün 5 kutusu": "The day's 5 slots",
+  "Her gün 1 etkinlik, 2 sunum, 2 panel. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.":
+    "Each day: 1 event, 2 talks, 2 panels. Drag a block to move the time; it snaps to 15 minutes.",
+  "kayıt": "signups",
+  "Katılım QR": "Signup QR",
+  "Telefon ve e-posta ile kayıt. Saat değişince otomatik haber gider.":
+    "Register with phone and email. They are notified if the time changes.",
+  "Otomatik mesaj": "Send message",
+  "Katılımcı veya konuşmacılara gidecek metin": "Text for participants and/or speakers",
+  "Katılımcı + konuşmacı": "Participants + speakers",
+  "Yalnız katılımcılar": "Participants only",
+  "Yalnız konuşmacılar": "Speakers only",
+  "kişiye gönderildi": "people notified",
+  "Kayıtlı kişiler": "Registered people",
+  "Henüz QR kaydı yok.": "No QR signups yet.",
+  "Konuşmacı": "Speaker",
+  "Katılımcı": "Participant",
+  "Bildirim": "Alert",
+  "Tamam": "OK",
+  "Telefon bildirimi aç": "Enable phone alerts",
+  "QR ile kayıt": "Register by QR",
+  "Kaydınız alındı": "You are registered",
+  "Etkinlik yaklaşınca veya saati değişince e-posta ve bu telefonda uyarı çıkar.":
+    "You will get email and a popup here when the session is near or the time changes.",
+  "Programa dön": "Back to programme",
+  "QR kayıt: ad, telefon ve e-posta yeter.": "QR signup: name, phone and email are enough.",
+  "Ad soyad": "Full name",
+  "Telefon": "Phone",
+  "Kurum": "Organisation",
+  "Konuşmacı olarak kaydol": "Register as speaker",
+  "Kayıt ol": "Register",
+  "Oturum bulunamadı.": "Session not found.",
+  "Başlangıç": "Start",
+  "Bitiş": "End",
+  "Yer": "Venue",
 };

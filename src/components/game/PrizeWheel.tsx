@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { WHEEL_COAST_DEG_PER_MS, type WheelMotion, type WheelMode } from "@/lib/wheel";
+import { useEffect, useId, useRef, useState } from "react";
+import { WHEEL_COAST_DEG_PER_MS, WHEEL_STOP_SEC, type WheelMotion, type WheelMode } from "@/lib/wheel";
 import { useI18n } from "@/components/I18nProvider";
 
 export type WheelSlice = { id?: string; label: string; color: string; kind?: string };
@@ -15,42 +15,73 @@ function slicePath(i: number, n: number) {
   const arc = 360 / n;
   const a0 = i * arc;
   const a1 = (i + 1) * arc;
-  const p0 = polar(100, 100, 96, a0);
-  const p1 = polar(100, 100, 96, a1);
+  const p0 = polar(100, 100, 88, a0);
+  const p1 = polar(100, 100, 88, a1);
   const large = arc > 180 ? 1 : 0;
-  return `M 100 100 L ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A 96 96 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
+  return `M 100 100 L ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A 88 88 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
 }
 
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutQuad(t: number) {
+  return 1 - (1 - t) * (1 - t);
+}
+
+function distanceToLand(origin: number, land: number, minDistance: number) {
+  const landMod = ((land % 360) + 360) % 360;
+  const originMod = ((origin % 360) + 360) % 360;
+  let delta = (landMod - originMod + 360) % 360;
+  if (delta > 359.2) delta = 0;
+  if (delta < 0.6 && minDistance <= 0) return 0;
+  while (delta < minDistance) delta += 360;
+  return delta;
 }
 
 export function useWheelMotion(motion: WheelMotion) {
-  const { mode, from, target, startedAt, seconds } = motion;
-  const [angle, setAngle] = useState(mode === "idle" ? target : from);
+  const motionRef = useRef(motion);
+  motionRef.current = motion;
+  const [angle, setAngle] = useState(() => (motion.mode === "idle" ? motion.target : motion.from));
+  const shown = useRef(angle);
 
   useEffect(() => {
-    if (mode === "idle" || !startedAt) {
-      setAngle(target);
-      return;
-    }
-    const start = new Date(startedAt).getTime();
     let raf = 0;
+    let phase: WheelMode = "idle";
+    let stopOrigin = 0;
+    let stopDist = 0;
+    let stopT0 = 0;
+    let stopDur = 1;
+    let stopLand = Number.NaN;
+    const v0 = WHEEL_COAST_DEG_PER_MS;
+    const minStop = 0.5 * v0 * WHEEL_STOP_SEC * 1000;
+
     const tick = () => {
-      const now = Date.now();
-      if (mode === "coast") {
-        setAngle(from + Math.max(0, now - start) * WHEEL_COAST_DEG_PER_MS);
-        raf = requestAnimationFrame(tick);
-        return;
+      const m = motionRef.current;
+      if (m.mode === "coast") {
+        phase = "coast";
+        stopLand = Number.NaN;
+        const start = m.startedAt ? new Date(m.startedAt).getTime() : Date.now();
+        const next = m.from + Math.max(0, Date.now() - start) * v0;
+        shown.current = next;
+        setAngle(next);
+      } else if (m.mode === "stop" || phase === "stop") {
+        const land = ((m.target % 360) + 360) % 360;
+        if (phase !== "stop" || (m.mode === "stop" && Math.abs(land - stopLand) > 0.8)) {
+          phase = "stop";
+          stopLand = land;
+          stopOrigin = shown.current;
+          stopDist = distanceToLand(stopOrigin, m.target, minStop);
+          stopDur = Math.max(3200, Math.min(9000, (2 * Math.max(stopDist, minStop)) / v0));
+          stopT0 = Date.now();
+        }
+        const t = Math.min(1, (Date.now() - stopT0) / stopDur);
+        const next = stopOrigin + stopDist * easeOutQuad(t);
+        shown.current = next;
+        setAngle(next);
+        if (t >= 1 && m.mode !== "stop") phase = "idle";
       }
-      const dur = Math.max(400, seconds * 1000);
-      const t = Math.min(1, (now - start) / dur);
-      setAngle(from + (target - from) * easeOutCubic(t));
-      if (t < 1) raf = requestAnimationFrame(tick);
+      raf = requestAnimationFrame(tick);
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [mode, from, target, startedAt, seconds]);
+  }, []);
 
   return angle;
 }
@@ -76,12 +107,14 @@ function sliceInk(hex: string) {
 }
 
 function sliceLabelLayout(label: string, n: number) {
-  const radial = n > 12 ? 58 : n > 8 ? 66 : 72;
+  const radial = n > 12 ? 50 : n > 8 ? 58 : 64;
   const font = Math.max(8.2, Math.min(n > 10 ? 10 : 12.2, 86 / Math.max(4, label.length * 0.38)));
-  const rMid = 24 + radial / 2;
+  const rMid = 26 + radial / 2;
   const natural = label.length * font * 0.56;
   return { font, radial, rMid, y: 100 - rMid, fit: natural > radial + 2 };
 }
+
+const LAMPS = 28;
 
 export function PrizeWheel({
   slices,
@@ -101,14 +134,50 @@ export function PrizeWheel({
   const n = Math.max(slices.length, 1);
   const motion = mode || (spinning ? "stop" : "idle");
   const { tx } = useI18n();
+  const uid = useId().replace(/:/g, "");
 
   return (
     <div className={`prize-wheel ${motion !== "idle" ? "is-spinning" : ""} is-${motion}`} style={{ width: size, height: size }}>
+      <div className="prize-halo" aria-hidden />
+      <svg viewBox="0 0 200 200" className="prize-rim" aria-hidden>
+        <defs>
+          <linearGradient id={`${uid}-rim`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#5EC8F0" />
+            <stop offset="45%" stopColor="#FFFFFF" />
+            <stop offset="100%" stopColor="#00A3E0" />
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="98" fill={`url(#${uid}-rim)`} />
+        <circle cx="100" cy="100" r="91.5" fill="#0077C2" />
+        {Array.from({ length: LAMPS }, (_, i) => {
+          const p = polar(100, 100, 94.8, (i / LAMPS) * 360);
+          return (
+            <circle
+              key={i}
+              className={`prize-lamp ${i % 2 ? "is-alt" : ""}`}
+              cx={p.x}
+              cy={p.y}
+              r="2.15"
+              fill={i % 3 === 0 ? "#E31C23" : i % 3 === 1 ? "#FFFFFF" : "#32C45A"}
+            />
+          );
+        })}
+      </svg>
       <div className="prize-pointer" aria-hidden>
-        <span />
+        <svg viewBox="0 0 36 44">
+          <polygon points="18,42 2,4 34,4" fill="#E31C23" />
+          <polygon points="18,36 8,8 28,8" fill="#FFFFFF" />
+          <circle cx="18" cy="10" r="3.2" fill="#00A3E0" />
+        </svg>
       </div>
       <svg viewBox="0 0 200 200" className="prize-disk" style={{ transform: `rotate(${angle}deg)` }}>
-        <circle cx="100" cy="100" r="99" fill="#0088C8" />
+        <defs>
+          <radialGradient id={`${uid}-hub`} cx="50%" cy="40%" r="70%">
+            <stop offset="0%" stopColor="#5EC8F0" />
+            <stop offset="55%" stopColor="#00A3E0" />
+            <stop offset="100%" stopColor="#0077C2" />
+          </radialGradient>
+        </defs>
         {slices.map((s, i) => {
           const arc = 360 / n;
           const mid = i * arc + arc / 2;
@@ -117,7 +186,7 @@ export function PrizeWheel({
           const ink = sliceInk(s.color);
           return (
             <g key={s.id || `${s.label}-${i}`}>
-              <path d={slicePath(i, n)} fill={s.color} stroke={on ? "#0077C2" : "none"} strokeWidth={on ? 1.8 : 0} />
+              <path d={slicePath(i, n)} fill={s.color} stroke={on ? "#FFFFFF" : "rgba(255,255,255,0.35)"} strokeWidth={on ? 2.4 : 0.6} />
               <text
                 x="100"
                 y={layout.y}
@@ -125,7 +194,7 @@ export function PrizeWheel({
                 dominantBaseline="middle"
                 fill={ink}
                 fontSize={layout.font}
-                fontWeight={400}
+                fontWeight={700}
                 letterSpacing={s.label.length > 12 ? -0.2 : 0.08}
                 transform={`rotate(${mid} 100 100) rotate(-90 100 ${layout.y})`}
                 {...(layout.fit ? { textLength: layout.radial, lengthAdjust: "spacingAndGlyphs" as const } : {})}
@@ -135,9 +204,10 @@ export function PrizeWheel({
             </g>
           );
         })}
-        <circle cx="100" cy="100" r="18" fill="#EEF8FD" />
-        <circle cx="100" cy="100" r="12" fill="#0088C8" />
-        <circle cx="100" cy="100" r="5" fill="#00A3E0" />
+        <circle cx="100" cy="100" r="22" fill="#FFFFFF" />
+        <circle cx="100" cy="100" r="18" fill={`url(#${uid}-hub)`} />
+        <circle cx="100" cy="100" r="7" fill="#E31C23" />
+        <circle cx="100" cy="100" r="3.2" fill="#FFFFFF" />
       </svg>
     </div>
   );

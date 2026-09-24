@@ -229,20 +229,14 @@ export function TimerRing({ remaining, total }: { remaining: number; total: numb
   const { tx } = useI18n();
   const t = Math.max(0, remaining);
   const pct = total ? Math.max(0, Math.min(1, t / total)) : 0;
+  const hot = t <= 5;
   return (
     <div className="flex items-center gap-3">
-      <div className="display text-5xl tabular-nums" style={{ color: t <= 5 ? "#0077C2" : "#22A34A" }}>
+      <div className={`display text-5xl tabular-nums timer-num ${hot ? "is-hot" : ""}`} style={{ color: hot ? undefined : "#22A34A" }}>
         {t}
       </div>
-      <div className="flex-1 h-3 bg-[#DCE8F0] overflow-hidden">
-        <div
-          className="h-full"
-          style={{
-            width: `${pct * 100}%`,
-            background: t <= 5 ? "#0077C2" : "#22A34A",
-            transition: "width 0.2s linear",
-          }}
-        />
+      <div className="timer-track">
+        <div className={`timer-fill ${hot ? "is-hot" : "is-ok"}`} style={{ width: `${pct * 100}%` }} />
       </div>
       <span className="text-xs text-[#57534e]">{tx("sn")}</span>
     </div>

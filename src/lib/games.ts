@@ -461,11 +461,12 @@ export async function expireIfNeeded(gameId: string, known?: GameClock | null) {
       return game;
     }
   }
+  const keepWheel = game.type === "wheel" && parseWheelView(game.view).mode === "stop";
   await prisma.game.updateMany({
     where: { id: game.id, phase: "asking" },
-    data: { phase: "reveal", view: "question", pausedAt: null },
+    data: { phase: "reveal", view: keepWheel ? game.view : "question", pausedAt: null },
   });
-  const revealed = { ...game, phase: "reveal", view: "question", pausedAt: null };
+  const revealed = { ...game, phase: "reveal", view: keepWheel ? game.view : "question", pausedAt: null };
   if (game.type === "match") await flushMatchGame(game.id);
   if (game.type === "wheel" && game.lockedTeamId && game.currentIndex >= 0) {
     const slices = await prisma.gameSlice.findMany({ where: { gameId: game.id }, orderBy: { order: "asc" } });

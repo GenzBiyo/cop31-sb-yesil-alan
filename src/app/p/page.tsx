@@ -3,6 +3,7 @@
 import { useApi, formatDate } from "@/lib/client";
 import { useMemo } from "react";
 import { useI18n } from "@/components/I18nProvider";
+import { AgendaAlerts } from "@/components/AgendaAlerts";
 
 type Day = {
   date: string;
@@ -47,6 +48,7 @@ export default function PublicProgramPage() {
 
   return (
     <main className="min-h-screen bg-[#EEF8FD]">
+      <AgendaAlerts publicMode />
       <header className="px-5 py-8 text-[#EEF8FD]" style={{ background: "#0088C8" }}>
         <p className="text-xs tracking-[0.22em] uppercase opacity-80">{tx("COP31 Türkiye · Sağlık Pavilionu")}</p>
         <h1 className="display text-4xl mt-2">{tx("Açık program")}</h1>
@@ -60,10 +62,10 @@ export default function PublicProgramPage() {
             <div className="text-[#0077C2] font-semibold">{formatDate(date)}</div>
             <h2 className="display text-2xl">{tx(block.day?.themeTr || "Etkinlikler")}</h2>
             {block.day?.agenda?.map((a) => (
-              <div key={a.id} className="border-b border-[#DCE8F0] py-2 text-sm">
+              <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">
                 <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
-                <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)}</div>
-              </div>
+                <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {tx("QR ile kayıt")}</div>
+              </a>
             ))}
             {block.events.map((e) => (
               <a key={e.slug} href={`/e/${e.slug}`} className="block mt-3 p-3 bg-[#EAF2F8] hover:bg-white">

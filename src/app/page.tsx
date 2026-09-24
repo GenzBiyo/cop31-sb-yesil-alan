@@ -128,7 +128,7 @@ export default function HomePage() {
 
       <nav className="gates climate-gates" aria-label={tx("Giriş kapıları")}>
         {GATES.map((g) => (
-          <a key={g.href} href={href(g.href, g.guest)} className="gate" style={{ textDecoration: "none" }}>
+          <a key={g.href} href={href(g.href, g.guest)} className={`gate${g.href === "/oyun" ? " is-play" : ""}`} style={{ textDecoration: "none" }}>
             <img src={g.src} alt="" />
             <div className="gate-shade" />
             <div className="gate-copy">

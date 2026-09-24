@@ -7,17 +7,9 @@ import { googleTemplateUrl } from "@/lib/calendar";
 import { CopDayGrid } from "@/components/CopDayGrid";
 import type { PlanDay } from "@/lib/plan-types";
 import { useI18n } from "@/components/I18nProvider";
+import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
 
-type Agenda = {
-  id: string;
-  startTime: string;
-  endTime: string;
-  title: string;
-  description: string;
-  location: string;
-  type: string;
-  status: string;
-};
+type Agenda = AgendaRow;
 type Day = {
   id: string;
   date: string;
@@ -45,6 +37,8 @@ export default function ProgramPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Day[]>("/api/days");
   const { data: plan, reload: reloadPlan } = useApi<{ days: PlanDay[] }>("/api/plan");
+  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  const canEdit = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Day>>({});
   const [item, setItem] = useState({ startTime: "10:00", endTime: "11:00", title: "", type: "Panel", location: "Sağlık Pavilionu — Ana Sahne" });
@@ -52,7 +46,7 @@ export default function ProgramPage() {
   const publicOrigin = usePublicOrigin();
 
   useRealtime((t) => {
-    if (t === "agenda" || t === "panel") {
+    if (t === "agenda" || t === "panel" || t === "inbox") {
       void reload();
       void reloadPlan();
     }
@@ -83,7 +77,7 @@ export default function ProgramPage() {
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
           <h1 className="display text-4xl">{tx("COP31 gündemi")}</h1>
-          <p className="text-[#57534e]">12 gün, kutu kutu. Panel, sunum ve etkinlik aynı takvimde. Google Calendar ile eşlenebilir.</p>
+          <p className="text-[#57534e]">{tx("Her gün 1 etkinlik, 2 sunum ve 2 panel boşluğu. Saatleri kaydırın; QR ile kayıt ve otomatik haber.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a className="btn" href="/api/pdf/program">Program PDF</a>
@@ -138,48 +132,63 @@ export default function ProgramPage() {
             <label className="text-sm md:col-span-2">Notlar<textarea className="field mt-1" defaultValue={day.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} /></label>
           </div>
           <button className="btn" onClick={saveDay}>Gündemi kaydet</button>
-          <h3 className="display text-2xl pt-2">Oturumlar</h3>
+          <h3 className="display text-2xl pt-2">{tx("Günün 5 kutusu")}</h3>
+          <AgendaDayBoard
+            date={day.date}
+            items={day.agenda}
+            canEdit={!!canEdit}
+            onChanged={async () => {
+              await reload();
+              await reloadPlan();
+            }}
+          />
           <ul className="space-y-2">
             {day.agenda.map((a) => (
-              <li key={a.id} className="border border-[#DCE8F0] p-3 flex justify-between gap-3">
-                <div>
-                  <div className="text-xs text-[#0077C2]">{a.startTime}–{a.endTime} · {a.type}</div>
-                  <div>{a.title}</div>
-                  <div className="text-xs text-[#57534e]">{a.location}</div>
-                  <div className="flex gap-2 mt-2">
-                    <a className="btn ghost" href={googleTemplateUrl(calendarEvent(day, a))} target="_blank" rel="noreferrer">Google’a ekle</a>
-                    <a className="btn ghost" href={`/api/calendar?id=${a.id}`}>ICS</a>
-                  </div>
-                </div>
-                <button className="btn ghost" onClick={async () => { await api(`/api/agenda/${a.id}`, { method: "DELETE" }); await reload(); await reloadPlan(); }}>Sil</button>
+              <li key={`cal-${a.id}`} className="text-xs text-[#57534e] flex gap-2">
+                <a className="text-[#0077C2] underline" href={googleTemplateUrl(calendarEvent(day, a))} target="_blank" rel="noreferrer">Google · {a.title}</a>
+                <a className="text-[#0077C2] underline" href={`/api/calendar?id=${a.id}`}>ICS</a>
+                {canEdit ? (
+                  <button
+                    className="underline"
+                    onClick={async () => {
+                      await api(`/api/agenda/${a.id}`, { method: "DELETE" });
+                      await reload();
+                      await reloadPlan();
+                    }}
+                  >
+                    Sil
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
-          <div className="grid md:grid-cols-6 gap-2 items-end">
-            <input className="field" type="time" value={item.startTime} onChange={(e) => setItem({ ...item, startTime: e.target.value })} />
-            <input className="field" type="time" value={item.endTime} onChange={(e) => setItem({ ...item, endTime: e.target.value })} />
-            <input className="field md:col-span-2" placeholder="Oturum başlığı" value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
-            <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
-              <option>Panel</option>
-              <option>Sunum</option>
-              <option>Etkinlik</option>
-              <option>Açılış</option>
-              <option>Quick Talk</option>
-              <option>Seminer</option>
-            </select>
-            <button
-              className="btn"
-              onClick={async () => {
-                if (!item.title) return;
-                await api("/api/agenda", { method: "POST", body: JSON.stringify({ dayId: day.id, ...item }) });
-                setItem({ ...item, title: "" });
-                await reload();
-                await reloadPlan();
-              }}
-            >
-              Oturum ekle
-            </button>
-          </div>
+          {canEdit ? (
+            <div className="grid md:grid-cols-6 gap-2 items-end">
+              <input className="field" type="time" value={item.startTime} onChange={(e) => setItem({ ...item, startTime: e.target.value })} />
+              <input className="field" type="time" value={item.endTime} onChange={(e) => setItem({ ...item, endTime: e.target.value })} />
+              <input className="field md:col-span-2" placeholder="Oturum başlığı" value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
+              <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
+                <option>Panel</option>
+                <option>Sunum</option>
+                <option>Etkinlik</option>
+                <option>Açılış</option>
+                <option>Quick Talk</option>
+                <option>Seminer</option>
+              </select>
+              <button
+                className="btn"
+                onClick={async () => {
+                  if (!item.title) return;
+                  await api("/api/agenda", { method: "POST", body: JSON.stringify({ dayId: day.id, ...item }) });
+                  setItem({ ...item, title: "" });
+                  await reload();
+                  await reloadPlan();
+                }}
+              >
+                Oturum ekle
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

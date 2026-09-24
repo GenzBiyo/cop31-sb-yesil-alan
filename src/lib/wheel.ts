@@ -115,6 +115,12 @@ export function describeWheel(game: {
     return { mode: "idle", from: angle, target: angle, startedAt, seconds };
   }
   if (game.phase !== "asking") {
+    const parsed = parseWheelView(game.view);
+    const start = startedAt ? new Date(startedAt).getTime() : 0;
+    const dur = (game.seconds || WHEEL_STOP_SEC) * 1000;
+    if (parsed.mode === "stop" && start && Date.now() < start + dur + 400) {
+      return { mode: "stop", from: parsed.from, target: angle, startedAt, seconds: game.seconds || WHEEL_STOP_SEC };
+    }
     return { mode: "idle", from: angle, target: angle, startedAt, seconds };
   }
   const parsed = parseWheelView(game.view);

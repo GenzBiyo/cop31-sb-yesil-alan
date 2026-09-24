@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
+import { memoClear } from "@/lib/memo";
 
 export async function POST(req: NextRequest) {
   const { user, error } = await withUser();
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
       sortOrder: Number(body.sortOrder || 0),
     },
   });
+  memoClear("public-program");
   broadcast({ type: "agenda" });
   return jsonOk(item, 201);
 }

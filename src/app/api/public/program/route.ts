@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonOk } from "@/lib/api";
 import { ensureEvents } from "@/lib/events-db";
 import { memoGet, memoSet } from "@/lib/memo";
+import { ensureAgendaSlots, tickAgendaReminders } from "@/lib/agenda";
 
 const FRESH = { "Cache-Control": "public, max-age=8, stale-while-revalidate=30" };
 
@@ -11,6 +12,8 @@ export async function GET() {
 
   const existing = await prisma.pavilionEvent.count();
   if (existing === 0) await ensureEvents();
+  await ensureAgendaSlots();
+  await tickAgendaReminders();
   const [days, events] = await Promise.all([
     prisma.thematicDay.findMany({
       include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },

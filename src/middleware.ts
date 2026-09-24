@@ -10,6 +10,7 @@ const PUBLIC = [
   "/COP31saglikbakanligi",
   "/cop31saglikbakanligi",
   "/p",
+  "/g",
   "/solaklar",
   "/e",
   "/oyun",

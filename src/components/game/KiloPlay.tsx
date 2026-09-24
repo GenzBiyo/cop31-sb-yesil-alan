@@ -70,7 +70,7 @@ export function KiloForm({
   }
 
   return (
-    <form className="card p-4 space-y-3" onSubmit={send}>
+    <form className="game-panel space-y-3" onSubmit={send}>
       <h2 className="display text-3xl">{tx("Cinsiyet, yaş, boy, kilo")}</h2>
       <p className="text-sm text-[#57534e]">
         {tx("BKİ’yi boy–kilo tablosuna göre okuruz; enerji ihtiyacı cinsiyete göre değişir. Tıbbi tanı değildir.")}
