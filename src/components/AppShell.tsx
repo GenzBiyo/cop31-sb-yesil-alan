@@ -21,6 +21,7 @@ import {
   Users,
   Trees,
   Trophy,
+  BadgeCheck,
 } from "lucide-react";
 import { api, copCountdown, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
@@ -36,6 +37,8 @@ type Me = {
   unread: number;
   openQa: number;
   pendingAccounts?: number;
+  pendingPanels?: number;
+  pendingEvents?: number;
 };
 
 const NAV = [
@@ -49,7 +52,8 @@ const NAV = [
   { href: "/hesaplar", label: "Hesap onayları", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Firma profilim", icon: Building2, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "SAGLIK"] },
+  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
   { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN", "SAGLIK"] },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
@@ -82,7 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useRealtime(
     useCallback(
       (type) => {
-        if (type === "inbox" || type === "announcement" || type === "qa" || type === "message" || type === "account" || type === "agenda") void load();
+        if (type === "inbox" || type === "announcement" || type === "qa" || type === "message" || type === "account" || type === "agenda" || type === "panel") void load();
       },
       [load]
     )
@@ -116,6 +120,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.href === "/mesajlar" && me && me.unread > 0 ? <span className="badge high">{me.unread}</span> : null}
                 {item.href === "/soru-cevap" && me && me.openQa > 0 ? <span className="badge warn">{me.openQa}</span> : null}
                 {item.href === "/hesaplar" && me && (me.pendingAccounts || 0) > 0 ? <span className="badge high">{me.pendingAccounts}</span> : null}
+                {item.href === "/paneller" && me && (me.pendingPanels || 0) > 0 ? <span className="badge warn">{me.pendingPanels}</span> : null}
+                {item.href === "/etkinlikler" && me && (me.pendingEvents || 0) > 0 ? <span className="badge warn">{me.pendingEvents}</span> : null}
               </Link>
             );
           })}

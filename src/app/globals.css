@@ -319,6 +319,101 @@ table.data td {
   flex: 0 0 auto;
 }
 
+.gate-main-logo {
+  display: block;
+  width: min(208px, 52vw);
+  height: auto;
+  margin: 0 auto 0.4rem;
+  filter: drop-shadow(0 10px 24px rgba(0, 119, 194, 0.35));
+}
+
+.gate-main-logo.is-admin {
+  width: 208px;
+  margin: 0;
+  filter: none;
+  background: #FFFFFF;
+  border: 1px solid #B5DFF2;
+  padding: 0.6rem 0.9rem;
+}
+
+.sponsor-rail {
+  position: relative;
+  z-index: 6;
+  flex: 0 0 auto;
+  pointer-events: auto;
+  width: 100%;
+  padding: 0.7rem 0 0.85rem;
+  background: #FFFFFF;
+}
+
+.sponsor-kicker {
+  text-align: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #0077C2;
+  margin: 0 0 0.4rem;
+}
+
+.sponsor-mask {
+  overflow: hidden;
+  width: 100%;
+  background: #FFFFFF;
+}
+
+.sponsor-track {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  width: max-content;
+  animation: sponsor-scroll 32s linear infinite;
+}
+
+.sponsor-rail:hover .sponsor-track {
+  animation-play-state: paused;
+}
+
+.sponsor-link { display: block; }
+
+.sponsor-tile {
+  width: 140px;
+  height: 72px;
+  flex: 0 0 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+}
+
+.sponsor-tile img {
+  width: 108px;
+  height: 52px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.sponsor-tile.is-admin {
+  flex: none;
+  border: 1px solid #B5DFF2;
+}
+
+@keyframes sponsor-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (min-width: 981px) {
+  .sponsor-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    bottom: calc(min(46vh, 420px) + 0.85rem);
+    padding-bottom: 0.7rem;
+    background: #FFFFFF;
+  }
+}
+
 .gate-kicker {
   font-size: 0.72rem;
   letter-spacing: 0.32em;
@@ -802,6 +897,11 @@ table.data td {
 @media (prefers-reduced-motion: reduce) {
   .climate-earth, .climate-earth img, .climate-lung, .climate-ring, .climate-heat, .climate-ecg path, .climate-mote {
     animation: none !important;
+  }
+  .sponsor-track {
+    animation: none !important;
+    overflow-x: auto;
+    max-width: 100%;
   }
   .score-row, .score-fill, .score-podium-col, .score-team, .score-chip, .score-shine, .score-row.is-lead {
     animation: none !important;

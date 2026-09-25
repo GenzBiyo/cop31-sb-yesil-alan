@@ -70,6 +70,10 @@ export function canManage(role: Role) {
   return role === "ADMIN" || role === "SAGLIK";
 }
 
+export function isAdmin(role: Role) {
+  return role === "ADMIN";
+}
+
 export async function hydrateUser(id: string) {
   return prisma.user.findUnique({
     where: { id },

@@ -6,13 +6,42 @@ import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
 import { setPanelGuests, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
+import { APPROVED, notifyCompanyDecision, PENDING, REJECTED } from "@/lib/proposals";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const { id } = await ctx.params;
+  const existing = await prisma.panel.findUnique({ where: { id } });
+  if (!existing) return jsonError("Panel yok", 404);
   const body = await req.json();
+
+  if (body.review) {
+    if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+    const decision = String(body.review);
+    const ok = decision === APPROVED || decision === "approve";
+    const no = decision === REJECTED || decision === "reject";
+    if (!ok && !no) return jsonError("Geçersiz karar");
+    const panel = await prisma.panel.update({
+      where: { id },
+      data: { status: ok ? "Planlama" : REJECTED },
+    });
+    if (ok) await syncPanelAgenda(panel);
+    else await prisma.agendaItem.deleteMany({ where: { panelId: id } });
+    await notifyCompanyDecision({
+      proposedById: existing.proposedById,
+      companyId: existing.companyId,
+      title: ok ? "Panel / sunum öneriniz onaylandı" : "Panel / sunum öneriniz reddedildi",
+      body: `${existing.title} · ${existing.date} ${existing.startTime}–${existing.endTime}${body.message ? `\n\n${body.message}` : ""}`,
+    });
+    broadcast({ type: "panel" });
+    broadcast({ type: "agenda" });
+    return jsonOk(panel);
+  }
+
+  const ownPending = user.role === "FIRMA" && existing.companyId === user.companyId && existing.status === PENDING;
+  if (!canManage(user.role) && !ownPending) return jsonError("Yetkiniz yok", 403);
+
   const data: Record<string, unknown> = {};
   if (body.title != null) data.title = String(body.title).trim();
   if (body.kind != null) data.kind = body.kind === "sunum" ? "sunum" : "panel";
@@ -25,7 +54,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.topic != null) data.topic = body.topic;
   if (body.location != null) data.location = body.location;
   if (body.partners != null) data.partners = body.partners;
-  if (body.status != null) data.status = body.status;
+  if (body.status != null && canManage(user.role) && body.status !== PENDING) data.status = body.status;
   if (body.notes != null) data.notes = body.notes;
   const panel = await prisma.panel.update({ where: { id }, data });
   if (body.moderator != null || body.speakers != null) {
@@ -43,7 +72,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       speakers,
     );
   }
-  await syncPanelAgenda(panel);
+  if (panel.status !== PENDING && panel.status !== REJECTED) await syncPanelAgenda(panel);
   broadcast({ type: "panel" });
   return jsonOk(panel);
 }
@@ -51,8 +80,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const { id } = await ctx.params;
+  const existing = await prisma.panel.findUnique({ where: { id } });
+  if (!existing) return jsonError("Panel yok", 404);
+  const ownPending = user.role === "FIRMA" && existing.companyId === user.companyId && existing.status === PENDING;
+  if (!canManage(user.role) && !ownPending) return jsonError("Yetkiniz yok", 403);
   await prisma.agendaItem.deleteMany({ where: { panelId: id } });
   await prisma.panel.delete({ where: { id } });
   broadcast({ type: "panel" });

@@ -9,6 +9,7 @@ git clean -fd -e .env -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db
 
 npm install
 npx prisma generate
+npx prisma db push
 NODE_OPTIONS=--max-old-space-size=3072 npx next build
 
 if pm2 describe cop31 >/dev/null 2>&1; then

@@ -35,22 +35,54 @@ function Play({ slug }: { slug: string }) {
   const [deg, setDeg] = useState(0);
   const [result, setResult] = useState<{ prize: string; score?: number } | null>(null);
   const [error, setError] = useState("");
+  const [signupId, setSignupId] = useState("");
+  const [phase, setPhase] = useState<"register" | "play">("register");
 
   const slices = data?.config.slices || [];
   const sliceAngle = slices.length ? 360 / slices.length : 60;
+  const isQa = data?.type === "gift-qa" || data?.type === "quiz";
 
   async function submit(extra: Record<string, unknown> = {}) {
     setError("");
+    if (isQa) {
+      const qs = data?.config.questions || [];
+      if (qs.some((_, i) => typeof answers[i] !== "number")) {
+        setError("Tüm soruları yanıtlayın");
+        return null;
+      }
+    }
     try {
       const res = await api<{ prize: string; score: number }>("/api/public/signup", {
         method: "POST",
-        body: JSON.stringify({ slug, ...who, elci, answers, survey, ...extra }),
+        body: JSON.stringify({ slug, ...who, elci, answers, survey, signupId, step: isQa ? "play" : undefined, ...extra }),
       });
       setResult({ prize: res.prize, score: res.score });
       return res;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Kayıt alınamadı");
       return null;
+    }
+  }
+
+  async function registerAndPlay() {
+    setError("");
+    if (!who.fullName.trim() || !who.email.includes("@")) {
+      setError("Ad ve geçerli e-posta gerekli");
+      return;
+    }
+    try {
+      const res = await api<{ id: string; alreadyPlayed?: boolean; prize?: string; score?: number }>("/api/public/signup", {
+        method: "POST",
+        body: JSON.stringify({ slug, ...who, elci, step: "register" }),
+      });
+      setSignupId(res.id);
+      if (res.alreadyPlayed) {
+        setResult({ prize: res.prize || "", score: res.score });
+        return;
+      }
+      setPhase("play");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Kayıt alınamadı");
     }
   }
 
@@ -85,26 +117,35 @@ function Play({ slug }: { slug: string }) {
       <div className="max-w-lg mx-auto p-5 space-y-4">
         <p>{tx(data.description)}</p>
         <p className="text-sm text-[#0077C2]">{tx("Hediye:")} {tx(data.gift)}</p>
-        <div className="card p-4 grid gap-2">
-          <h2 className="font-semibold">{tx("Katılımcı kaydı")}</h2>
-          <input className="field" placeholder={tx("Ad soyad *")} value={who.fullName} onChange={(e) => setWho({ ...who, fullName: e.target.value })} />
-          <input className="field" placeholder={tx("E-posta *")} type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} />
-          <input className="field" placeholder={tx("Telefon")} value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} />
-          <input className="field" placeholder={tx("Kurum")} value={who.organization} onChange={(e) => setWho({ ...who, organization: e.target.value })} />
-          <div className="grid grid-cols-2 gap-2">
-            <input className="field" placeholder={tx("Şehir")} value={who.city} onChange={(e) => setWho({ ...who, city: e.target.value })} />
-            <select className="field" value={who.visitorType} onChange={(e) => setWho({ ...who, visitorType: e.target.value })}>
-              <option value="Ziyaretçi">{tx("Ziyaretçi")}</option>
-              <option value="Öğrenci">{tx("Öğrenci")}</option>
-              <option value="Uzman">{tx("Uzman")}</option>
-              <option value="Medya">{tx("Medya")}</option>
-              <option value="Firma">{tx("Firma")}</option>
-            </select>
+        {(!isQa || phase === "register") && (
+          <div className="card p-4 grid gap-2">
+            <h2 className="font-semibold">{tx("Katılımcı kaydı")}</h2>
+            {isQa ? <p className="text-sm text-[#3E6A88]">{tx("Önce kayıt olun. Kayıt sonrası sorular açılır.")}</p> : null}
+            <input className="field" placeholder={tx("Ad soyad *")} value={who.fullName} onChange={(e) => setWho({ ...who, fullName: e.target.value })} />
+            <input className="field" placeholder={tx("E-posta *")} type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} />
+            <input className="field" placeholder={tx("Telefon")} value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} />
+            <input className="field" placeholder={tx("Kurum")} value={who.organization} onChange={(e) => setWho({ ...who, organization: e.target.value })} />
+            <div className="grid grid-cols-2 gap-2">
+              <input className="field" placeholder={tx("Şehir")} value={who.city} onChange={(e) => setWho({ ...who, city: e.target.value })} />
+              <select className="field" value={who.visitorType} onChange={(e) => setWho({ ...who, visitorType: e.target.value })}>
+                <option value="Ziyaretçi">{tx("Ziyaretçi")}</option>
+                <option value="Öğrenci">{tx("Öğrenci")}</option>
+                <option value="Uzman">{tx("Uzman")}</option>
+                <option value="Medya">{tx("Medya")}</option>
+                <option value="Firma">{tx("Firma")}</option>
+              </select>
+            </div>
+            {isQa ? (
+              <button className="btn w-full justify-center mt-1" onClick={() => void registerAndPlay()}>
+                {tx("Kayıt ol ve oyuna başla")}
+              </button>
+            ) : null}
           </div>
-        </div>
+        )}
 
-        {(data.type === "gift-qa" || data.type === "quiz") && (
+        {isQa && phase === "play" && (
           <div className="card p-4 space-y-3">
+            <p className="text-sm text-[#0077C2]">{tx("Kayıt alındı.")} {who.fullName} · {tx("Soruları yanıtlayın.")}</p>
             {(data.config.questions || []).map((q, i) => (
               <div key={q.q}>
                 <div className="text-sm font-semibold">{i + 1}. {tx(q.q)}</div>

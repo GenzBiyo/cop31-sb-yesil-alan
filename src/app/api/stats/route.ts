@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonOk, withTodoComputed, withUser } from "@/lib/api";
+import { canManage } from "@/lib/auth";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -32,7 +33,13 @@ export async function GET() {
       confirmed: companies.filter((c) => c.status === "Onaylandı").length,
       pending: companies.filter((c) => c.status === "Beklemede").length,
     },
-    panels: panels.length,
+    panels: panels.filter((p) => p.status !== "Onay bekliyor" && p.status !== "Reddedildi").length,
+    pendingProposals: canManage(user.role)
+      ? {
+          panels: panels.filter((p) => p.status === "Onay bekliyor").length,
+          events: await prisma.pavilionEvent.count({ where: { approvalStatus: "Onay bekliyor" } }),
+        }
+      : { panels: 0, events: 0 },
     announcements,
     openQa,
     days,

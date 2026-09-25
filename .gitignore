@@ -54,3 +54,5 @@ next-env.d.ts
 !/public/uploads/games/.gitkeep
 /public/uploads/hatira/*
 !/public/uploads/hatira/.gitkeep
+/public/uploads/sponsors/*
+!/public/uploads/sponsors/.gitkeep

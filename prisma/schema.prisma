@@ -161,6 +161,8 @@ model Panel {
   partners     String         @default("")
   status       String         @default("Planlama")
   notes        String         @default("")
+  companyId    String         @default("")
+  proposedById String         @default("")
   participants PanelPerson[]
   messages     PanelMessage[]
 }
@@ -337,9 +339,12 @@ model PavilionEvent {
   location    String        @default("Sağlık Pavilionu")
   description String        @default("")
   gift        String        @default("")
-  config      String        @default("{}")
-  published   Boolean       @default(true)
-  signups     EventSignup[]
+  config          String        @default("{}")
+  published       Boolean       @default(true)
+  companyId       String        @default("")
+  proposedById    String        @default("")
+  approvalStatus  String        @default("Onaylandı")
+  signups         EventSignup[]
 }
 
 model Visitor {
@@ -473,4 +478,14 @@ model GameAnswer {
 
   @@unique([playerId, questionId])
   @@index([questionId])
+}
+
+model Sponsor {
+  id        String   @id @default(cuid())
+  name      String
+  logoPath  String
+  url       String   @default("")
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
 }

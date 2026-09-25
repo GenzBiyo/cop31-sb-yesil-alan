@@ -42,6 +42,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
   for (const date of COP_DATES) byDate.set(date, []);
 
   for (const panel of panels) {
+    if (panel.status === "Onay bekliyor" || panel.status === "Reddedildi") continue;
     const kind: PlanKind = panel.kind === "sunum" ? "sunum" : "panel";
     const list = byDate.get(panel.date) || [];
     list.push({

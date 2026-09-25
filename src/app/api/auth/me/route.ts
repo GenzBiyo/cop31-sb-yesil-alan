@@ -1,6 +1,7 @@
 import { readSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { pendingProposalCounts } from "@/lib/proposals";
 
 export async function GET() {
   const session = await readSession();
@@ -17,5 +18,16 @@ export async function GET() {
     session.role === "ADMIN"
       ? await prisma.user.count({ where: { role: "FIRMA", accountStatus: "Beklemede" } })
       : 0;
-  return jsonOk({ ...session, unread, openQa, pendingAccounts });
+  const proposals =
+    session.role === "ADMIN" || session.role === "SAGLIK"
+      ? await pendingProposalCounts()
+      : { panels: 0, events: 0, total: 0 };
+  return jsonOk({
+    ...session,
+    unread,
+    openQa,
+    pendingAccounts,
+    pendingPanels: proposals.panels,
+    pendingEvents: proposals.events,
+  });
 }

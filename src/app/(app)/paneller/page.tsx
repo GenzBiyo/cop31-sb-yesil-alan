@@ -21,6 +21,8 @@ type Panel = {
   status: string;
   location: string;
   notes: string;
+  companyName?: string;
+  companyId?: string;
   participants: { id: string; role: string; confirmed: string; person: Person }[];
   messages: { id: string; authorId: string; body: string; createdAt: string }[];
 };
@@ -54,6 +56,9 @@ export default function PanelsPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<{ panels: Panel[]; people: Person[] }>("/api/panels");
   const { data: plan, reload: reloadPlan } = useApi<{ days: PlanDay[] }>("/api/plan");
+  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
+  const isFirma = me?.role === "FIRMA";
   const [open, setOpen] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -75,6 +80,7 @@ export default function PanelsPage() {
     const map = new Map<string, Panel[]>();
     for (const p of data?.panels || []) {
       if (!p.title.trim()) continue;
+      if (p.status === "Onay bekliyor" || p.status === "Reddedildi") continue;
       const list = map.get(p.date) || [];
       list.push(p);
       map.set(p.date, list);
@@ -106,7 +112,11 @@ export default function PanelsPage() {
     <div className="space-y-5">
       <div>
         <h1 className="display text-4xl">{tx("Paneller ve sunumlar")}</h1>
-        <p className="text-[#57534e]">Konuşmacı, moderatör, gün ve saat girin. 12 günlük COP takviminde panel, sunum ve etkinlik birlikte görünür.</p>
+        <p className="text-[#57534e]">
+          {isFirma
+            ? tx("Panel veya sunum önerin. Sağlık Bakanlığı hesabına onay için düşer; onaylanınca programa yazılır.")
+            : "Konuşmacı, moderatör, gün ve saat girin. 12 günlük COP takviminde panel, sunum ve etkinlik birlikte görünür."}
+        </p>
       </div>
 
       <CopDayGrid days={plan?.days || []} selected={day} onSelect={setDay} />
@@ -140,8 +150,57 @@ export default function PanelsPage() {
           <button type="button" className="btn ghost" onClick={() => setSpeakers([...speakers, { name: "", organization: "" }])}>Konuşmacı ekle</button>
         </div>
         <input className="field md:col-span-4" placeholder="Paydaşlar (MoH, UN, EBRD…)" value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
-        <button className="btn md:col-span-2" disabled={busy}>{busy ? "Kaydediliyor…" : form.kind === "sunum" ? "Sunum ekle" : "Panel ekle"}</button>
+        <button className="btn md:col-span-2" disabled={busy}>
+          {busy ? "Kaydediliyor…" : isFirma ? tx("SB'ye öner") : form.kind === "sunum" ? "Sunum ekle" : "Panel ekle"}
+        </button>
       </form>
+
+      {(data?.panels || []).some((p) => p.status === "Onay bekliyor") ? (
+        <section className="card p-4 space-y-3">
+          <h2 className="display text-2xl">{tx("Firma önerileri")}</h2>
+          <p className="text-sm text-[#57534e]">{tx("Onaylanınca ana programa ve gündeme işlenir.")}</p>
+          {(data?.panels || [])
+            .filter((p) => p.status === "Onay bekliyor")
+            .map((p) => (
+              <div key={p.id} className="border border-[#B5DFF2] p-3 space-y-2">
+                <div className="flex justify-between gap-2 flex-wrap">
+                  <div>
+                    <div className="text-xs text-[#0077C2]">
+                      {p.kind === "sunum" ? "Sunum" : "Panel"} · {p.date} {p.startTime}–{p.endTime}
+                    </div>
+                    <div className="font-semibold">{p.title}</div>
+                    <div className="text-sm text-[#57534e]">{p.companyName || p.partners} · {p.topic}</div>
+                  </div>
+                  <span className="badge warn">{tx("Onay bekliyor")}</span>
+                </div>
+                {canReview ? (
+                  <div className="flex gap-2">
+                    <button
+                      className="btn"
+                      onClick={async () => {
+                        await api(`/api/panels/${p.id}`, { method: "PATCH", body: JSON.stringify({ review: "approve" }) });
+                        await reload();
+                        await reloadPlan();
+                      }}
+                    >
+                      {tx("Onayla")}
+                    </button>
+                    <button
+                      className="btn ghost"
+                      onClick={async () => {
+                        await api(`/api/panels/${p.id}`, { method: "PATCH", body: JSON.stringify({ review: "reject" }) });
+                        await reload();
+                        await reloadPlan();
+                      }}
+                    >
+                      {tx("Reddet")}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+        </section>
+      ) : null}
 
       <div className="space-y-4">
         {grouped.map((g) => (
@@ -164,7 +223,7 @@ export default function PanelsPage() {
                           {people.speakers.map((s) => s.name).filter(Boolean).join(", ") || `${p.participants.length} kişi`}
                         </div>
                       </div>
-                      <span className="badge warn">{p.status}</span>
+                      <span className={`badge ${p.status === "Teyit edildi" || p.status === "Tamamlandı" ? "ok" : "warn"}`}>{p.status}</span>
                     </div>
                   </button>
                 );
@@ -174,7 +233,7 @@ export default function PanelsPage() {
         ))}
       </div>
 
-      {panel ? <PanelEditor key={panel.id} panel={panel} people={data?.people || []} onClose={() => setOpen(null)} onSaved={async () => { await reload(); await reloadPlan(); }} msg={msg} setMsg={setMsg} notify={notify} setNotify={setNotify} /> : null}
+      {panel ? <PanelEditor key={panel.id} panel={panel} people={data?.people || []} canManage={!!canReview} onClose={() => setOpen(null)} onSaved={async () => { await reload(); await reloadPlan(); }} msg={msg} setMsg={setMsg} notify={notify} setNotify={setNotify} /> : null}
     </div>
   );
 }
@@ -182,6 +241,7 @@ export default function PanelsPage() {
 function PanelEditor({
   panel,
   people,
+  canManage,
   onClose,
   onSaved,
   msg,
@@ -191,6 +251,7 @@ function PanelEditor({
 }: {
   panel: Panel;
   people: Person[];
+  canManage: boolean;
   onClose: () => void;
   onSaved: () => Promise<void>;
   msg: string;
@@ -269,28 +330,32 @@ function PanelEditor({
         ))}
         <button type="button" className="btn ghost" onClick={() => setSpeakers([...speakers, { name: "", organization: "" }])}>Konuşmacı ekle</button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
-        <button
-          className="btn ghost"
-          onClick={async () => {
-            if (!confirm("Bu kaydı silmek istiyor musunuz?")) return;
-            await api(`/api/panels/${panel.id}`, { method: "DELETE" });
-            onClose();
-            await onSaved();
-          }}
-        >
-          Sil
-        </button>
-      </div>
-      <label className="text-sm">Durum
-        <select className="field mt-1 max-w-xs" defaultValue={panel.status} onChange={(e) => api(`/api/panels/${panel.id}`, { method: "PATCH", body: JSON.stringify({ status: e.target.value }) })}>
-          <option>Planlama</option>
-          <option>Davetler gönderildi</option>
-          <option>Teyit edildi</option>
-          <option>Tamamlandı</option>
-        </select>
-      </label>
+      {canManage ? (
+        <>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
+            <button
+              className="btn ghost"
+              onClick={async () => {
+                if (!confirm("Bu kaydı silmek istiyor musunuz?")) return;
+                await api(`/api/panels/${panel.id}`, { method: "DELETE" });
+                onClose();
+                await onSaved();
+              }}
+            >
+              Sil
+            </button>
+          </div>
+          <label className="text-sm">Durum
+            <select className="field mt-1 max-w-xs" defaultValue={panel.status} onChange={(e) => api(`/api/panels/${panel.id}`, { method: "PATCH", body: JSON.stringify({ status: e.target.value }) })}>
+              <option>Planlama</option>
+              <option>Davetler gönderildi</option>
+              <option>Teyit edildi</option>
+              <option>Tamamlandı</option>
+            </select>
+          </label>
+        </>
+      ) : null}
       <h3 className="font-semibold">Kayıtlı kişiler</h3>
       <ul className="space-y-2">
         {panel.participants.map((pt) => (
@@ -308,7 +373,7 @@ function PanelEditor({
           </li>
         ))}
       </ul>
-      {people.length ? (
+      {canManage && people.length ? (
         <div className="flex gap-2">
           <select id="personPick" className="field">
             {people.map((p) => (

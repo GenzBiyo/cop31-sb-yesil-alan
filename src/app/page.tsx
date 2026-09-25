@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MOTES } from "@/components/gate/motes";
+import { MainLogo, SponsorRail } from "@/components/SponsorRail";
 import { useI18n } from "@/components/I18nProvider";
 
 const GATES = [
@@ -108,6 +109,7 @@ export default function HomePage() {
       </div>
 
       <header className="gate-hero climate-hero">
+        <MainLogo />
         <p className="gate-kicker">{tx("T.C. Sağlık Bakanlığı · COP31 Türkiye · Antalya 9–20 Kasım 2026")}</p>
         <h1 className="gate-slogan">
           {tx("Sağlıklı insan")}
@@ -125,6 +127,8 @@ export default function HomePage() {
           </p>
         ) : null}
       </header>
+
+      <SponsorRail />
 
       <nav className="gates climate-gates" aria-label={tx("Giriş kapıları")}>
         {GATES.map((g) => (
