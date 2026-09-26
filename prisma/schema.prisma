@@ -405,6 +405,21 @@ model Game {
   teams          GameTeam[]
   players        GamePlayer[]
   slices         GameSlice[]
+  tracks         GameTrack[]
+}
+
+model GameTrack {
+  id       String @id @default(cuid())
+  gameId   String
+  order    Int    @default(0)
+  url      String
+  videoId  String
+  title    String
+  artist   String @default("")
+  imageUrl String @default("")
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
 }
 
 model GameSlice {
@@ -488,4 +503,114 @@ model Sponsor {
   sortOrder Int      @default(0)
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+model AppDevice {
+  id           String            @id @default(cuid())
+  token        String            @unique
+  name         String            @default("")
+  email        String            @default("")
+  phone        String            @default("")
+  organization String            @default("")
+  role         String            @default("ziyaretci")
+  companyId    String            @default("")
+  personId     String            @default("")
+  pushJson     String            @default("")
+  createdAt    DateTime          @default(now())
+  notes        AppNote[]
+  questions    SessionQuestion[]
+  joins        AppJoin[]
+  scans        TagScan[]
+  meetings     MeetingRequest[]
+}
+
+model PavilionTag {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  title     String
+  message   String
+  location  String    @default("")
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  scans     TagScan[]
+}
+
+model TagScan {
+  id        String      @id @default(cuid())
+  tagId     String
+  deviceId  String
+  createdAt DateTime    @default(now())
+  tag       PavilionTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  device    AppDevice   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([tagId])
+  @@index([deviceId])
+}
+
+model AppNote {
+  id        String    @id @default(cuid())
+  deviceId  String
+  title     String
+  body      String
+  kind      String
+  ref       String    @default("")
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  device    AppDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, read])
+}
+
+model AppJoin {
+  id        String    @id @default(cuid())
+  deviceId  String
+  kind      String
+  refId     String
+  title     String
+  createdAt DateTime  @default(now())
+  device    AppDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, kind, refId])
+}
+
+model SessionQuestion {
+  id           String    @id @default(cuid())
+  deviceId     String
+  agendaId     String    @default("")
+  sessionTitle String    @default("")
+  author       String
+  authorRole   String    @default("ziyaretci")
+  body         String
+  status       String    @default("Yeni")
+  answer       String    @default("")
+  createdAt    DateTime  @default(now())
+  device       AppDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([agendaId, status])
+}
+
+model MeetingRequest {
+  id            String    @id @default(cuid())
+  fromDeviceId  String
+  fromDevice    AppDevice @relation(fields: [fromDeviceId], references: [id], onDelete: Cascade)
+  kind          String
+  withKind      String
+  withId        String    @default("")
+  withName      String
+  topic         String
+  message       String    @default("")
+  preferredDate String    @default("")
+  preferredTime String    @default("")
+  status        String    @default("Bekliyor")
+  whenDate      String    @default("")
+  startTime     String    @default("")
+  endTime       String    @default("")
+  location      String    @default("")
+  note          String    @default("")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([fromDeviceId])
+  @@index([withKind, withId])
+  @@index([status])
 }

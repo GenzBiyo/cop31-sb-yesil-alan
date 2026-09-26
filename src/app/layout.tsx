@@ -17,6 +17,24 @@ const display = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Healthy people, healthy planet · COP31 Health Pavilion",
   description: "Climate crisis, carbon and protective public health. Republic of Türkiye Ministry of Health COP31 Antalya Health Pavilion.",
+  applicationName: "COP31 Sağlık",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "COP31 Sağlık",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0077C2",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

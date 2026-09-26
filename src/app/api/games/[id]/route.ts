@@ -45,6 +45,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     include: {
       questions: { orderBy: { order: "asc" } },
       slices: { orderBy: { order: "asc" } },
+      tracks: { orderBy: { order: "asc" } },
       teams: { orderBy: { createdAt: "asc" } },
     },
   });

@@ -12,6 +12,8 @@ import { SolvedChips } from "@/components/game/MatchPlay";
 import { KiloWallView } from "@/components/game/KiloPlay";
 import type { KiloPublic } from "@/lib/kilo-live";
 import { HatiraWallView } from "@/components/game/HatiraPlay";
+import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
+import { ShareBar } from "@/components/game/ShareBar";
 import type { HatiraPublic } from "@/lib/hatira";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -48,6 +50,7 @@ type Wall = {
   match?: { mode: string; meters: { clean: number; health: number; joy: number }; bloom: boolean; solved: string[]; totalPairs: number } | null;
   kilo?: KiloPublic | null;
   hatira?: HatiraPublic | null;
+  plak?: { tracks: PlakTrack[]; spinning: boolean; startedAt: string | null; index: number } | null;
 };
 
 function Wall({ slug }: { slug: string }) {
@@ -103,6 +106,8 @@ function Wall({ slug }: { slug: string }) {
   const isMatch = wall.type === "match";
   const isKilo = wall.type === "kilo";
   const isHatira = wall.type === "hatira";
+  const isPlak = wall.type === "plak";
+  const plakTrack = isPlak && wall.plak && wall.plak.index >= 0 ? wall.plak.tracks[wall.plak.index] : null;
 
   return (
     <main className="cop-wall min-h-screen text-[#EEF8FD] grid lg:grid-cols-[1fr_300px]">
@@ -115,7 +120,28 @@ function Wall({ slug }: { slug: string }) {
         </p>
         <h1 className="display text-4xl md:text-6xl mt-2">{tx(wall.title)}</h1>
 
-        {isHatira ? (
+        {isPlak ? (
+          <div className="mt-6 flex-1 space-y-4">
+            <PlakReel
+              tracks={wall.plak?.tracks || []}
+              index={Math.max(0, wall.plak?.index || 0)}
+              startedAt={wall.plak?.startedAt || null}
+              spinning={Boolean(wall.plak?.spinning)}
+            />
+            {plakTrack ? (
+              <div className="space-y-3">
+                {wall.plak?.spinning ? <p className="text-xl text-[#C8EEFA]">Kapaklar dönüyor…</p> : <h2 className="display text-4xl md:text-6xl">{plakTrack.title}</h2>}
+                <p className="text-2xl text-[#C8EEFA]">
+                  {wall.spinPlayer ? `Bu parça ${wall.spinPlayer.nickname}'dan geliyor` : plakTrack.artist}
+                </p>
+                <PlakPlayer videoId={plakTrack.videoId} />
+                {wall.plak?.spinning ? null : <ShareBar text={`Bu parça ${wall.spinPlayer?.nickname || "COP31"}'dan geliyor: ${plakTrack.title}`} />}
+              </div>
+            ) : (
+              <p className="text-xl text-[#C8EEFA]">Karekodu okutun. Onaylanınca Döndür’e basın.</p>
+            )}
+          </div>
+        ) : isHatira ? (
           <div className="mt-6 flex-1">
             <HatiraWallView hatira={wall.hatira || null} />
           </div>
@@ -268,6 +294,7 @@ function Wall({ slug }: { slug: string }) {
                 <div className="mt-4">
                   <Scoreboard players={players} teams={wall.board?.teams} />
                 </div>
+                <ShareBar text={`${wall.title} sonucu. ${players[0] ? `${players[0].nickname} ${players[0].score} puan.` : ""}`} />
               </div>
             ) : (
               <p className="mt-6 text-[#C8EEFA]">{t("common.answered", { n: wall.results?.answered || 0, total: players.length })}</p>

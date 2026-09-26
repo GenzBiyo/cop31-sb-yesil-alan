@@ -49,6 +49,7 @@ type Detail = {
   seconds?: number;
   questions: Question[];
   slices: Slice[];
+  tracks?: { id: string; title: string; artist: string; url: string; imageUrl: string }[];
   board: {
     players: BoardPlayer[];
     teams: { name: string; color: string; score: number; members: number }[];
@@ -166,6 +167,8 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                   ? "Ziyaretçi yaş, boy ve kilo girer. 2035’e kadar gıda kaynaklı karbon izi telefonda ve duvarda animasyonla çıkar."
                   : data.type === "hatira"
                     ? "Ziyaretçi karekodu okutunca selfie çeker. Hazırla deyince COP31 Sağlık Bakanlığı hatıra fonu gelir. Gönderince admin onayına düşer."
+                    : data.type === "plak"
+                      ? "YouTube Music bağlantısını yapıştırın. Oyuncu Döndür’e basınca kapaklar döner, bir parça kalır ve çalar. Ekranda bu parça rumuzdan geliyor yazar."
                 : "Her soruya süre, puan ve isteğe bağlı video ekleyin. Varsayılan süre 15 saniyedir.",
             )}
           </p>
@@ -173,7 +176,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
         <div className="flex flex-wrap gap-2">
           <a className="btn" href={`/sunucu/${data.slug}`}>Admin yönetim</a>
           <a className="btn ghost" href={`/oyun/${data.slug}`} target="_blank">Duvar ekranı</a>
-          {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" ? (
+          {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" ? (
             <>
               <button className="btn ghost" onClick={() => void runGame("lobby")}>Lobiye al</button>
               <button className="btn ghost" onClick={() => void runGame("restart")}>Yeniden başlat</button>
@@ -202,7 +205,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           <textarea className="field" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           <div className="flex gap-2">
             <button className="btn" onClick={() => void saveMeta()}>Kaydet</button>
-            {data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" ? (
+            {data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" ? (
               <button
                 className="btn ghost"
                 onClick={() => void saveMeta({ loadSample: true })}
@@ -214,6 +217,8 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           {msg ? <p className="text-sm text-[#22A34A]">{msg}</p> : null}
         </div>
       </div>
+
+      {data.type === "plak" ? <PlakEditor id={data.id} tracks={data.tracks || []} onDone={() => reload()} /> : null}
 
       {data.type === "hatira" ? (
       <section className="card p-4 space-y-3">
@@ -306,7 +311,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
         ))}
         <button className="btn" onClick={() => void saveMeta()}>Dilimleri kaydet</button>
       </section>
-      ) : (
+      ) : data.type === "plak" ? null : (
       <section className="card p-4 space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="display text-3xl">Sorular</h2>
@@ -490,5 +495,64 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
         </div>
       </section>
     </div>
+  );
+}
+
+function PlakEditor({
+  id,
+  tracks,
+  onDone,
+}: {
+  id: string;
+  tracks: { id: string; title: string; artist: string; url: string; imageUrl: string }[];
+  onDone: () => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [msg, setMsg] = useState("");
+  return (
+    <section className="card p-4 space-y-3">
+      <h2 className="display text-3xl">YouTube Music parçaları</h2>
+      <p className="text-sm text-[#57534e]">Bağlantıyı yapıştırın. Kapak ve ad YouTube’dan gelir. Oyuncu Döndür’e basınca kapaklar döner, biri kalır ve o parça çalar.</p>
+      <div className="flex gap-2">
+        <input className="field" placeholder="https://music.youtube.com/watch?v=..." value={url} onChange={(e) => setUrl(e.target.value)} />
+        <button
+          className="btn"
+          type="button"
+          onClick={async () => {
+            setMsg("");
+            try {
+              await api(`/api/games/${id}/tracks`, { method: "POST", body: JSON.stringify({ url }) });
+              setUrl("");
+              setMsg("Parça eklendi");
+              onDone();
+            } catch (err) {
+              setMsg(err instanceof Error ? err.message : "Eklenemedi");
+            }
+          }}
+        >
+          Ekle
+        </button>
+      </div>
+      {msg ? <p className="text-sm">{msg}</p> : null}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {tracks.map((track) => (
+          <article key={track.id} className="border border-[#D4ECF6] p-3">
+            {track.imageUrl ? <img src={track.imageUrl} alt="" className="w-full h-28 object-cover" /> : null}
+            <div className="font-semibold mt-2">{track.title}</div>
+            <div className="text-sm text-[#3E6A88]">{track.artist}</div>
+            <button
+              className="btn ghost mt-2"
+              type="button"
+              onClick={async () => {
+                await api(`/api/games/${id}/tracks?trackId=${track.id}`, { method: "DELETE" });
+                onDone();
+              }}
+            >
+              Sil
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

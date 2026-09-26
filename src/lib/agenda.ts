@@ -162,6 +162,12 @@ export async function notifyAgenda(agendaId: string, opts: NotifyOpts) {
   memoClear("public-program");
   broadcast({ type: "inbox", payload: { agendaId, kind: opts.kind } });
   broadcast({ type: "agenda" });
+  try {
+    const { notifyAgendaFollowers } = await import("./visitor-app");
+    await notifyAgendaFollowers(agendaId, opts.title, opts.body);
+  } catch {
+    /* telefon uygulaması henüz hazır değilse e-posta akışı sürer */
+  }
   return { sent };
 }
 

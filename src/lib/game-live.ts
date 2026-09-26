@@ -7,6 +7,7 @@ import { snapshotKilo } from "./kilo-live";
 import { snapshotHatira } from "./hatira-live";
 import { parseHatiraLogos, type HatiraLogos } from "./hatira";
 import { describeWheel } from "./wheel";
+import { plakMotion } from "./plak";
 
 export type SharedGame = {
   id: string;
@@ -57,6 +58,12 @@ export type SharedGame = {
   kilo: ReturnType<typeof snapshotKilo> | null;
   hatira: Awaited<ReturnType<typeof snapshotHatira>> | null;
   logos: HatiraLogos | null;
+  plak: {
+    tracks: { id: string; title: string; artist: string; imageUrl: string; videoId: string }[];
+    spinning: boolean;
+    startedAt: string | null;
+    index: number;
+  } | null;
 };
 
 type CacheRow = { at: number; data: SharedGame };
@@ -96,6 +103,7 @@ async function loadPlay(slug: string): Promise<SharedGame | null> {
         select: { id: true, order: true, prompt: true, options: true, points: true, answer: true, seconds: true, videoUrl: true, videoPath: true },
       },
       slices: { orderBy: { order: "asc" }, select: { id: true, label: true, color: true, kind: true } },
+      tracks: { orderBy: { order: "asc" }, select: { id: true, title: true, artist: true, imageUrl: true, videoId: true } },
       teams: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, color: true } },
     },
   });
@@ -105,7 +113,7 @@ async function loadPlay(slug: string): Promise<SharedGame | null> {
   if (before === "asking" && game.phase === "reveal") broadcast({ type: "game" });
 
   const questions = found.questions;
-  const q = game.type === "wheel" || game.type === "match" || game.type === "kilo" || game.type === "hatira" ? null : game.currentIndex >= 0 ? questions[game.currentIndex] : null;
+  const q = game.type === "wheel" || game.type === "match" || game.type === "kilo" || game.type === "hatira" || game.type === "plak" ? null : game.currentIndex >= 0 ? questions[game.currentIndex] : null;
   const showReveal = game.phase === "reveal" || game.phase === "closed";
   const landed = game.type === "wheel" && game.currentIndex >= 0 ? found.slices[game.currentIndex] || null : null;
   const wheel = describeWheel(game);
@@ -161,6 +169,13 @@ async function loadPlay(slug: string): Promise<SharedGame | null> {
     kilo: game.type === "kilo" ? snapshotKilo(game.id) : null,
     hatira: game.type === "hatira" ? await snapshotHatira(game.id) : null,
     logos: game.type === "hatira" ? parseHatiraLogos(game.logoPath) : null,
+    plak:
+      game.type === "plak"
+        ? {
+            tracks: found.tracks,
+            ...plakMotion(game.view, game.questionStartedAt, game.currentIndex),
+          }
+        : null,
   };
 }
 

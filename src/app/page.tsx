@@ -57,10 +57,14 @@ export default function HomePage() {
   const { tx } = useI18n();
   const [inApp, setInApp] = useState(false);
   const [next, setNext] = useState<string | null>(null);
+  const [qrSrc, setQrSrc] = useState("/api/qr?path=%2Fu");
 
   useEffect(() => {
     const n = new URLSearchParams(window.location.search).get("next");
     if (n && n.startsWith("/")) setNext(n);
+    const origin = window.location.origin;
+    const local = /localhost|127\.0\.0\.1/i.test(origin);
+    setQrSrc(`/api/qr?path=${encodeURIComponent("/u")}${local ? "" : `&origin=${encodeURIComponent(origin)}`}`);
     fetch("/api/auth/me")
       .then((r) => {
         if (r.ok) {
@@ -129,6 +133,14 @@ export default function HomePage() {
       </header>
 
       <SponsorRail />
+
+      <a href="/u" className="phone-qr-card">
+        <img src={qrSrc} alt={tx("Uygulamayı telefona indir")} width={112} height={112} />
+        <span>
+          <strong>{tx("Uygulamayı telefona indir")}</strong>
+          <em>{tx("Karekodu okutun, ana ekrana ekleyin.")}</em>
+        </span>
+      </a>
 
       <nav className="gates climate-gates" aria-label={tx("Giriş kapıları")}>
         {GATES.map((g) => (

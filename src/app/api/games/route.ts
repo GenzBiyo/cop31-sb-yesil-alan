@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const body = await req.json();
   const rawType = String(body.type || "quiz");
-  const type = rawType === "wheel" || rawType === "match" || rawType === "kilo" || rawType === "hatira" ? rawType : "quiz";
+  const type = rawType === "wheel" || rawType === "match" || rawType === "kilo" || rawType === "hatira" || rawType === "plak" ? rawType : "quiz";
   const defaults =
     type === "wheel"
       ? { title: "Hediyeli Çark", slug: "hediye-carki", gift: SAMPLE_WHEEL.gift, description: SAMPLE_WHEEL.description, seconds: 6 }
@@ -121,6 +121,8 @@ export async function POST(req: NextRequest) {
           ? { title: SAMPLE_KILO.title, slug: SAMPLE_KILO.slug, gift: SAMPLE_KILO.gift, description: SAMPLE_KILO.description, seconds: SAMPLE_KILO.seconds }
         : type === "hatira"
           ? { title: SAMPLE_HATIRA.title, slug: SAMPLE_HATIRA.slug, gift: SAMPLE_HATIRA.gift, description: SAMPLE_HATIRA.description, seconds: SAMPLE_HATIRA.seconds }
+        : type === "plak"
+          ? { title: "Plak çevir", slug: "plak-cevir", gift: "Çalan parça pavilionda kalır", description: "YouTube Music bağlantısını yapıştırın. Döndür deyince kapaklar döner, bir parça kalır ve çalar.", seconds: 6 }
         : { title: "Yeni soru-cevap", slug: "soru-cevap", gift: "Birinci ödül: COP31 Sağlık Pavilionu hediye seti", description: "", seconds: 15 };
   const base = slugify(String(body.slug || body.title || defaults.slug));
   let slug = base;

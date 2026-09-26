@@ -4,7 +4,7 @@ const listeners = new Set<Listener>();
 const gameListeners = new Set<Listener>();
 
 export type RealtimeEvent = {
-  type: "message" | "qa" | "announcement" | "inbox" | "panel" | "todo" | "agenda" | "account" | "game";
+  type: "message" | "qa" | "announcement" | "inbox" | "panel" | "todo" | "agenda" | "account" | "game" | "app";
   payload?: unknown;
 };
 

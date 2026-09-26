@@ -67,7 +67,7 @@ export default function GamesHubPage() {
             <h2 className="display text-3xl mt-2">{tx(g.title)}</h2>
             <p className="text-sm mt-1">{tx(g.description)}</p>
             <p className="text-xs text-[#57534e] mt-2">
-              {tx("Duvar ekranı")} · {g.type === "wheel" ? t("common.slices", { n: g._count.slices || 0 }) : g.type === "match" ? tx("hafıza + eşleştirme") : g.type === "kilo" ? tx("yaş · boy · kilo") : g.type === "hatira" ? tx("hatıra selfie") : t("common.questions", { n: g._count.questions })} · {tx(g.location)}
+              {tx("Duvar ekranı")} · {g.type === "wheel" ? t("common.slices", { n: g._count.slices || 0 }) : g.type === "match" ? tx("hafıza + eşleştirme") : g.type === "kilo" ? tx("yaş · boy · kilo") : g.type === "hatira" ? tx("hatıra selfie") : g.type === "plak" ? tx("YouTube Music · kapak çevir") : t("common.questions", { n: g._count.questions })} · {tx(g.location)}
             </p>
           </div>
         </Link>

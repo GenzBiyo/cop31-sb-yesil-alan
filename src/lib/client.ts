@@ -132,7 +132,7 @@ export function useRealtime(onEvent: (type: string) => void) {
   useEffect(() => {
     const es = new EventSource("/api/realtime");
     const handler = (type: string) => () => handlerRef.current(type);
-    ["message", "qa", "announcement", "inbox", "panel", "todo", "agenda", "account", "game"].forEach((type) => {
+    ["message", "qa", "announcement", "inbox", "panel", "todo", "agenda", "account", "game", "app"].forEach((type) => {
       es.addEventListener(type, handler(type));
     });
     return () => es.close();

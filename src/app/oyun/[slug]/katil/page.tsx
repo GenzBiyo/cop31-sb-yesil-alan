@@ -13,6 +13,8 @@ import { HatiraPlay } from "@/components/game/HatiraPlay";
 import type { PlayerMatchView } from "@/lib/match-live";
 import type { HatiraLogos } from "@/lib/hatira";
 import { GameStage } from "@/components/game/GameStage";
+import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
+import { ShareBar } from "@/components/game/ShareBar";
 import { useI18n } from "@/components/I18nProvider";
 
 type Payload = {
@@ -47,6 +49,7 @@ type Payload = {
   match?: { mode: string; meters: { clean: number; health: number; joy: number }; bloom: boolean; solved: string[]; totalPairs: number } | null;
   matchBoard?: PlayerMatchView | null;
   logos?: HatiraLogos | null;
+  plak?: { tracks: PlakTrack[]; spinning: boolean; startedAt: string | null; index: number } | null;
 };
 
 function MatchPhone({
@@ -249,18 +252,59 @@ function Join({ slug }: { slug: string }) {
               <div className="game-panel">
                 {data.type === "wheel"
                   ? tx("Onaylandın. Çevir’e bas; çark dönünce Durdur ile yavaş yavaş dursun. Duvar ekranı da aynı dönüşü gösterir.")
+                  : data.type === "plak"
+                    ? tx("Onaylandın. Döndür’e bas. Kapaklar döner, kalan parça çalar.")
                   : data.type === "match"
                     ? tx("Onaylandın. Sunucu hafızayı veya eşleştirmeyi başlatınca kartlar gelir.")
                     : tx("Onaylandın. Sunucu oyunu başlatınca soru gelir.")}
               </div>
             ) : null}
-            {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.phase === "closed" ? (
-              <div className="game-panel">
+            {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" && data.phase === "closed" ? (
+              <div className="game-panel space-y-3">
                 <div className="display text-3xl">{tx("Yarışma bitti")}</div>
                 <p className="mt-2">{t("quiz.endedScore", { n: data.me?.score ?? 0 })}</p>
+                <ShareBar text={`${data.me?.nickname || ""} COP31 Sağlık oyununda ${data.me?.score ?? 0} puan.`} />
               </div>
             ) : null}
             {data.paused ? <div className="game-panel">{tx("Oyun durdu.")}</div> : null}
+
+            {data.type === "plak" ? (
+              <div className="game-panel space-y-3">
+                <PlakReel
+                  tracks={data.plak?.tracks || []}
+                  index={Math.max(0, data.plak?.index || 0)}
+                  startedAt={data.plak?.startedAt || null}
+                  spinning={Boolean(data.plak?.spinning)}
+                />
+                {data.plak?.spinning ? <p className="text-center">{tx("Kapaklar dönüyor…")}</p> : null}
+                {data.plak && data.plak.index >= 0 && data.plak.tracks[data.plak.index] ? (
+                  <div className="text-center space-y-2">
+                    {data.plak.spinning ? null : <div className="display text-3xl">{data.plak.tracks[data.plak.index].title}</div>}
+                    <p>{`Bu parça ${data.spinPlayer?.nickname || ""}'dan geliyor`}</p>
+                    {data.spinPlayer?.id === data.me?.id ? <PlakPlayer videoId={data.plak.tracks[data.plak.index].videoId} /> : null}
+                    {data.plak.spinning ? null : (
+                      <ShareBar text={`Bu parça ${data.spinPlayer?.nickname || "COP31"}'dan geliyor: ${data.plak.tracks[data.plak.index].title}`} />
+                    )}
+                  </div>
+                ) : null}
+                <button
+                  className="btn w-full justify-center"
+                  type="button"
+                  disabled={busy || Boolean(data.plak?.spinning) || !data.plak?.tracks.length}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await api(`/api/public/games/${slug}/plak`, { method: "POST" });
+                      await reload();
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {tx("Döndür")}
+                </button>
+              </div>
+            ) : null}
 
             {data.type === "wheel" ? (
               <div className="game-panel space-y-3">
@@ -327,7 +371,7 @@ function Join({ slug }: { slug: string }) {
               </div>
             ) : null}
 
-            {data.type !== "wheel" && data.type !== "match" && data.phase === "asking" && data.question ? (
+            {data.type !== "wheel" && data.type !== "match" && data.type !== "plak" && data.type !== "kilo" && data.type !== "hatira" && data.phase === "asking" && data.question ? (
               <div className="game-panel space-y-3">
                 <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">
                   {t("common.qProgress", { n: (data.question.index ?? 0) + 1, total: data.total })}

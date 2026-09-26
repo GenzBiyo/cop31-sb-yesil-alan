@@ -87,5 +87,6 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
     kilo: shared.kilo,
     hatira: shared.hatira,
     logos: shared.logos,
+    plak: shared.plak,
   });
 }

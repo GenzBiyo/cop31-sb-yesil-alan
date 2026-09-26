@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { HATIRA_FRAME, HATIRA_NATURE, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
 import { cutoutPerson, warmupSegmenter } from "@/lib/hatira-segment";
 import { useI18n } from "@/components/I18nProvider";
+import { ShareBar } from "@/components/game/ShareBar";
 
 const W = 900;
 const H = 1200;
@@ -220,6 +221,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
       {step === "ready" ? (
         <div className="hatira-stage is-frame">
           <img src={composed} alt="Hatıra" className="hatira-cam" />
+          <ShareBar text="COP31 Sağlık Pavilionu hatıram." image={composed} />
         </div>
       ) : null}
       {step === "sent" ? (
@@ -227,6 +229,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
           {composed ? <img src={composed} alt="Gönderilen hatıra" className="mx-auto max-w-full" /> : null}
           <h2 className="display text-4xl">{tx("Teşekkür ederiz")}</h2>
           <p className="text-sm text-[#57534e]">{tx("Admin onaylarsa hatıran pavilion duvarında görünür.")}</p>
+          <ShareBar text="COP31 Sağlık Pavilionu hatıram." image={composed} />
           <button className="btn ghost" type="button" onClick={retake}>{tx("Yeniden çek")}</button>
         </div>
       ) : null}

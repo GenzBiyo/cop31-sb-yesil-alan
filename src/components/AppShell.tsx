@@ -22,6 +22,7 @@ import {
   Trees,
   Trophy,
   BadgeCheck,
+  Smartphone,
 } from "lucide-react";
 import { api, copCountdown, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
@@ -46,6 +47,7 @@ const NAV = [
   { href: "/todos", label: "Hazırlık to-do", icon: ClipboardList, roles: ["ADMIN", "SAGLIK"] },
   { href: "/takvim", label: "Hazırlık takvimi", icon: CalendarDays, roles: ["ADMIN", "SAGLIK"] },
   { href: "/program", label: "COP31 gündem", icon: Sparkles, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/solaklar", label: "Solaklar outdoor", icon: Trees, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
   { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN", "SAGLIK"] },
