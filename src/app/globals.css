@@ -359,6 +359,7 @@ table.data td {
   overflow: hidden;
   width: 100%;
   background: #FFFFFF;
+  padding-right: 5.4rem;
 }
 
 .sponsor-track {
@@ -404,13 +405,9 @@ table.data td {
 
 @media (min-width: 981px) {
   .sponsor-rail {
-    position: absolute;
-    left: 0;
-    right: 0;
-    width: 100%;
-    bottom: calc(min(46vh, 420px) + 0.85rem);
-    padding-bottom: 0.7rem;
-    background: #FFFFFF;
+    position: relative;
+    z-index: 7;
+    flex: 0 0 auto;
   }
 }
 
@@ -2044,7 +2041,7 @@ button.q-opt:disabled { cursor: default; }
 .phone-qr-card {
   position: fixed;
   z-index: 40;
-  top: 6.2rem;
+  top: 9.4rem;
   right: 1rem;
   display: flex;
   align-items: center;

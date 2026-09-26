@@ -82,6 +82,7 @@ export default function HomePage() {
 
   return (
     <main className="gate-root climate-root is-open">
+      <SponsorRail />
       <div className="climate-scene" aria-hidden>
         <div className="climate-sky" />
         <div className="climate-heat" />
@@ -131,8 +132,6 @@ export default function HomePage() {
           </p>
         ) : null}
       </header>
-
-      <SponsorRail />
 
       <a href="/u" className="phone-qr-card">
         <img src={qrSrc} alt={tx("Uygulamayı telefona indir")} width={112} height={112} />
