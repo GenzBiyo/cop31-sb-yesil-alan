@@ -82,7 +82,6 @@ export default function HomePage() {
 
   return (
     <main className="gate-root climate-root is-open">
-      <SponsorRail />
       <div className="climate-scene" aria-hidden>
         <div className="climate-sky" />
         <div className="climate-heat" />
@@ -155,6 +154,7 @@ export default function HomePage() {
           </a>
         ))}
       </nav>
+      <SponsorRail />
     </main>
   );
 }
