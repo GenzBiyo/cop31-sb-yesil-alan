@@ -2,6 +2,8 @@ import { PrismaClient, type Person } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import seed from "./seed-data.json";
 import { DEMO_PASSWORD, THEME_TR } from "../src/lib/constants";
+import { OFFICIAL_PANELS } from "../src/lib/official-panels";
+import { OFFICIAL_TALKS } from "../src/lib/official-talks";
 import { HIDDEN_ASSETS_CONCEPT, HIDDEN_ASSETS_SUMMARY, HIDDEN_ASSETS_TITLE } from "../src/lib/session-concept";
 
 const prisma = new PrismaClient();
@@ -246,86 +248,27 @@ async function main() {
     people.find((p) => p.name.toLowerCase().includes(q.toLowerCase()) || p.organization.toLowerCase().includes(q.toLowerCase()));
 
   const panelSpecs = [
-    {
-      date: "2026-11-09",
-      title: "Sağlık Günü Açılış Paneli — Sağlıklı İnsan, Sağlıklı Gezegen",
-      start: "10:00",
-      end: "11:30",
-      partners: "MoH, WHO, UNEP",
-      topic: "Gıda sistemleri, tarım ve iklim-sağlık bağlantısı",
-      people: ["Emin", "Director General of Health Promotion", "UNEP"],
-      mods: [],
-    },
-    {
-      date: "2026-11-09",
-      title: "Antimikrobiyal Direnç ve İklim",
-      start: "14:00",
-      end: "15:15",
-      partners: "Astorg, MoH",
-      topic: "İklim değişikliği ve artan antibiyotik direnci",
-      people: ["Marc GATES"],
-      mods: ["Emin"],
-    },
-    {
-      date: "2026-11-10",
-      title: "Sağlık Tesislerinde Yeşil Enerji",
-      start: "10:30",
-      end: "12:00",
-      partners: "MoH, UN",
-      topic: "Yenilenebilir enerji ve enerji verimliliği fizibilitesi",
-      people: [],
-      mods: [],
-    },
-    {
-      date: "2026-11-11",
-      title: "Hastanelerde Sıfır Atık ve Döngüsel Ekonomi",
-      start: "11:00",
-      end: "12:30",
-      partners: "MoH, UN, Firmalar",
-      topic: "Kamu-özel işbirliği ile yeni döngüsel modeller",
-      people: ["Ahmet"],
-      mods: [],
-    },
-    {
-      date: "2026-11-12",
-      title: "Dirençli Şehirler ve Halk Sağlığı",
-      start: "10:00",
-      end: "11:30",
-      partners: "MoH, Yerel yönetimler",
-      topic: "Hava kirliliği, iklim riskleri ve sağlık koruma",
-      people: [],
-      mods: [],
-    },
-    {
-      date: "2026-11-13",
-      title: "EBRD ve EXIM Bank: Yeşil Sağlık Finansmanı",
-      start: "11:00",
-      end: "12:30",
-      partners: "EBRD, EXIM Bank, MoH",
-      topic: "Yeşil dönüşüm için proje geliştirme ve finansmana erişim",
-      people: ["ÜVEZ", "ÇAMÖZ"],
-      mods: ["Nihan"],
-    },
-    {
-      date: "2026-11-14",
-      title: "Yarının Sağlık Profesyonelleri",
-      start: "10:00",
-      end: "11:30",
-      partners: "Üniversiteler, İVEK, İSEK, Yinwest",
-      topic: "Gençlik, Erasmus ve yeşil dönüşüm",
-      people: ["Ahmet"],
-      mods: [],
-    },
-    {
-      date: "2026-11-16",
-      title: "Yeşil Sağlık Girişimleri",
-      start: "14:00",
-      end: "15:30",
-      partners: "Startuplar, MoH",
-      topic: "Sağlık ve iklim kesişiminde yenilikçi çözümler",
-      people: [],
-      mods: [],
-    },
+    ...OFFICIAL_PANELS.map((panel) => ({
+      date: panel.date,
+      title: panel.title,
+      start: panel.start,
+      end: panel.end,
+      partners: [panel.moderator, ...panel.panelists].join(", "),
+      topic: panel.topics,
+      summary: panel.topics,
+      concept: JSON.stringify({
+        titleEn: panel.titleEn,
+        partners: [panel.moderator, ...panel.panelists].join("\n"),
+        themePrimary: panel.theme,
+        purpose: panel.topics,
+        format: "Panel",
+        speakers: [`Moderatör: ${panel.moderator}`, ...panel.panelists.map((name) => `Panelist: ${name}`)].join("\n"),
+        references: "COP31 Planning (TR-MoH & UNEP)",
+      }),
+      people: panel.panelists,
+      mods: [panel.moderator],
+      namedGuests: true,
+    })),
     {
       date: "2026-11-18",
       title: "İklim, Eşitsizlik ve Kapsayıcı Geçiş",
@@ -333,8 +276,11 @@ async function main() {
       end: "12:00",
       partners: "UN, MoH",
       topic: "Adil geçiş, geçim kaynakları ve sosyal koruma",
+      summary: "",
+      concept: "",
       people: ["Nihan"],
-      mods: [],
+      mods: [] as string[],
+      namedGuests: false,
     },
   ];
 
@@ -348,27 +294,29 @@ async function main() {
         endTime: spec.end,
         theme: day?.themeTr || "",
         topic: spec.topic,
+        summary: spec.summary,
+        concept: spec.concept,
         partners: spec.partners,
+        location: "Sağlık Pavilionu — Ana Sahne",
         status: "Planlama",
       },
     });
-    for (const q of spec.people) {
-      const person = findPerson(q);
-      if (person) {
-        await prisma.panelPerson.create({
-          data: { panelId: panel.id, personId: person.id, role: "panelist", confirmed: "Davet edildi" },
-        });
+    const linkGuest = async (name: string, role: string) => {
+      let person = spec.namedGuests
+        ? people.find((item) => item.name === name)
+        : findPerson(name);
+      if (!person && spec.namedGuests) {
+        person = await prisma.person.create({ data: { name, organization: name, kind: role === "moderator" ? "moderator" : "speaker" } });
+        people.push(person);
       }
-    }
-    for (const q of spec.mods) {
-      const person = findPerson(q);
-      if (person) {
-        await prisma.panelPerson.create({
-          data: { panelId: panel.id, personId: person.id, role: "moderator", confirmed: "Davet edildi" },
-        });
-      }
-    }
-    if (day) {
+      if (!person) return;
+      await prisma.panelPerson.create({
+        data: { panelId: panel.id, personId: person.id, role, confirmed: "Davet edildi" },
+      });
+    };
+    for (const q of spec.mods) await linkGuest(q, "moderator");
+    for (const q of spec.people) await linkGuest(q, "panelist");
+    if (day && spec.start) {
       await prisma.agendaItem.create({
         data: {
           dayId: day.id,
@@ -382,6 +330,37 @@ async function main() {
           status: "Planlandı",
           sortOrder: 1,
         },
+      });
+    }
+  }
+
+  for (const spec of OFFICIAL_TALKS) {
+    const day = days.find((item) => item.date === spec.date);
+    const summary = `Süre: ${spec.minutes} dakika. Sunucu: ${spec.speakers.join(", ")}.`;
+    const talk = await prisma.panel.create({
+      data: {
+        title: spec.title,
+        kind: "sunum",
+        date: spec.date,
+        startTime: "",
+        endTime: "",
+        theme: day?.themeTr || "",
+        topic: summary,
+        summary,
+        notes: `${spec.minutes} dakika`,
+        partners: spec.speakers.join(", "),
+        location: "Sağlık Pavilionu — Ana Sahne",
+        status: "Planlama",
+      },
+    });
+    for (const name of spec.speakers) {
+      let person = people.find((item) => item.name === name);
+      if (!person) {
+        person = await prisma.person.create({ data: { name, organization: name, kind: "speaker" } });
+        people.push(person);
+      }
+      await prisma.panelPerson.create({
+        data: { panelId: talk.id, personId: person.id, role: "panelist", confirmed: "Davet edildi" },
       });
     }
   }

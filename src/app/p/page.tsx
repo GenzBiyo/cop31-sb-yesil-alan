@@ -1,9 +1,10 @@
 "use client";
 
 import { useApi, formatDate } from "@/lib/client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts } from "@/components/AgendaAlerts";
+import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 
 type Day = {
   date: string;
@@ -33,6 +34,7 @@ const TYPE_TR: Record<string, string> = {
 
 export default function PublicProgramPage() {
   const { tx } = useI18n();
+  const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
   const { data } = useApi<{ days: Day[]; events: Ev[] }>("/api/public/program");
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const grouped = useMemo(() => {
@@ -57,18 +59,23 @@ export default function PublicProgramPage() {
         <a href="/oyun" className="inline-block mt-3 ml-4 text-sm underline text-[#C8EEFA]">{tx("Etkileşim alanı / oyunlar →")}</a>
       </header>
       <div className="max-w-3xl mx-auto p-5 space-y-6">
-        {grouped.map(([date, block]) => (
+        <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
+        {grouped.map(([date, block]) => {
+          const agenda = (block.day?.agenda || []).filter((item) => agendaMatchesFilter(item.type, programFilter));
+          const events = programFilter === "all" || programFilter === "event" ? block.events : [];
+          if (!agenda.length && !events.length) return null;
+          return (
           <section key={date} className="card p-4">
             <div className="text-[#0077C2] font-semibold">{formatDate(date)}</div>
             <h2 className="display text-2xl">{tx(block.day?.themeTr || "Etkinlikler")}</h2>
-            {block.day?.agenda?.map((a) => (
+            {agenda.map((a) => (
               <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">
                 <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
                 {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{a.description}</div> : null}
                 <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
               </a>
             ))}
-            {block.events.map((e) => (
+            {events.map((e) => (
               <a key={e.slug} href={`/e/${e.slug}`} className="block mt-3 p-3 bg-[#EAF2F8] hover:bg-white">
                 <div className="text-xs uppercase tracking-wide text-[#0077C2]">{tx(TYPE_TR[e.type] || e.type)}</div>
                 <div className="font-semibold">{tx(e.title)}</div>
@@ -77,7 +84,8 @@ export default function PublicProgramPage() {
               </a>
             ))}
           </section>
-        ))}
+          );
+        })}
         <p className="text-xs text-[#57534e] text-center">QR ile açıldı · {origin}/p</p>
       </div>
     </main>

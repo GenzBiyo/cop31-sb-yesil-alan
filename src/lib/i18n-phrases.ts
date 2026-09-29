@@ -403,6 +403,7 @@ export const EN: Record<string, string> = {
   "sunum": "talk",
   "etkinlik": "event",
   "Boş gün": "Empty day",
+  "Bu günde henüz panel, sunum veya etkinlik yok.": "No panel, talk or event on this day yet.",
   "kayıt daha": "more items",
 
   "Hediyeli soru-cevap": "Quiz with a gift",
@@ -807,6 +808,9 @@ export const EN: Record<string, string> = {
   "Onaylandı": "Approved",
   "Reddedildi": "Rejected",
   "Tümü": "All",
+  "Tümü Göster": "Show all",
+  "Bu filtrede kayıt yok.": "Nothing in this filter.",
+  "Bu günde bu filtreye uyan oturum yok.": "No sessions match this filter on this day.",
   "Onayla ve bildir": "Approve and notify",
   "Reddet ve bildir": "Reject and notify",
   "Bu filtrede hesap yok.": "No accounts in this filter.",

@@ -4,7 +4,7 @@ import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { useMemo, useState } from "react";
 import { api, formatDay, useApi, useRealtime } from "@/lib/client";
 import { googleTemplateUrl } from "@/lib/calendar";
-import { CopDayGrid } from "@/components/CopDayGrid";
+import { CopDayGrid, type ProgramFilter, agendaMatchesFilter } from "@/components/CopDayGrid";
 import type { PlanDay } from "@/lib/plan-types";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
@@ -40,6 +40,7 @@ export default function ProgramPage() {
   const { data: me } = useApi<{ role: string }>("/api/auth/me");
   const canEdit = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const [open, setOpen] = useState<string | null>(null);
+  const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
   const [draft, setDraft] = useState<Partial<Day>>({});
   const [item, setItem] = useState({ startTime: "10:00", endTime: "11:00", title: "", type: "Panel", location: "Sağlık Pavilionu — Ana Sahne" });
   const [copied, setCopied] = useState(false);
@@ -53,6 +54,7 @@ export default function ProgramPage() {
   });
 
   const day = (data || []).find((d) => d.id === open);
+  const visibleAgenda = (day?.agenda || []).filter((row) => agendaMatchesFilter(row.type, programFilter));
   const subscribeUrl = useMemo(() => {
     if (typeof window === "undefined") return "/api/calendar";
     return `${window.location.origin}/api/calendar`;
@@ -100,6 +102,8 @@ export default function ProgramPage() {
       </p>
       <CopDayGrid
         days={plan?.days || []}
+        filter={programFilter}
+        onFilterChange={setProgramFilter}
         selected={(data || []).find((d) => d.id === open)?.date}
         onSelect={(date) => {
           const found = (data || []).find((d) => d.date === date);
@@ -125,7 +129,7 @@ export default function ProgramPage() {
           <h3 className="display text-2xl pt-2">{tx("Günün 5 kutusu")}</h3>
           <AgendaDayBoard
             date={day.date}
-            items={day.agenda}
+            items={visibleAgenda}
             canEdit={!!canEdit}
             onChanged={async () => {
               await reload();
@@ -133,7 +137,7 @@ export default function ProgramPage() {
             }}
           />
           <ul className="space-y-2">
-            {day.agenda.map((a) => (
+            {visibleAgenda.map((a) => (
               <li key={`cal-${a.id}`} className="text-xs text-[#57534e] flex gap-2">
                 <a className="text-[#0077C2] underline" href={googleTemplateUrl(calendarEvent(day, a))} target="_blank" rel="noreferrer">Google · {a.title}</a>
                 <a className="text-[#0077C2] underline" href={`/api/calendar?id=${a.id}`}>ICS</a>

@@ -1685,6 +1685,29 @@ button.q-opt:disabled { cursor: default; }
 }
 .kilo-stage.is-large .kilo-eq-card p { font-size: 0.82rem; }
 
+.program-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.program-filter-btn {
+  border: 1.5px solid #8EC8E0;
+  background: #fff;
+  color: #0B1C33;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.program-filter-btn.is-on {
+  color: #fff;
+  border-color: transparent;
+}
+.program-filter-btn[data-kind="all"].is-on { background: #0077C2; }
+.program-filter-btn[data-kind="panel"].is-on { background: #E31C23; }
+.program-filter-btn[data-kind="sunum"].is-on { background: #00A3E0; }
+.program-filter-btn[data-kind="event"].is-on { background: #32C45A; }
+
 .cop-day-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

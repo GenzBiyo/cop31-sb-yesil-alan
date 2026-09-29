@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
+import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 import { SessionBrief } from "@/components/SessionBrief";
 import { conceptHasDetail, emptyConcept, type SessionConcept } from "@/lib/session-concept";
 
@@ -177,6 +178,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<Flash | null>(null);
   const [dayId, setDayId] = useState("");
+  const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
   const [sessionId, setSessionId] = useState("");
   const [question, setQuestion] = useState("");
   const [manual, setManual] = useState(initialCode);
@@ -522,7 +524,8 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
               ))}
             </div>
             {day ? <p className="phone-kicker">{day.theme}</p> : null}
-            {(day?.agenda || []).map((item) => {
+            <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
+            {(day?.agenda || []).filter((item) => agendaMatchesFilter(item.type, programFilter)).map((item) => {
               const on = joined.has(`agenda:${item.id}`);
               return (
                 <article key={item.id} className="phone-card">
@@ -545,7 +548,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
                 </article>
               );
             })}
-            {!day?.agenda.length ? <p className="phone-muted">{tx("Bu gün için oturum yok.")}</p> : null}
+            {!day?.agenda.filter((item) => agendaMatchesFilter(item.type, programFilter)).length ? (
+              <p className="phone-muted">{tx(programFilter === "all" ? "Bu gün için oturum yok." : "Bu filtrede kayıt yok.")}</p>
+            ) : null}
           </section>
         ) : null}
 
