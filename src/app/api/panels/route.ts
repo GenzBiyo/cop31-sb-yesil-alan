@@ -95,6 +95,8 @@ export async function POST(req: NextRequest) {
       partners: body.partners || company?.name || "",
       status: fromFirma ? PENDING : body.status || "Planlama",
       notes: body.notes || "",
+      summary: String(body.summary || ""),
+      concept: typeof body.concept === "string" ? body.concept : JSON.stringify(body.concept || {}),
       companyId: fromFirma ? user.companyId || "" : "",
       proposedById: fromFirma ? user.id : "",
     },
@@ -106,7 +108,7 @@ export async function POST(req: NextRequest) {
     await notifySbProposal({
       title: kind === "sunum" ? "Firma sunum önerisi" : "Firma panel önerisi",
       body: `${company?.name || user.name}: ${panel.title} · ${panel.date} ${panel.startTime}–${panel.endTime}`,
-      href: "/paneller",
+      href: kind === "sunum" ? "/sunumlar" : "/paneller",
     });
   }
   broadcast({ type: "panel" });

@@ -49,6 +49,7 @@ export async function syncPanelAgenda(panel: {
   startTime: string;
   endTime: string;
   topic: string;
+  summary?: string;
   location: string;
 }) {
   const day = await prisma.thematicDay.findUnique({ where: { date: panel.date } });
@@ -59,7 +60,7 @@ export async function syncPanelAgenda(panel: {
     startTime: panel.startTime,
     endTime: panel.endTime,
     title: panel.title,
-    description: panel.topic,
+    description: (panel.summary || panel.topic || "").trim(),
     location: panel.location,
     type,
     panelId: panel.id,

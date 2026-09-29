@@ -52,6 +52,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.startTime != null) data.startTime = body.startTime;
   if (body.endTime != null) data.endTime = body.endTime;
   if (body.topic != null) data.topic = body.topic;
+  if (body.summary != null) data.summary = String(body.summary);
+  if (body.concept != null) data.concept = typeof body.concept === "string" ? body.concept : JSON.stringify(body.concept);
   if (body.location != null) data.location = body.location;
   if (body.partners != null) data.partners = body.partners;
   if (body.status != null && canManage(user.role) && body.status !== PENDING) data.status = body.status;

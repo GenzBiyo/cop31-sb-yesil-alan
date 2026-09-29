@@ -36,7 +36,8 @@ export async function GET() {
     panels: panels.filter((p) => p.status !== "Onay bekliyor" && p.status !== "Reddedildi").length,
     pendingProposals: canManage(user.role)
       ? {
-          panels: panels.filter((p) => p.status === "Onay bekliyor").length,
+          panels: panels.filter((p) => p.status === "Onay bekliyor" && p.kind !== "sunum").length,
+          talks: panels.filter((p) => p.status === "Onay bekliyor" && p.kind === "sunum").length,
           events: await prisma.pavilionEvent.count({ where: { approvalStatus: "Onay bekliyor" } }),
         }
       : { panels: 0, events: 0 },

@@ -2,6 +2,7 @@ import { PrismaClient, type Person } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import seed from "./seed-data.json";
 import { DEMO_PASSWORD, THEME_TR } from "../src/lib/constants";
+import { HIDDEN_ASSETS_CONCEPT, HIDDEN_ASSETS_SUMMARY, HIDDEN_ASSETS_TITLE } from "../src/lib/session-concept";
 
 const prisma = new PrismaClient();
 
@@ -383,6 +384,40 @@ async function main() {
         },
       });
     }
+  }
+
+  const hiddenDay = days.find((d) => d.date === "2026-11-09");
+  if (hiddenDay) {
+    const hidden = await prisma.panel.create({
+      data: {
+        title: HIDDEN_ASSETS_TITLE,
+        kind: "panel",
+        date: "2026-11-09",
+        startTime: "16:00",
+        endTime: "17:15",
+        theme: hiddenDay.themeTr,
+        topic: "Süper kirleticilerin sağlık, tarım ve ekonomik faydaları",
+        partners: "Astorg (Thermo Fisher), UNEP/CCAC, Sağlık Bakanlığı, Tarım ve Orman Bakanlığı",
+        summary: HIDDEN_ASSETS_SUMMARY,
+        concept: JSON.stringify(HIDDEN_ASSETS_CONCEPT),
+        location: "Sağlık Pavilionu — Ana Sahne",
+        status: "Planlama",
+      },
+    });
+    await prisma.agendaItem.create({
+      data: {
+        dayId: hiddenDay.id,
+        startTime: "16:00",
+        endTime: "17:15",
+        title: HIDDEN_ASSETS_TITLE,
+        description: HIDDEN_ASSETS_SUMMARY,
+        type: "Panel",
+        panelId: hidden.id,
+        location: "Sağlık Pavilionu — Ana Sahne",
+        status: "Planlandı",
+        sortOrder: 4,
+      },
+    });
   }
 
   const extraAgenda: Record<string, { start: string; end: string; title: string; type: string; loc?: string }[]> = {

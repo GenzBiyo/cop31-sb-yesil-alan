@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
+import { SessionBrief } from "@/components/SessionBrief";
+import { conceptHasDetail, emptyConcept, type SessionConcept } from "@/lib/session-concept";
 
 type AgendaItem = {
   id: string;
@@ -11,6 +13,7 @@ type AgendaItem = {
   endTime: string;
   location: string;
   description: string;
+  concept?: SessionConcept;
   status: string;
 };
 
@@ -529,6 +532,13 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
                   </div>
                   <h3>{item.title}</h3>
                   <p>{item.location}</p>
+                  {item.description.includes("boşluğu") && !conceptHasDetail(item.concept || emptyConcept()) ? null : (
+                    <SessionBrief
+                      tone="phone"
+                      summary={item.description.includes("boşluğu") ? "" : item.description}
+                      concept={item.concept || emptyConcept()}
+                    />
+                  )}
                   <button className={`phone-btn ${on ? "is-quiet" : ""}`} type="button" disabled={busy} onClick={() => void join("agenda", item.id, !on)}>
                     {on ? tx("Katıldınız") : tx("Katılacağım")}
                   </button>

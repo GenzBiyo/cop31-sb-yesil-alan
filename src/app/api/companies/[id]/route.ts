@@ -37,3 +37,15 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const company = await prisma.company.update({ where: { id }, data: body });
   return jsonOk(company);
 }
+
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { user, error } = await withUser();
+  if (error || !user) return error!;
+  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+  const { id } = await ctx.params;
+  const existing = await prisma.company.findUnique({ where: { id } });
+  if (!existing) return jsonError("Firma bulunamadı", 404);
+  await prisma.user.updateMany({ where: { companyId: id }, data: { companyId: null } });
+  await prisma.company.delete({ where: { id } });
+  return jsonOk({ ok: true });
+}

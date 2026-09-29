@@ -53,7 +53,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
       endTime: panel.endTime,
       location: panel.location,
       people: peopleLine(panel.participants),
-      href: "/paneller",
+      href: kind === "sunum" ? "/sunumlar" : "/paneller",
     });
     byDate.set(panel.date, list);
   }

@@ -2244,6 +2244,28 @@ body:has(.phone-app) {
 .phone-card p, .phone-card li { font-size: 14px; line-height: 1.45; }
 .phone-card ul { margin: 8px 0 0; padding-left: 18px; }
 .phone-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #3e6a88; }
+.concept-sheet { display: grid; gap: 14px; }
+.concept-kicker {
+  margin: 0 0 8px;
+  color: #0077c2;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.concept-copy p, .concept-copy li { line-height: 1.65; }
+.concept-copy p { margin: 0 0 10px; }
+.concept-copy ul { margin: 0 0 10px; padding-left: 1.15rem; }
+.concept-body { display: grid; gap: 16px; }
+.concept-block { border-top: 1px solid #b5dff2; padding-top: 14px; }
+.concept-block h3 {
+  margin: 0 0 8px;
+  color: #0077c2;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.concept-sheet.is-phone .concept-copy p,
+.concept-sheet.is-phone .concept-copy li { font-size: 14px; }
 .phone-kicker { color: #0077c2; font-size: 13px; margin-bottom: 8px; }
 .phone-muted { color: #3e6a88; font-size: 13px; }
 .phone-error { background: #fff; color: #e31c23; border: 1px solid #e31c23; padding: 8px 10px; margin-bottom: 10px; font-size: 14px; }

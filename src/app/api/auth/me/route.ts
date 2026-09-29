@@ -21,13 +21,14 @@ export async function GET() {
   const proposals =
     session.role === "ADMIN" || session.role === "SAGLIK"
       ? await pendingProposalCounts()
-      : { panels: 0, events: 0, total: 0 };
+      : { panels: 0, talks: 0, events: 0, total: 0 };
   return jsonOk({
     ...session,
     unread,
     openQa,
     pendingAccounts,
     pendingPanels: proposals.panels,
+    pendingTalks: proposals.talks,
     pendingEvents: proposals.events,
   });
 }

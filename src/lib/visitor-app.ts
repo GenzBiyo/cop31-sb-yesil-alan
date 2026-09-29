@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { broadcast } from "./realtime";
 import { ensureEvents } from "./events-db";
 import { ensureAgendaSlots } from "./agenda";
+import { parseConcept } from "./session-concept";
 import { validEmail, validPhone } from "./agenda-time";
 
 const DEMO_TAGS = [
@@ -217,21 +218,32 @@ export async function appState(deviceId: string) {
     },
     directory: { companies, speakers },
     vapidPublicKey: keys.publicKey,
-    days: days.map((day) => ({
-      id: day.id,
-      date: day.date,
-      theme: day.themeTr,
-      agenda: day.agenda.map((item) => ({
-        id: item.id,
-        title: item.title,
-        type: item.type,
-        startTime: item.startTime,
-        endTime: item.endTime,
-        location: item.location,
-        description: item.description,
-        status: item.status,
-      })),
-    })),
+    days: await (async () => {
+      const panelIds = [...new Set(days.flatMap((day) => day.agenda.map((item) => item.panelId).filter((id): id is string => Boolean(id))))];
+      const panels = panelIds.length
+        ? await prisma.panel.findMany({ where: { id: { in: panelIds } }, select: { id: true, summary: true, concept: true } })
+        : [];
+      const byId = new Map(panels.map((panel) => [panel.id, panel]));
+      return days.map((day) => ({
+        id: day.id,
+        date: day.date,
+        theme: day.themeTr,
+        agenda: day.agenda.map((item) => {
+          const panel = item.panelId ? byId.get(item.panelId) : undefined;
+          return {
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            location: item.location,
+            description: panel?.summary || item.description,
+            concept: parseConcept(panel?.concept),
+            status: item.status,
+          };
+        }),
+      }));
+    })(),
     events: events.map((event) => ({
       id: event.id,
       slug: event.slug,

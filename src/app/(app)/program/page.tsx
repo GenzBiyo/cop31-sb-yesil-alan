@@ -86,22 +86,12 @@ export default function ProgramPage() {
           <button className="btn ghost" onClick={copySubscribe}>{copied ? "URL kopyalandı" : "Google’a abone URL"}</button>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-3">
-        <div className="card p-4 flex flex-wrap gap-6 items-center">
-          <QrImage path="/p" alt="Program QR" size={140} />
-          <div>
-            <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">Dışarıya açık program QR</div>
-            <p className="text-sm mt-1">Ziyaretçi okutunca gündem ve etkinlik kayıtları açılır. Baskı için bu karekodu kullanın.</p>
-            <a className="text-sm text-[#0077C2] underline" href="/p" target="_blank">{publicOrigin}/p</a>
-          </div>
-        </div>
-        <div className="card p-4 flex flex-wrap gap-6 items-center">
-          <QrImage path="/solaklar" alt="Solaklar QR" size={140} />
-          <div>
-            <div className="text-xs tracking-[0.16em] uppercase text-[#22A34A]">Solaklar outdoor QR</div>
-            <p className="text-sm mt-1">11–12 Kasım sıfır atık köyü açık hava programı. Köy girişine ve elçi yaka kartına basılır.</p>
-            <a className="text-sm text-[#22A34A] underline" href="/solaklar" target="_blank">{publicOrigin}/solaklar</a>
-          </div>
+      <div className="card p-4 flex flex-wrap gap-6 items-center max-w-xl">
+        <QrImage path="/p" alt="Program QR" size={140} />
+        <div>
+          <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">Dışarıya açık program QR</div>
+          <p className="text-sm mt-1">Ziyaretçi okutunca gündem ve etkinlik kayıtları açılır. Baskı için bu karekodu kullanın.</p>
+          <a className="text-sm text-[#0077C2] underline" href="/p" target="_blank">{publicOrigin}/p</a>
         </div>
       </div>
       <p className="text-sm text-[#57534e]">

@@ -20,25 +20,55 @@ export async function GET() {
   return jsonOk(companies);
 }
 
+const TR: Record<string, string> = {
+  ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u",
+  Ç: "c", Ğ: "g", İ: "i", Ö: "o", Ş: "s", Ü: "u",
+};
+
+function slugify(raw: string) {
+  const base = raw
+    .split("")
+    .map((ch) => TR[ch] || ch)
+    .join("")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 36);
+  return base || "firma";
+}
+
+async function uniqueSlug(name: string) {
+  const base = slugify(name);
+  let slug = base;
+  for (let n = 2; n < 100; n++) {
+    const taken = await prisma.company.findUnique({ where: { slug } });
+    if (!taken) return slug;
+    slug = `${base}-${n}`.slice(0, 40);
+  }
+  return `${base}-${Date.now().toString(36)}`.slice(0, 40);
+}
+
 export async function POST(req: NextRequest) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const body = await req.json();
+  const name = String(body.name || "").trim();
+  if (!name) return jsonError("Firma adı gerekli");
   const company = await prisma.company.create({
     data: {
-      slug: (body.slug || body.name || "firma")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .slice(0, 40),
-      name: body.name,
+      slug: await uniqueSlug(String(body.slug || name)),
+      name,
       scope: body.scope || "Local",
       topic: body.topic || "",
       context: body.context || "",
       participationDates: body.participationDates || "",
       contribution: body.contribution || "",
       status: body.status || "Beklemede",
+      booth: body.booth || "",
+      contactName: body.contactName || "",
       contactEmail: body.contactEmail || "",
+      contactPhone: body.contactPhone || "",
     },
   });
   return jsonOk(company, 201);

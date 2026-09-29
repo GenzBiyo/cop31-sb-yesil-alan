@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { tickAgendaReminders } from "@/lib/agenda";
+import { parseConcept } from "@/lib/session-concept";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   await tickAgendaReminders();
@@ -10,11 +11,19 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     include: { day: true },
   });
   if (!item) return jsonError("Oturum yok", 404);
+  const panel = item.panelId
+    ? await prisma.panel.findUnique({
+        where: { id: item.panelId },
+        select: { summary: true, concept: true, topic: true },
+      })
+    : null;
   return jsonOk({
     id: item.id,
     title: item.title,
     type: item.type,
     description: item.description,
+    summary: panel?.summary || item.description,
+    concept: parseConcept(panel?.concept),
     location: item.location,
     startTime: item.startTime,
     endTime: item.endTime,

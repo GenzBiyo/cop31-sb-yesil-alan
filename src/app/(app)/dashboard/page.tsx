@@ -8,7 +8,7 @@ type Stats = {
   todos: { total: number; byStatus: Record<string, number>; avg: number; risk: number; upcoming: number };
   companies: { total: number; confirmed: number; pending: number };
   panels: number;
-  pendingProposals?: { panels: number; events: number };
+  pendingProposals?: { panels: number; talks?: number; events: number };
   announcements: number;
   openQa: number;
   days: { date: string; themeTr: string; agenda: { id: string }[] }[];
@@ -25,16 +25,17 @@ export default function DashboardPage() {
         <h1 className="display text-4xl">{tx("Hazırlık özeti")}</h1>
         <p className="text-[#57534e]">{tx("COP31 Sağlık Pavilionu (Yeşil Alan) · Antalya EXPO Center")}</p>
       </div>
-      {(data.pendingProposals?.panels || 0) + (data.pendingProposals?.events || 0) > 0 ? (
+      {(data.pendingProposals?.panels || 0) + (data.pendingProposals?.talks || 0) + (data.pendingProposals?.events || 0) > 0 ? (
         <div className="card p-4 flex flex-wrap justify-between gap-3 items-center" style={{ borderLeft: "4px solid #00A3E0" }}>
           <div>
             <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">{tx("Firma önerileri")}</div>
             <p className="text-sm mt-1">
-              {data.pendingProposals?.panels || 0} {tx("panel / sunum")} · {data.pendingProposals?.events || 0} {tx("etkinlik")} {tx("onay bekliyor")}
+              {data.pendingProposals?.panels || 0} {tx("panel")} · {data.pendingProposals?.talks || 0} {tx("konuşma")} · {data.pendingProposals?.events || 0} {tx("etkinlik")} {tx("onay bekliyor")}
             </p>
           </div>
           <div className="flex gap-2">
             <Link className="btn" href="/paneller">{tx("Paneller")}</Link>
+            <Link className="btn ghost" href="/sunumlar">{tx("Konuşmalar")}</Link>
             <Link className="btn ghost" href="/etkinlikler">{tx("Etkinlikler")}</Link>
           </div>
         </div>

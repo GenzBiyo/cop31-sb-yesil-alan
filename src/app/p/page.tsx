@@ -9,7 +9,7 @@ type Day = {
   date: string;
   themeTr: string;
   topic1: string;
-  agenda: { id: string; startTime: string; endTime: string; title: string; location: string; type: string }[];
+  agenda: { id: string; startTime: string; endTime: string; title: string; location: string; type: string; description?: string }[];
 };
 type Ev = {
   slug: string;
@@ -64,7 +64,8 @@ export default function PublicProgramPage() {
             {block.day?.agenda?.map((a) => (
               <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">
                 <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
-                <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {tx("QR ile kayıt")}</div>
+                {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{a.description}</div> : null}
+                <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
               </a>
             ))}
             {block.events.map((e) => (

@@ -161,6 +161,8 @@ model Panel {
   partners     String         @default("")
   status       String         @default("Planlama")
   notes        String         @default("")
+  summary      String         @default("")
+  concept      String         @default("")
   companyId    String         @default("")
   proposedById String         @default("")
   participants PanelPerson[]

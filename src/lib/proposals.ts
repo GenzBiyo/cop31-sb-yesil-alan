@@ -52,9 +52,10 @@ export async function notifyCompanyDecision(opts: {
 }
 
 export async function pendingProposalCounts() {
-  const [panels, events] = await Promise.all([
-    prisma.panel.count({ where: { status: PENDING } }),
+  const [panels, talks, events] = await Promise.all([
+    prisma.panel.count({ where: { status: PENDING, NOT: { kind: "sunum" } } }),
+    prisma.panel.count({ where: { status: PENDING, kind: "sunum" } }),
     prisma.pavilionEvent.count({ where: { approvalStatus: PENDING } }),
   ]);
-  return { panels, events, total: panels + events };
+  return { panels, talks, events, total: panels + talks + events };
 }

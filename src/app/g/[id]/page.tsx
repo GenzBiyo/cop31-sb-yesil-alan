@@ -5,12 +5,16 @@ import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts, rememberNotifyEmail } from "@/components/AgendaAlerts";
 import { formatWhen } from "@/lib/agenda-time";
+import { SessionBrief } from "@/components/SessionBrief";
+import { emptyConcept, type SessionConcept } from "@/lib/session-concept";
 
 type Slot = {
   id: string;
   title: string;
   type: string;
   description: string;
+  summary?: string;
+  concept?: SessionConcept;
   location: string;
   startTime: string;
   endTime: string;
@@ -77,7 +81,8 @@ function Form({ id }: { id: string }) {
         </p>
         <p className="text-sm mt-1 opacity-90">{tx(data.themeTr)}</p>
       </header>
-      <div className="max-w-md mx-auto p-5">
+      <div className="max-w-3xl mx-auto p-5 space-y-4">
+        <SessionBrief summary={data.summary || data.description} concept={data.concept || emptyConcept()} startOpen />
         {done ? (
           <div className="card p-5 space-y-2">
             <h2 className="display text-3xl text-[#0077C2]">{tx("Kaydınız alındı")}</h2>
