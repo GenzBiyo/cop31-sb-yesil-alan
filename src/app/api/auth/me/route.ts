@@ -22,6 +22,12 @@ export async function GET() {
     session.role === "ADMIN" || session.role === "SAGLIK"
       ? await pendingProposalCounts()
       : { panels: 0, talks: 0, events: 0, total: 0 };
+  const pendingCompliance =
+    session.role === "ADMIN" || session.role === "SAGLIK"
+      ? await prisma.companySubmission.count({
+          where: { type: { in: ["etkinlik", "ikram", "esantiyon"] }, status: "Onay bekliyor" },
+        })
+      : 0;
   return jsonOk({
     ...session,
     unread,
@@ -30,5 +36,6 @@ export async function GET() {
     pendingPanels: proposals.panels,
     pendingTalks: proposals.talks,
     pendingEvents: proposals.events,
+    pendingCompliance,
   });
 }

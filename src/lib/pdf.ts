@@ -173,3 +173,29 @@ export async function pdfCompanyKit(companyId?: string): Promise<Buffer> {
   doc.end();
   return done;
 }
+
+export async function pdfPavilionRules(text: string): Promise<Buffer> {
+  const doc = makePdf();
+  const chunks: Buffer[] = [];
+  doc.on("data", (c) => chunks.push(c as Buffer));
+  const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
+  header(doc, "Pavilyon Kullanım Kuralları");
+  for (const raw of text.replace(/\r\n/g, "\n").split("\n")) {
+    const line = raw.trim();
+    if (!line || /^\|?\s*-{3,}/.test(line)) continue;
+    if (doc.y > 760) doc.addPage();
+    if (line.startsWith("# ")) {
+      doc.moveDown(0.4).fillColor("#0077C2").fontSize(14).text(line.slice(2));
+    } else if (line.startsWith("## ")) {
+      doc.moveDown(0.3).fillColor("#0077C2").fontSize(12).text(line.slice(3));
+    } else if (line.startsWith("|")) {
+      const cells = line.split("|").slice(1, -1).map((cell) => cell.trim()).filter(Boolean);
+      doc.fillColor("#1a1a1a").fontSize(9).text(cells.join("  ·  "));
+    } else {
+      const bullet = line.startsWith("- ") ? `• ${line.slice(2)}` : line;
+      doc.fillColor("#1a1a1a").fontSize(10).text(bullet, { width: 500 });
+    }
+  }
+  doc.end();
+  return done;
+}

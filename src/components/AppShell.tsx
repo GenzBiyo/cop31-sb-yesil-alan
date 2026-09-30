@@ -9,6 +9,8 @@ import {
   CalendarDays,
   ClipboardList,
   FileDown,
+  ScrollText,
+  ClipboardCheck,
   LayoutDashboard,
   LogOut,
   Map,
@@ -42,6 +44,7 @@ type Me = {
   pendingPanels?: number;
   pendingTalks?: number;
   pendingEvents?: number;
+  pendingCompliance?: number;
 };
 
 const NAV = [
@@ -66,6 +69,8 @@ const NAV = [
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN", "SAGLIK"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -128,6 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.href === "/paneller" && me && (me.pendingPanels || 0) > 0 ? <span className="badge warn">{me.pendingPanels}</span> : null}
                 {item.href === "/sunumlar" && me && (me.pendingTalks || 0) > 0 ? <span className="badge warn">{me.pendingTalks}</span> : null}
                 {item.href === "/etkinlikler" && me && (me.pendingEvents || 0) > 0 ? <span className="badge warn">{me.pendingEvents}</span> : null}
+                {item.href === "/uygunluk" && me && (me.pendingCompliance || 0) > 0 ? <span className="badge warn">{me.pendingCompliance}</span> : null}
               </Link>
             );
           })}

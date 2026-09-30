@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { api, useApi } from "@/lib/client";
+import { useI18n } from "@/components/I18nProvider";
+import { PavilionRulesDialog } from "@/components/PavilionRules";
 
 type Company = {
   id: string;
@@ -17,20 +19,35 @@ type Company = {
   notes: string;
   status: string;
   rules: { id: string; title: string; body: string; dueDate: string; status: string }[];
-  submissions: { id: string; type: string; title: string; payload: string; status: string; eventDate: string }[];
+  submissions: { id: string; type: string; title: string; payload: string; quantity?: string; reviewNote?: string; status: string; eventDate: string }[];
 };
 
+const COMPLIANCE = [
+  { id: "etkinlik", label: "Etkinlik / sunum" },
+  { id: "ikram", label: "İkram" },
+  { id: "esantiyon", label: "Eşantiyon" },
+];
+
 export default function ProfilePage() {
+  const { tx } = useI18n();
   const { data, reload } = useApi<Company[]>("/api/companies");
   const company = data?.[0];
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [sub, setSub] = useState({ type: "calendar", title: "", payload: "", eventDate: "" });
+  const [item, setItem] = useState({ type: "esantiyon", title: "", quantity: "", payload: "" });
+  const [formError, setFormError] = useState("");
   if (!company) return <p>Yükleniyor…</p>;
+  const compliance = company.submissions.filter((row) => COMPLIANCE.some((kind) => kind.id === row.type));
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">Firma profili</p>
-        <h1 className="display text-4xl">{company.name}</h1>
-        <p className="text-[#57534e]">{company.scope} · Stant {company.booth || "atanacak"} · {company.status}</p>
+      <PavilionRulesDialog open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <div className="flex justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">Firma profili</p>
+          <h1 className="display text-4xl">{company.name}</h1>
+          <p className="text-[#57534e]">{company.scope} · Stant {company.booth || "atanacak"} · {company.status}</p>
+        </div>
+        <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button>
       </div>
       <div className="card p-4 grid md:grid-cols-2 gap-3">
         <div><div className="text-xs uppercase text-[#57534e]">Konu</div><div>{company.topic || "—"}</div></div>
@@ -66,6 +83,48 @@ export default function ProfilePage() {
           ))}
         </ul>
       </section>
+      <section className="card p-4 space-y-3">
+        <h2 className="display text-2xl">{tx("Etkinlik, ikram ve eşantiyon")}</h2>
+        <p className="text-sm text-[#57534e]">
+          {tx("Dağıtacağınız veya ikram edeceğiniz her kalemi adet ve tanımla Sağlık Bakanlığı onayına sunun. Uygun kararı almayan hiçbir şey pavilyonda dağıtılamaz.")}
+        </p>
+        <div className="grid md:grid-cols-4 gap-2">
+          <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
+            {COMPLIANCE.map((kind) => <option key={kind.id} value={kind.id}>{tx(kind.label)}</option>)}
+          </select>
+          <input className="field md:col-span-2" placeholder="Tanım" value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
+          <input className="field" placeholder="Adet" value={item.quantity} onChange={(e) => setItem({ ...item, quantity: e.target.value })} />
+          <textarea className="field md:col-span-4" placeholder="Ne, hangi malzeme, nasıl dağıtılacak" value={item.payload} onChange={(e) => setItem({ ...item, payload: e.target.value })} />
+          <button className="btn" onClick={async () => {
+            setFormError("");
+            try {
+              await api("/api/submissions", { method: "POST", body: JSON.stringify(item) });
+              setItem({ ...item, title: "", quantity: "", payload: "" });
+              await reload();
+            } catch (err) {
+              setFormError(err instanceof Error ? err.message : "Kayıt alınamadı");
+            }
+          }}>{tx("Onaya gönder")}</button>
+          {formError ? <p className="text-sm text-[#E31C23] md:col-span-3">{tx(formError)}</p> : null}
+        </div>
+        <ul className="space-y-2">
+          {compliance.map((row) => (
+            <li key={row.id} className="border-b border-[#DCE8F0] pb-2 text-sm">
+              <div className="flex justify-between gap-2">
+                <div>
+                  <span className="badge muted">{tx(COMPLIANCE.find((kind) => kind.id === row.type)?.label || row.type)}</span>{" "}
+                  <strong>{row.title}</strong> · {row.quantity}
+                </div>
+                <span className={`badge ${row.status === "Uygun" ? "ok" : row.status === "Uygun değil" ? "high" : "warn"}`}>{tx(row.status)}</span>
+              </div>
+              {row.payload ? <div className="text-[#57534e] mt-1">{row.payload}</div> : null}
+              {row.reviewNote ? <div className="text-xs mt-1">Gerekçe: {row.reviewNote}</div> : null}
+              {row.status !== "Uygun" ? <div className="text-xs text-[#E31C23] mt-1">{tx("Bu kayıt dağıtılamaz.")}</div> : null}
+            </li>
+          ))}
+          {compliance.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</li> : null}
+        </ul>
+      </section>
       <section className="card p-4">
         <h2 className="display text-2xl">Takvim ve uygulamalar</h2>
         <p className="text-sm text-[#57534e] mb-3">Pavilion içindeki oturum, demo ve başvuru kayıtlarınızı girin.</p>
@@ -85,7 +144,7 @@ export default function ProfilePage() {
           <textarea className="field md:col-span-4" placeholder="Ayrıntı" value={sub.payload} onChange={(e) => setSub({ ...sub, payload: e.target.value })} />
         </div>
         <ul className="mt-4 space-y-2">
-          {company.submissions.map((s) => (
+          {company.submissions.filter((s) => !COMPLIANCE.some((kind) => kind.id === s.type)).map((s) => (
             <li key={s.id} className="text-sm border-b border-[#DCE8F0] pb-2">
               <span className="badge muted">{s.type}</span> {s.title} {s.eventDate ? `· ${s.eventDate}` : ""} — {s.status}
               <div className="text-[#57534e]">{s.payload}</div>

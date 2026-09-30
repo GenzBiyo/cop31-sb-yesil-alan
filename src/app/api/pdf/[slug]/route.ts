@@ -1,5 +1,6 @@
-import { pdfProgram, pdfEvents, pdfSpace, pdfCompanyKit } from "@/lib/pdf";
+import { pdfProgram, pdfEvents, pdfSpace, pdfCompanyKit, pdfPavilionRules } from "@/lib/pdf";
 import { jsonError, withUser } from "@/lib/api";
+import { readPavilionRules } from "@/lib/pavilion-rules";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }> }) {
   const { user, error } = await withUser();
@@ -19,6 +20,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   } else if (slug === "firma-dokuman") {
     buf = await pdfCompanyKit(user.companyId || undefined);
     name = "COP31-SB-firma-hazirlik";
+  } else if (slug === "pavilion-kurallar") {
+    buf = await pdfPavilionRules(await readPavilionRules());
+    name = "COP31-SB-pavilyon-kullanim-kurallari";
   } else {
     return jsonError("Bilinmeyen döküman", 404);
   }

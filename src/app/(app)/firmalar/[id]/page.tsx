@@ -19,7 +19,7 @@ type Company = {
   contactPhone: string;
   notes: string;
   rules: { id: string; title: string; body: string; dueDate: string; status: string; mandatory: boolean }[];
-  submissions: { id: string; type: string; title: string; payload: string; status: string; eventDate: string }[];
+  submissions: { id: string; type: string; title: string; payload: string; quantity?: string; reviewNote?: string; status: string; eventDate: string }[];
 };
 
 export default function CompanyDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -81,8 +81,9 @@ function CompanyEditor({ id }: { id: string }) {
         <ul className="mt-3 space-y-2">
           {data.submissions.map((s) => (
             <li key={s.id} className="text-sm">
-              <span className="badge muted">{s.type}</span> {s.title} · {s.eventDate || "tarihsiz"} · {s.status}
+              <span className="badge muted">{s.type}</span> {s.title}{s.quantity ? ` · ${s.quantity}` : ""} · {s.eventDate || "tarihsiz"} · {s.status}
               <div className="text-[#57534e]">{s.payload}</div>
+              {s.reviewNote ? <div className="text-xs">Gerekçe: {s.reviewNote}</div> : null}
             </li>
           ))}
           {data.submissions.length === 0 ? <li className="text-sm text-[#57534e]">Henüz kayıt yok.</li> : null}

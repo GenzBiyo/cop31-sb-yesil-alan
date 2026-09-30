@@ -63,9 +63,11 @@ model CompanySubmission {
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   type      String
   title     String
-  payload   String   @default("")
-  status    String   @default("Taslak")
-  eventDate String   @default("")
+  payload    String   @default("")
+  quantity   String   @default("")
+  reviewNote String   @default("")
+  status     String   @default("Taslak")
+  eventDate  String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
