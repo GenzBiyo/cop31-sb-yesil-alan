@@ -79,7 +79,7 @@ export default function ProgramPage() {
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
           <h1 className="display text-4xl">{tx("COP31 gündemi")}</h1>
-          <p className="text-[#57534e]">{tx("Her gün 1 etkinlik, 2 sunum ve 2 panel boşluğu. Saatleri kaydırın; QR ile kayıt ve otomatik haber.")}</p>
+          <p className="text-[#57534e]">{tx("Onaylanan paneller, sunumlar ve etkinlikler burada. Saatleri kaydırın; QR ile kayıt ve otomatik haber.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a className="btn" href="/api/pdf/program">Program PDF</a>
@@ -126,7 +126,7 @@ export default function ProgramPage() {
             <label className="text-sm md:col-span-2">Notlar<textarea className="field mt-1" defaultValue={day.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} /></label>
           </div>
           <button className="btn" onClick={saveDay}>Gündemi kaydet</button>
-          <h3 className="display text-2xl pt-2">{tx("Günün 5 kutusu")}</h3>
+          <h3 className="display text-2xl pt-2">{tx("Günün oturumları")}</h3>
           <AgendaDayBoard
             date={day.date}
             items={visibleAgenda}

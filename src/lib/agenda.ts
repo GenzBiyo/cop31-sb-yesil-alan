@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { broadcast } from "@/lib/realtime";
 import { memoClear } from "@/lib/memo";
-import { formatWhen, PAVILION_SLOTS, slotInstant } from "@/lib/agenda-time";
+import { formatWhen, slotInstant } from "@/lib/agenda-time";
 
 export type Audience = "katilimci" | "konusmaci" | "hepsi";
 export { formatWhen, validEmail, validPhone, PAVILION_SLOTS } from "@/lib/agenda-time";
+
+const PLACEHOLDER_TITLES = ["Günün etkinliği", "Sunum 1", "Sunum 2", "Panel 1", "Panel 2"];
 
 let lastEnsure = 0;
 let lastTick = 0;
@@ -13,37 +15,17 @@ let lastTick = 0;
 export async function ensureAgendaSlots() {
   if (Date.now() - lastEnsure < 60_000) return;
   lastEnsure = Date.now();
-  const need: Record<string, number> = { Etkinlik: 1, Sunum: 2, Panel: 2 };
-  const days = await prisma.thematicDay.findMany({
-    include: { agenda: { select: { slotKey: true, type: true } } },
-    orderBy: { date: "asc" },
+  const placeholders = await prisma.agendaItem.findMany({
+    where: { panelId: null, companyId: null, title: { in: PLACEHOLDER_TITLES } },
+    select: { id: true },
   });
-  for (const day of days) {
-    const haveKey = new Set(day.agenda.map((a) => a.slotKey).filter(Boolean));
-    const counts: Record<string, number> = { Etkinlik: 0, Sunum: 0, Panel: 0 };
-    for (const a of day.agenda) {
-      if (counts[a.type] != null) counts[a.type] += 1;
-    }
-    for (const slot of PAVILION_SLOTS) {
-      if (haveKey.has(slot.slotKey)) continue;
-      if ((counts[slot.type] || 0) >= (need[slot.type] || 0)) continue;
-      await prisma.agendaItem.create({
-        data: {
-          dayId: day.id,
-          slotKey: slot.slotKey,
-          type: slot.type,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          title: slot.title,
-          description: `${day.themeTr} · ${slot.type} boşluğu. Başlık ve saati düzenleyin.`,
-          location: "Sağlık Pavilionu — Ana Sahne",
-          status: "Planlandı",
-          sortOrder: slot.sortOrder,
-        },
-      });
-      counts[slot.type] = (counts[slot.type] || 0) + 1;
-    }
-  }
+  const ids = placeholders.map((item) => item.id);
+  if (!ids.length) return;
+  await prisma.agendaSignup.deleteMany({ where: { agendaId: { in: ids } } });
+  await prisma.agendaNotice.deleteMany({ where: { agendaId: { in: ids } } });
+  await prisma.agendaItem.deleteMany({ where: { id: { in: ids } } });
+  memoClear();
+  broadcast({ type: "agenda" });
 }
 
 export async function tickAgendaReminders() {

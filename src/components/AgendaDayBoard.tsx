@@ -136,7 +136,7 @@ export function AgendaDayBoard({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[#3E6A88]">
-        {tx("Her gün 1 etkinlik, 2 sunum, 2 panel. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.")}
+        {tx("Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.")}
       </p>
       <div className="agenda-track">
         <div className="agenda-hours">

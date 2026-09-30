@@ -859,11 +859,11 @@ export const EN: Record<string, string> = {
   "Giriş alınamadı": "Could not join",
   "Yanıt gönderilemedi": "Could not send the answer",
   "Sağlıklı insan, sağlıklı gezegen": "Healthy people, healthy planet",
-  "Her gün 1 etkinlik, 2 sunum ve 2 panel boşluğu. Saatleri kaydırın; QR ile kayıt ve otomatik haber.":
-    "Each day has 1 event, 2 talks and 2 panel slots. Drag times; register by QR; alerts go out automatically.",
-  "Günün 5 kutusu": "The day's 5 slots",
-  "Her gün 1 etkinlik, 2 sunum, 2 panel. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.":
-    "Each day: 1 event, 2 talks, 2 panels. Drag a block to move the time; it snaps to 15 minutes.",
+  "Onaylanan paneller, sunumlar ve etkinlikler burada. Saatleri kaydırın; QR ile kayıt ve otomatik haber.":
+    "Approved panels, talks and events are listed here. Drag times; register by QR; alerts go out automatically.",
+  "Günün oturumları": "The day's sessions",
+  "Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.":
+    "Approved sessions are listed here. Drag a block to move the time; it snaps to 15 minutes.",
   "kayıt": "signups",
   "Katılım QR": "Signup QR",
   "Telefon ve e-posta ile kayıt. Saat değişince otomatik haber gider.":
