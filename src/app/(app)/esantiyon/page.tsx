@@ -135,8 +135,8 @@ export default function GiveawayPage() {
                 placeholder={tx("Gerekçe")}
               />
               <div className="flex gap-2">
-                <button className="btn" onClick={() => decide(row.id, "Uygun", notes[row.id] ?? row.reviewNote || "", reloadQueue, setError)}>{tx("Uygun")}</button>
-                <button className="btn ghost" onClick={() => decide(row.id, "Uygun değil", notes[row.id] ?? row.reviewNote || "", reloadQueue, setError)}>{tx("Uygun değil")}</button>
+                <button className="btn" onClick={() => decide(row.id, "Uygun", (notes[row.id] ?? row.reviewNote) || "", reloadQueue, setError)}>{tx("Uygun")}</button>
+                <button className="btn ghost" onClick={() => decide(row.id, "Uygun değil", (notes[row.id] ?? row.reviewNote) || "", reloadQueue, setError)}>{tx("Uygun değil")}</button>
               </div>
             </article>
           ))}
