@@ -36,6 +36,9 @@ export const EN: Record<string, string> = {
   "Uygun": "Cleared",
   "Uygun değil": "Not cleared",
   "PDF indir": "Download PDF",
+  "Kuralların tamamı PDF’te.": "The full rules are in the PDF.",
+  "Okumak istediğiniz başlığa basın.": "Tap a heading to read it.",
+  "Okumak istediğiniz başlığa basın. Kuralların tamamı PDF’te.": "Tap a heading to read it. The full rules are in the PDF.",
   "Onaya gönder": "Submit for clearance",
   "Etkinlik, ikram ve eşantiyon": "Events, catering and giveaways",
   "Dağıtacağınız veya ikram edeceğiniz her kalemi adet ve tanımla Sağlık Bakanlığı onayına sunun. Uygun kararı almayan hiçbir şey pavilyonda dağıtılamaz.":

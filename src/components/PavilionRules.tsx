@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { useI18n } from "@/components/I18nProvider";
 
 function inline(text: string) {
@@ -12,6 +13,43 @@ function inline(text: string) {
 
 export function RulesArticle({ text }: { text: string }) {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const intro: string[] = [];
+  const sections: { title: string; lines: string[] }[] = [];
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line.startsWith("# ")) {
+      sections.push({ title: line.slice(2), lines: [] });
+    } else if (sections.length) {
+      sections[sections.length - 1].lines.push(raw);
+    } else {
+      intro.push(raw);
+    }
+  }
+  if (!intro.some((line) => line.trim()) && sections.length > 1) {
+    const title = sections.shift()!;
+    intro.push(`# ${title.title}`, ...title.lines);
+  }
+  return (
+    <article className="space-y-3">
+      {renderBlocks(intro)}
+      {sections.length ? (
+        <div className="border-t border-[#B5DFF2]">
+          {sections.map((section, i) => (
+            <details key={`${i}-${section.title}`} className="group border-b border-[#B5DFF2]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-3 [&::-webkit-details-marker]:hidden">
+                <span className="display text-2xl text-[#0B1C33]">{section.title}</span>
+                <ChevronDown size={20} className="shrink-0 text-[#0077C2] transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="space-y-3 pb-4">{renderBlocks(section.lines)}</div>
+            </details>
+          ))}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function renderBlocks(lines: string[]) {
   const blocks: ReactNode[] = [];
   let list: string[] = [];
   let table: string[][] = [];
@@ -76,7 +114,7 @@ export function RulesArticle({ text }: { text: string }) {
   }
   flushList();
   flushTable();
-  return <article className="space-y-3">{blocks}</article>;
+  return blocks;
 }
 
 export function PavilionRulesDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -117,6 +155,7 @@ export function PavilionRulesDialog({ open, onClose }: { open: boolean; onClose:
             <button type="button" className="btn ghost" onClick={onClose}>{tx("Kapat")}</button>
           </div>
         </div>
+        <p className="text-sm text-[#57534e]">{tx("Okumak istediğiniz başlığa basın. Kuralların tamamı PDF’te.")}</p>
         {body ? <RulesArticle text={body} /> : <p className="text-sm text-[#57534e]">{tx("Yükleniyor…")}</p>}
       </div>
     </div>

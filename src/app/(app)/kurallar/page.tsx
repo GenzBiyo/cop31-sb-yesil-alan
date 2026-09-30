@@ -46,8 +46,12 @@ export default function RulesPage() {
               : tx("Pavilyondaki etkinlik, stand, ekran, eşantiyon, ikram ve marka kullanımı bu kurallara bağlıdır.")}
           </p>
         </div>
-        <a className="btn" href="/api/pdf/pavilion-kurallar">{tx("PDF indir")}</a>
+        <div className="text-right">
+          <a className="btn" href="/api/pdf/pavilion-kurallar">{tx("PDF indir")}</a>
+          <p className="text-xs text-[#57534e] mt-1">{tx("Kuralların tamamı PDF’te.")}</p>
+        </div>
       </div>
+      <p className="text-sm text-[#0077C2]">{tx("Okumak istediğiniz başlığa basın.")}</p>
       {canEdit ? (
         <div className="grid xl:grid-cols-2 gap-4">
           <section className="card p-4 space-y-3">
