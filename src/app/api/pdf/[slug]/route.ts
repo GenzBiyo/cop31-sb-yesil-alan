@@ -1,6 +1,13 @@
+import fs from "fs";
+import path from "path";
 import { pdfProgram, pdfEvents, pdfSpace, pdfCompanyKit, pdfPavilionRules } from "@/lib/pdf";
 import { jsonError, withUser } from "@/lib/api";
 import { readPavilionRules } from "@/lib/pavilion-rules";
+
+function uploadedPrep() {
+  const file = path.join(process.cwd(), "public", "uploads", "docs", "firma-hazirlik.pdf");
+  return fs.existsSync(file) ? fs.readFileSync(file) : null;
+}
 
 export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }> }) {
   const { user, error } = await withUser();
@@ -18,7 +25,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     buf = await pdfSpace();
     name = "COP31-SB-alan-plani";
   } else if (slug === "firma-dokuman") {
-    buf = await pdfCompanyKit(user.companyId || undefined);
+    buf = uploadedPrep() || (await pdfCompanyKit(user.companyId || undefined));
     name = "COP31-SB-firma-hazirlik";
   } else if (slug === "pavilion-kurallar") {
     buf = await pdfPavilionRules(await readPavilionRules());

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
+import { ensureCompanyAccounts } from "@/lib/company-accounts";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -71,5 +72,6 @@ export async function POST(req: NextRequest) {
       contactPhone: body.contactPhone || "",
     },
   });
+  await ensureCompanyAccounts();
   return jsonOk(company, 201);
 }

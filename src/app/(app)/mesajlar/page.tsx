@@ -9,7 +9,7 @@ type Thread = { id: string; title: string; status: string; companyId: string | n
 type Payload = {
   threads: Thread[];
   users: { id: string; name: string; role: string }[];
-  companies: { id: string; name: string }[];
+  companies: { id: string; name: string; accountEmail?: string }[];
 };
 
 export default function MessagesPage() {
@@ -44,10 +44,22 @@ export default function MessagesPage() {
         <div className="mt-3 space-y-2">
           <input className="field" placeholder="Yeni konu" value={title} onChange={(e) => setTitle(e.target.value)} />
           {data?.companies?.length ? (
-            <select className="field" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-              <option value="">Firma seçin</option>
-              {data.companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <div>
+              <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2] px-1 mb-1">{tx("Katılımcı firmalar")}</div>
+              <div className="border border-[#DCE8F0] bg-white max-h-64 overflow-auto">
+                {data.companies.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCompanyId(c.id)}
+                    className={`w-full text-left px-2 py-2 border-b border-[#EAF2F8] ${companyId === c.id ? "bg-[#EEF8FD]" : ""}`}
+                  >
+                    <div className="text-sm font-semibold">{c.name}</div>
+                    <div className="text-xs text-[#57534e]">{c.accountEmail}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : null}
           <textarea className="field" rows={3} placeholder="Mesaj" value={body} onChange={(e) => setBody(e.target.value)} />
           <button className="btn w-full justify-center" onClick={async () => {

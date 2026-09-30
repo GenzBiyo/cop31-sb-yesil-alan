@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
+import { canManage } from "@/lib/auth";
+import { ensureCompanyAccounts } from "@/lib/company-accounts";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -16,7 +18,19 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
   const users = await prisma.user.findMany({ select: { id: true, name: true, role: true, email: true } });
-  const companies = await prisma.company.findMany({ select: { id: true, name: true } });
+  let companies: { id: string; name: string; accountEmail: string }[] = [];
+  if (canManage(user.role)) {
+    await ensureCompanyAccounts();
+    const rows = await prisma.company.findMany({
+      include: { users: { where: { role: "FIRMA" }, select: { email: true }, take: 1 } },
+      orderBy: { name: "asc" },
+    });
+    companies = rows.map((company) => ({
+      id: company.id,
+      name: company.name,
+      accountEmail: company.users[0]?.email || company.contactEmail,
+    }));
+  }
   return jsonOk({ threads, users, companies });
 }
 

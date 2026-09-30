@@ -35,32 +35,79 @@ function header(doc: PDFKit.PDFDocument, title: string) {
   doc.fillColor("#1a1a1a");
 }
 
+function room(doc: PDFKit.PDFDocument) {
+  if (doc.y > 720) doc.addPage();
+}
+
 export async function pdfProgram(): Promise<Buffer> {
   const days = await prisma.thematicDay.findMany({
     include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },
     orderBy: { date: "asc" },
+  });
+  const talks = await prisma.panel.findMany({
+    where: { kind: "sunum", status: { notIn: ["Reddedildi", "Onay bekliyor"] } },
+    include: { participants: { include: { person: true } } },
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+  });
+  const events = await prisma.pavilionEvent.findMany({
+    where: { approvalStatus: { notIn: ["Onay bekliyor", "Reddedildi"] } },
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
   const doc = makePdf();
   const chunks: Buffer[] = [];
   doc.on("data", (c) => chunks.push(c as Buffer));
   const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
   header(doc, "Pavilion Programı");
+  doc.fontSize(9).fillColor("#444").text("Günlük oturumlar, onaylı etkinlikler ve konuşmalar.");
+  doc.moveDown(0.4);
   for (const day of days) {
-    if (doc.y > 720) doc.addPage();
+    room(doc);
     const d = new Date(day.date + "T00:00:00");
     const label = d.toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" });
     doc.fillColor("#0077C2").fontSize(12).text(`${label} — ${day.themeTr}`);
     doc.fillColor("#444").fontSize(9).text(day.topic1);
     if (day.topic2) doc.text(day.topic2);
     doc.moveDown(0.3);
-    if (!day.agenda.length) {
+    const dayTalks = talks.filter((item) => item.date === day.date);
+    const dayEvents = events.filter((item) => item.date === day.date);
+    if (!day.agenda.length && !dayTalks.length && !dayEvents.length) {
       doc.fillColor("#888").fontSize(9).text("Bu güne henüz oturum eklenmedi.");
     }
     for (const item of day.agenda) {
+      room(doc);
       doc.fillColor("#1a1a1a").fontSize(10).text(`${item.startTime}–${item.endTime}  ${item.title}`);
       doc.fillColor("#555").fontSize(8).text(`${item.type} · ${item.location}`);
     }
+    for (const talk of dayTalks) {
+      if (day.agenda.some((item) => item.panelId === talk.id || item.title === talk.title)) continue;
+      room(doc);
+      const people = talk.participants.map((row) => row.person.name).filter(Boolean).join(", ");
+      doc.fillColor("#1a1a1a").fontSize(10).text(`${talk.startTime}–${talk.endTime}  ${talk.title}`);
+      doc.fillColor("#555").fontSize(8).text(`Konuşma · ${talk.location}${people ? ` · ${people}` : ""}`);
+    }
+    for (const event of dayEvents) {
+      room(doc);
+      doc.fillColor("#1a1a1a").fontSize(10).text(`${event.startTime}–${event.endTime}  ${event.title}`);
+      doc.fillColor("#555").fontSize(8).text(`Etkinlik · ${event.type}${event.companyName ? ` · ${event.companyName}` : ""} · ${event.location}`);
+    }
     doc.moveDown(0.7);
+  }
+  const dated = new Set(days.map((day) => day.date));
+  const extraTalks = talks.filter((item) => !dated.has(item.date));
+  const extraEvents = events.filter((item) => !dated.has(item.date));
+  if (extraTalks.length || extraEvents.length) {
+    room(doc);
+    doc.fillColor("#0077C2").fontSize(12).text("Tarihi programa bağlanmayan kayıtlar");
+    for (const talk of extraTalks) {
+      room(doc);
+      doc.fillColor("#1a1a1a").fontSize(10).text(`${talk.date || "Tarih yok"}  ${talk.startTime}–${talk.endTime}  ${talk.title}`);
+      doc.fillColor("#555").fontSize(8).text("Konuşma");
+    }
+    for (const event of extraEvents) {
+      room(doc);
+      doc.fillColor("#1a1a1a").fontSize(10).text(`${event.date || "Tarih yok"}  ${event.startTime}–${event.endTime}  ${event.title}`);
+      doc.fillColor("#555").fontSize(8).text(`Etkinlik · ${event.companyName || event.type}`);
+    }
   }
   doc.end();
   return done;
@@ -93,32 +140,16 @@ export async function pdfEvents(): Promise<Buffer> {
 }
 
 export async function pdfSpace(): Promise<Buffer> {
-  const zones = await prisma.spaceZone.findMany();
   const doc = makePdf();
   const chunks: Buffer[] = [];
   doc.on("data", (c) => chunks.push(c as Buffer));
   const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
   header(doc, "Alan Planı");
-  doc.fontSize(10).fillColor("#333").text("Sağlık Pavilionu yerleşim özeti. Ölçek şematiktir.");
-  doc.moveDown(0.5);
-  const originX = 48;
-  const originY = doc.y + 8;
-  const scale = 4.6;
-  for (const z of zones) {
-    const x = originX + z.x * scale;
-    const y = originY + z.y * scale;
-    const w = z.w * scale;
-    const h = z.h * scale;
-    doc.save().rect(x, y, w, h).fillAndStroke(z.color, "#1a1a1a");
-    doc.fillColor("#fff").fontSize(7).text(z.name, x + 3, y + 3, { width: w - 6 });
-    doc.restore();
-  }
-  doc.y = originY + 70 * scale + 16;
-  doc.fillColor("#1a1a1a").fontSize(11).text("Bölgeler");
-  for (const z of zones) {
-    if (doc.y > 760) doc.addPage();
-    doc.fontSize(9).fillColor(z.color).text("■ ", { continued: true });
-    doc.fillColor("#1a1a1a").text(`${z.name} — ${z.description}`);
+  doc.fontSize(10).fillColor("#333").text("T.C. Sağlık Bakanlığı fuar standı. Ölçü 16.000 mm × 5.000 mm, yükseklik 3.200 mm. Üstte ön görünüş, altta plan ve yan görünüşler.");
+  doc.moveDown(0.4);
+  const image = path.join(process.cwd(), "public", "brand", "fuar-standi.jpg");
+  if (fs.existsSync(image)) {
+    doc.image(image, 48, doc.y, { fit: [500, 640], align: "center" });
   }
   doc.end();
   return done;
