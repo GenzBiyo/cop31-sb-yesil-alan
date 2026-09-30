@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { OTHER_SCHOOL, TR_UNIVERSITIES } from "@/lib/universities";
 
 type Field = {
   id: string;
@@ -37,6 +38,8 @@ export function AmbassadorForm() {
   const [status, setStatus] = useState<"idle" | "ok" | "err">("idle");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [schoolPick, setSchoolPick] = useState("");
+  const university = String(values.schoolType || "") !== "Lise";
 
   const fields = data?.fields || [];
   const set = (key: string, value: unknown) => setValues((v) => ({ ...v, [key]: value }));
@@ -81,17 +84,49 @@ export function AmbassadorForm() {
         ))}
       </aside>
       <form className="space-y-3" onSubmit={onSubmit}>
-        {fields.map((field) => (
-          <label key={field.id} className="block text-sm">
+        {fields.map((field) => {
+          const Wrap = field.type === "multiselect" ? "div" : "label";
+          return (
+          <Wrap key={field.id} className="block text-sm">
             <span className="font-semibold">
               {tx(field.label)}
               {field.required ? <span className="text-[#0077C2]"> *</span> : null}
             </span>
             {field.help ? <span className="block text-xs text-[#57534e] font-normal">{tx(field.help)}</span> : null}
-            {field.type === "textarea" ? (
+            {field.key === "school" && university ? (
+              <>
+                <select
+                  className="field mt-1"
+                  required={field.required}
+                  value={schoolPick}
+                  onChange={(e) => {
+                    setSchoolPick(e.target.value);
+                    set(field.key, e.target.value === OTHER_SCHOOL ? "" : e.target.value);
+                  }}
+                >
+                  <option value="" disabled>{tx("Üniversitenizi seçin")}</option>
+                  {TR_UNIVERSITIES.map((name) => <option key={name} value={name}>{name}</option>)}
+                  <option value={OTHER_SCHOOL}>{tx("Diğer")}</option>
+                </select>
+                {schoolPick === OTHER_SCHOOL ? (
+                  <input
+                    className="field mt-2"
+                    placeholder={tx("Okulunuzun adını yazın")}
+                    required={field.required}
+                    value={String(values[field.key] || "")}
+                    onChange={(e) => set(field.key, e.target.value)}
+                  />
+                ) : null}
+              </>
+            ) : field.type === "textarea" ? (
               <textarea className="field mt-1" rows={3} required={field.required} onChange={(e) => set(field.key, e.target.value)} />
             ) : field.type === "select" ? (
-              <select className="field mt-1" required={field.required} defaultValue="" onChange={(e) => set(field.key, e.target.value)}>
+              <select className="field mt-1" required={field.required} defaultValue="" onChange={(e) => {
+                if (field.key === "schoolType") {
+                  setSchoolPick("");
+                  setValues((v) => ({ ...v, schoolType: e.target.value, school: "" }));
+                } else set(field.key, e.target.value);
+              }}>
                 <option value="" disabled>{tx("Seçin")}</option>
                 {optionsOf(field).map((o) => <option key={o} value={o}>{tx(o)}</option>)}
               </select>
@@ -111,11 +146,13 @@ export function AmbassadorForm() {
                 className="field mt-1"
                 type={field.type === "url" ? "url" : field.type === "number" ? "number" : field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
                 required={field.required}
+                value={field.key === "school" ? String(values.school || "") : undefined}
                 onChange={(e) => set(field.key, field.type === "number" ? Number(e.target.value) : e.target.value)}
               />
             )}
-          </label>
-        ))}
+          </Wrap>
+          );
+        })}
         {status === "err" ? <p className="text-sm text-[#0077C2]">{tx(message)}</p> : null}
         <button className="btn w-full justify-center" disabled={busy}>{busy ? tx("Gönderiliyor…") : tx("Elçi başvurumu gönder")}</button>
       </form>

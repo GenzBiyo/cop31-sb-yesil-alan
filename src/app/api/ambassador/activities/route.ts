@@ -52,18 +52,25 @@ export async function POST(req: NextRequest) {
     return jsonOk(row, 201);
   }
 
-  const created = await prisma.ambassadorActivity.create({
-    data: {
-      title: body.title || "Yeni aktivite",
-      date: body.date || "2026-11-09",
-      startTime: body.startTime || "09:00",
-      endTime: body.endTime || "18:00",
-      location: body.location || "Sağlık Pavilionu",
-      description: body.description || "",
-      roleNeed: body.roleNeed || "",
-      capacity: Number(body.capacity || 8),
-    },
-  });
+  const requested: string[] = Array.isArray(body.dates) ? body.dates.map(String) : [body.date || "2026-11-09"];
+  const dates = [...new Set(requested.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+  if (dates.length === 0) return jsonError("En az bir gün seçin");
+  const created = await prisma.$transaction(
+    dates.map((date) =>
+      prisma.ambassadorActivity.create({
+        data: {
+          title: body.title || "Yeni aktivite",
+          date,
+          startTime: body.startTime || "09:00",
+          endTime: body.endTime || "18:00",
+          location: body.location || "Sağlık Pavilionu",
+          description: body.description || "",
+          roleNeed: body.roleNeed || "",
+          capacity: Number(body.capacity || 8),
+        },
+      })
+    )
+  );
   return jsonOk(created, 201);
 }
 

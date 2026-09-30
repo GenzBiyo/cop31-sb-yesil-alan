@@ -52,6 +52,8 @@ type Activity = {
   placements: Placement[];
 };
 
+const ACTIVITY_DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
+
 const STATUSES = ["Beklemede", "Kabul edildi", "Yedek", "Yerleştirildi", "Reddedildi"];
 
 export default function AmbassadorsAdminPage() {
@@ -68,7 +70,7 @@ export default function AmbassadorsAdminPage() {
   const [info, setInfo] = useState("");
   const [activityForm, setActivityForm] = useState({
     title: "",
-    date: "2026-11-09",
+    dates: ["2026-11-09"] as string[],
     startTime: "09:00",
     endTime: "18:00",
     location: "Sağlık Pavilionu",
@@ -161,12 +163,45 @@ export default function AmbassadorsAdminPage() {
             className="card p-4 grid md:grid-cols-4 gap-2"
             onSubmit={async (e) => {
               e.preventDefault();
+              if (activityForm.dates.length === 0) {
+                setInfo("En az bir gün seçin.");
+                return;
+              }
               await api("/api/ambassador/activities", { method: "POST", body: JSON.stringify(activityForm) });
+              setInfo(`${activityForm.dates.length} gün için aktivite oluşturuldu.`);
               await acts.reload();
             }}
           >
-            <input className="field md:col-span-2" placeholder="Aktivite" value={activityForm.title} onChange={(e) => setActivityForm({ ...activityForm, title: e.target.value })} />
-            <input className="field" type="date" value={activityForm.date} onChange={(e) => setActivityForm({ ...activityForm, date: e.target.value })} />
+            <input className="field md:col-span-3" placeholder="Aktivite" value={activityForm.title} onChange={(e) => setActivityForm({ ...activityForm, title: e.target.value })} />
+            <div className="md:col-span-4">
+              <div className="flex items-center justify-between gap-2 text-sm mb-1">
+                <span className="font-semibold">Günler (9–20 Kasım) · {activityForm.dates.length} gün seçili</span>
+                <span className="flex gap-2">
+                  <button type="button" className="text-[#0077C2] underline" onClick={() => setActivityForm({ ...activityForm, dates: [...ACTIVITY_DAYS] })}>Tümü</button>
+                  <button type="button" className="text-[#0077C2] underline" onClick={() => setActivityForm({ ...activityForm, dates: [] })}>Temizle</button>
+                </span>
+              </div>
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-1">
+                {ACTIVITY_DAYS.map((day) => {
+                  const selected = activityForm.dates.includes(day);
+                  return (
+                    <button
+                      type="button"
+                      key={day}
+                      className={`px-2 py-1 border text-xs ${selected ? "bg-[#22A34A] text-white border-[#22A34A]" : "border-[#B5DFF2] bg-white"}`}
+                      onClick={() =>
+                        setActivityForm({
+                          ...activityForm,
+                          dates: selected ? activityForm.dates.filter((d) => d !== day) : [...activityForm.dates, day].sort(),
+                        })
+                      }
+                    >
+                      {Number(day.slice(8))} Kasım
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <input className="field" type="number" min={1} value={activityForm.capacity} onChange={(e) => setActivityForm({ ...activityForm, capacity: Number(e.target.value) })} />
             <input className="field" type="time" value={activityForm.startTime} onChange={(e) => setActivityForm({ ...activityForm, startTime: e.target.value })} />
             <input className="field" type="time" value={activityForm.endTime} onChange={(e) => setActivityForm({ ...activityForm, endTime: e.target.value })} />
