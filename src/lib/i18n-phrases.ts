@@ -44,13 +44,17 @@ export const EN: Record<string, string> = {
   "Etkinlik / sunum": "Event / talk",
   "İkram": "Catering",
   "Eşantiyon": "Giveaway",
+  "Eşantiyon ve İkram": "Giveaways and catering",
+  "Görsel yükle": "Upload image or PDF",
+  "Bağlantı": "Link",
+  "Resim, PDF veya bağlantı ekleyin.": "Add an image, a PDF, or a link.",
   "Eşantiyon dağıtımı": "Giveaway distribution",
   "bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve stand dışına ürün konmaz.":
     "is from the information counter (12) and the reception desk (2). Only cleared items leave these points. Nothing is placed in aisles or outside the stand.",
   "Eşantiyon kayıtları": "Giveaway records",
-  "Dağıtım, alan planındaki bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Uygun kararı almayan hiçbir eşantiyon bu noktalardan çıkmaz.":
-    "Distribution is from the information counter (12) and the reception desk (2) on the floor plan. No giveaway leaves these points without a cleared decision.",
-  "Dağıtılacak eşantiyon": "Giveaway to distribute",
+  "Dağıtım, alan planındaki bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.":
+    "Distribution is from the information counter (12) and the reception desk (2) on the floor plan. No giveaway or catering leaves these points without a cleared decision.",
+  "Dağıtılacak eşantiyon veya ikram": "Giveaway or catering to serve",
   "Tanım": "Description",
   "Adet": "Quantity",
   "Ne, hangi malzeme, nasıl dağıtılacak": "What it is, what it is made of, and how it will be handed out",

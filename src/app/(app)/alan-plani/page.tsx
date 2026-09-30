@@ -28,7 +28,7 @@ export default function SpacePage() {
           {tx("bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve stand dışına ürün konmaz.")}
         </p>
         <p>
-          <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon kayıtları")}</a>
+          <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
         </p>
       </div>
     </div>

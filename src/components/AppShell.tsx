@@ -70,7 +70,7 @@ const NAV = [
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/esantiyon", label: "Eşantiyon", icon: Gift, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN", "SAGLIK"] },
 ];

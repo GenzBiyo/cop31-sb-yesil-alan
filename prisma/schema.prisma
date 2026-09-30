@@ -66,6 +66,8 @@ model CompanySubmission {
   payload    String   @default("")
   quantity   String   @default("")
   reviewNote String   @default("")
+  attachment String   @default("")
+  linkUrl    String   @default("")
   status     String   @default("Taslak")
   eventDate  String   @default("")
   createdAt DateTime @default(now())
