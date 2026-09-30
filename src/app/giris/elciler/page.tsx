@@ -7,7 +7,7 @@ export default function ElcilerGate() {
       image="/gate/gate-elciler.webp"
       kicker="Öğrenci gönüllüleri · COP31"
       title="Sağlık ve İklim Elçisi"
-      lead="Yakın üniversite ve liselerden öğrenciler. Konaklama yok. Karşılama, Solaklar outdoor, QR kayıt ve koruyucu sağlık anlatımı. Konaklama talep etmeyin — yerel ulaşım."
+      lead="Antalya ve çevresindeki üniversite ve liselerden gönüllü öğrenciler. Pavyon ve programda destek. Konaklama sağlanmaz."
     >
       <AmbassadorForm />
     </PortalChrome>

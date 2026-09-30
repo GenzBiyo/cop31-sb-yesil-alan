@@ -109,16 +109,16 @@ export const EN: Record<string, string> = {
     "Health tech, zero waste and youth demo. Take the climate-health solution to the floor.",
   "04 · Öğrenci": "04 · Student",
   "Sağlık ve İklim Elçileri": "Health and Climate Ambassadors",
-  "Üniversite ve lise gönüllüleri. Karşılama, Solaklar outdoor ve ziyaretçi kaydı.":
-    "University and high-school volunteers. Welcome desk, Solaklar outdoor and visitor registration.",
+  "Üniversite ve lise gönüllüleri. Pavyon ve program desteği. Konaklama yok.":
+    "University and high-school volunteers. Pavilion and programme support. No lodging.",
   "05 · Etkileşim": "05 · Interaction",
   "Oyun alanı": "Play area",
   "Duvara yansıtılan yarışmalar. Karekod, rumuz, 15 saniyelik soru-cevap.":
     "Contests on the wall screen. QR code, nickname, 15-second Q&A.",
   "06 · Açık alan": "06 · Open area",
   "Giriş yapmadan devam et": "Continue without signing in",
-  "Açık program, Solaklar köyü, QR etkinlikler. Hesap gerekmez.":
-    "Open programme, Solaklar village, QR events. No account needed.",
+  "Açık program ve QR etkinlikler. Hesap gerekmez.":
+    "Open programme and QR events. No account needed.",
 
   "T.C. Sağlık Bakanlığı · SGGM": "Republic of Türkiye Ministry of Health · SGGM",
   "Halk sağlığı masası": "Public health desk",
@@ -148,14 +148,14 @@ export const EN: Record<string, string> = {
 
   "Öğrenci gönüllüleri · COP31": "Student volunteers · COP31",
   "Sağlık ve İklim Elçisi": "Health and Climate Ambassador",
-  "Yakın üniversite ve liselerden öğrenciler. Konaklama yok. Karşılama, Solaklar outdoor, QR kayıt ve koruyucu sağlık anlatımı. Konaklama talep etmeyin — yerel ulaşım.":
-    "Students from nearby universities and high schools. No lodging. Welcome desk, Solaklar outdoor, QR registration and protective-health talks. Do not request lodging — local travel only.",
+  "Antalya ve çevresindeki üniversite ve liselerden gönüllü öğrenciler. Pavyon ve programda destek. Konaklama sağlanmaz.":
+    "Volunteer students from universities and high schools in and around Antalya. Pavilion and programme support. No lodging.",
 
   "Misafir · hesap yok": "Guest · no account",
   "Gezegeni dinle": "Listen to the planet",
   "programı aç": "open the programme",
-  "Giriş yapmadan açık program, Solaklar sıfır atık köyü ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.":
-    "Open programme without sign-in: Solaklar zero-waste village and pavilion events with gifts. Carbon, air and body are one story — protective health lands here.",
+  "Giriş yapmadan açık program ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.":
+    "Open programme without sign-in, and pavilion events with gifts. Carbon, air and body are one story — protective health lands here.",
   "Açık program": "Open programme",
   "9–20 Kasım tematik günler, paneller ve kayıtlı etkinlikler.":
     "9–20 November thematic days, panels and registered events.",

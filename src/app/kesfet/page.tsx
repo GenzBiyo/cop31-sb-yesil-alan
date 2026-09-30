@@ -46,13 +46,12 @@ export default function KesfetPage() {
           <em>{tx("programı aç")}</em>
         </h1>
         <p className="gate-lead text-left mx-0">
-          {tx("Giriş yapmadan açık program, Solaklar sıfır atık köyü ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.")}
+          {tx("Giriş yapmadan açık program ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.")}
         </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mt-10">
           {[
             { href: "/p", title: "Açık program", body: "9–20 Kasım tematik günler, paneller ve kayıtlı etkinlikler.", img: "/gate/gate-hero-earth.webp" },
-            { href: "/solaklar", title: "Solaklar outdoor", body: "11–12 Kasım sıfır atık köyü. Matara, kompost, lider güzergâhı.", img: "/gate/gate-elciler.webp" },
             { href: "/oyun", title: "Etkileşim alanı", body: "Duvar ekranı, karekod, rumuz. Admin onaylayınca oyuncu olursun.", img: "/gate/gate-startup.webp" },
             { href: "/giris/elciler", title: "Elçi olmak", body: "Öğrenciyseniz gönüllü kapısından başvurun.", img: "/gate/gate-misafir.webp" },
           ].map((c) => (

@@ -33,7 +33,7 @@ const GATES = [
     src: "/gate/gate-elciler.webp",
     kicker: "04 · Öğrenci",
     title: "Sağlık ve İklim Elçileri",
-    body: "Üniversite ve lise gönüllüleri. Karşılama, Solaklar outdoor ve ziyaretçi kaydı.",
+    body: "Üniversite ve lise gönüllüleri. Pavyon ve program desteği. Konaklama yok.",
   },
   {
     href: "/oyun",
@@ -48,7 +48,7 @@ const GATES = [
     src: "/gate/gate-misafir.webp",
     kicker: "06 · Açık alan",
     title: "Giriş yapmadan devam et",
-    body: "Açık program, Solaklar köyü, QR etkinlikler. Hesap gerekmez.",
+    body: "Açık program ve QR etkinlikler. Hesap gerekmez.",
     guest: true,
   },
 ];

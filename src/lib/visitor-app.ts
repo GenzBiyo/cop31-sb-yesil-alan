@@ -22,13 +22,6 @@ const DEMO_TAGS = [
       "Ana sahneye geldiniz. Açık oturumda sorunuzu Soru sekmesinden iletin; sahneye alındığında telefonunuza haber düşer.",
   },
   {
-    code: "SOLAKLAR",
-    title: "Solaklar outdoor",
-    location: "Solaklar sıfır atık köyü",
-    message:
-      "Solaklar sıfır atık köyündesiniz. Mataranızı doldurun, kompost alanını gezin. 11–12 Kasım programı Gündem sekmesinde.",
-  },
-  {
     code: "STAND",
     title: "Sağlık standı",
     location: "Sağlık Pavilionu — Stand",
@@ -148,8 +141,7 @@ export async function notifyAgendaFollowers(agendaId: string, title: string, bod
 
 export async function appState(deviceId: string) {
   await ensureTags();
-  const existingEvents = await prisma.pavilionEvent.count();
-  if (existingEvents === 0) await ensureEvents();
+  await ensureEvents();
   await ensureAgendaSlots();
 
   const deviceRow = await prisma.appDevice.findUnique({ where: { id: deviceId } });

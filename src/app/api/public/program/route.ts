@@ -10,8 +10,7 @@ export async function GET() {
   const cached = memoGet<{ days: unknown; events: unknown }>("public-program", 8000);
   if (cached) return jsonOk(cached, 200, FRESH);
 
-  const existing = await prisma.pavilionEvent.count();
-  if (existing === 0) await ensureEvents();
+  await ensureEvents();
   await ensureAgendaSlots();
   await tickAgendaReminders();
   const [days, events] = await Promise.all([

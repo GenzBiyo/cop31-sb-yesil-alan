@@ -475,5 +475,5 @@ export const SOLAKLAR_EVENTS: CatalogEvent[] = [
   },
 ];
 
-export const EVENT_CATALOG: CatalogEvent[] = [...PAVILION_EVENTS, ...SOLAKLAR_EVENTS];
+export const EVENT_CATALOG: CatalogEvent[] = [...PAVILION_EVENTS];
 

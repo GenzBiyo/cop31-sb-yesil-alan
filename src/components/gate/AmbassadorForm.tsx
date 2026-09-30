@@ -16,6 +16,16 @@ type Field = {
 
 type FormPayload = { intro: string; fields: Field[] };
 
+function linkify(text: string) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part, index) =>
+    part.startsWith("http") ? (
+      <a key={index} href={part} className="underline text-[#0077C2]" target="_blank" rel="noreferrer">{part}</a>
+    ) : (
+      <span key={index}>{part}</span>
+    )
+  );
+}
+
 function optionsOf(field: Field) {
   return field.options.split("\n").map((s) => s.trim()).filter(Boolean);
 }
@@ -67,7 +77,7 @@ export function AmbassadorForm() {
     <div className="space-y-4">
       <aside className="text-sm text-[#57534e] border-l-2 border-[#22A34A] pl-3">
         {intro.map((p) => (
-          <p key={p.slice(0, 24)} className="mb-2 last:mb-0">{tx(p)}</p>
+          <p key={p.slice(0, 40)} className="mb-2 last:mb-0 whitespace-pre-line">{linkify(p)}</p>
         ))}
       </aside>
       <form className="space-y-3" onSubmit={onSubmit}>

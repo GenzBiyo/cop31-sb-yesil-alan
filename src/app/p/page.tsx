@@ -55,8 +55,7 @@ export default function PublicProgramPage() {
         <p className="text-xs tracking-[0.22em] uppercase opacity-80">{tx("COP31 Türkiye · Sağlık Pavilionu")}</p>
         <h1 className="display text-4xl mt-2">{tx("Açık program")}</h1>
         <p className="text-[#C8EEFA] mt-1">{tx("9–20 Kasım 2026 · Antalya EXPO Center · Blue Zone")}</p>
-        <a href="/solaklar" className="inline-block mt-3 text-sm underline text-[#C8EEFA]">{tx("11–12 Kasım Solaklar outdoor →")}</a>
-        <a href="/oyun" className="inline-block mt-3 ml-4 text-sm underline text-[#C8EEFA]">{tx("Etkileşim alanı / oyunlar →")}</a>
+        <a href="/oyun" className="inline-block mt-3 text-sm underline text-[#C8EEFA]">{tx("Etkileşim alanı / oyunlar →")}</a>
       </header>
       <div className="max-w-3xl mx-auto p-5 space-y-6">
         <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
