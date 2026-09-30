@@ -4,6 +4,19 @@ function isLocalHost(value: string) {
   return /localhost|127\.0\.0\.1/i.test(value);
 }
 
+function preferHttps(origin: string) {
+  try {
+    const url = new URL(origin);
+    if (url.hostname === "cop31saglikbakanligi.com" || url.hostname === "www.cop31saglikbakanligi.com") {
+      url.protocol = "https:";
+      return url.origin;
+    }
+  } catch {
+    return origin;
+  }
+  return origin;
+}
+
 function publicOrigin(req: Request) {
   const url = new URL(req.url);
   const query = (url.searchParams.get("origin") || "").replace(/\/$/, "");
@@ -16,7 +29,7 @@ function publicOrigin(req: Request) {
   const fromHost = host ? `${proto}://${host}` : url.origin;
   const live = [query, forwarded, fromHost].filter((v) => /^https?:\/\//i.test(v));
   const candidates = [...live, env].filter((v) => /^https?:\/\//i.test(v));
-  return live.find((v) => !isLocalHost(v)) || candidates.find((v) => !isLocalHost(v)) || candidates[0] || url.origin;
+  return preferHttps(live.find((v) => !isLocalHost(v)) || candidates.find((v) => !isLocalHost(v)) || candidates[0] || url.origin);
 }
 
 export async function GET(req: Request) {

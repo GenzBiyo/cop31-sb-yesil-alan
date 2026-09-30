@@ -189,9 +189,22 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                   </>
                 ) : null}
                 {canEdit(p) ? (
-                  <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
+                  <>
+                    <button className="btn ghost" onClick={() => setOpenId(p.id)}>{tx("Düzenle")}</button>
+                    <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
+                  </>
                 ) : null}
               </div>
+              {openId === p.id ? (
+                <SessionEditor
+                  session={p}
+                  people={data?.people || []}
+                  canManage={!!canReview}
+                  talk={talk}
+                  onClose={() => setOpenId(null)}
+                  onSaved={async () => { await reload(); }}
+                />
+              ) : null}
             </div>
           ))}
         </section>
@@ -225,7 +238,10 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <span className={`badge ${p.status === "Teyit edildi" || p.status === "Tamamlandı" ? "ok" : "warn"}`}>{tx(p.status)}</span>
                         {canEdit(p) ? (
-                          <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
+                          <>
+                            <button className="btn ghost" onClick={() => setOpenId(p.id)}>{tx("Düzenle")}</button>
+                            <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
+                          </>
                         ) : null}
                       </div>
                     </div>

@@ -6,6 +6,7 @@ export const EN: Record<string, string> = {
   "Kaydet": "Save",
   "Kaydedildi": "Saved",
   "Sil": "Delete",
+  "Düzenle": "Edit",
   "Ekle": "Add",
   "İptal": "Cancel",
   "Çıkış": "Sign out",

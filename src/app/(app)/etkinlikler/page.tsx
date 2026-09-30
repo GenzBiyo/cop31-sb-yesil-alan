@@ -140,17 +140,96 @@ export default function EventsAdminPage() {
           </button>
         ) : null}
         {canReview || (isFirma && ev.approvalStatus === "Onay bekliyor") ? (
-          <button
-            className="btn ghost"
-            style={{ color: "#E31C23" }}
-            onClick={(e) => {
-              e.stopPropagation();
-              void removeEvent(ev.id);
-            }}
-          >
-            {tx("Sil")}
-          </button>
+          <>
+            <button
+              className="btn ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenId(ev.id);
+              }}
+            >
+              {tx("Düzenle")}
+            </button>
+            <button
+              className="btn ghost"
+              style={{ color: "#E31C23" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                void removeEvent(ev.id);
+              }}
+            >
+              {tx("Sil")}
+            </button>
+          </>
         ) : null}
+      </div>
+    );
+  }
+
+  function EventEditor({ ev }: { ev: Ev }) {
+    return (
+      <div className="card p-5 space-y-3 ml-0 md:ml-4 border-[#00A3E0]">
+        <div className="flex justify-between">
+          <h2 className="display text-3xl">{ev.title}</h2>
+          <button className="btn ghost" onClick={() => setOpenId(null)}>Kapat</button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-3">
+          <label className="text-sm">Başlık<input className="field mt-1" defaultValue={ev.title} onBlur={(e) => patch(ev.id, { title: e.target.value }, reload)} /></label>
+          <label className="text-sm">Firma<input className="field mt-1" defaultValue={ev.companyName} onBlur={(e) => patch(ev.id, { companyName: e.target.value }, reload)} /></label>
+          <label className="text-sm">Konu<input className="field mt-1" defaultValue={ev.topic} onBlur={(e) => patch(ev.id, { topic: e.target.value }, reload)} /></label>
+          <label className="text-sm">Hediye<input className="field mt-1" defaultValue={ev.gift} onBlur={(e) => patch(ev.id, { gift: e.target.value }, reload)} /></label>
+          <label className="text-sm">Tarih
+            <select className="field mt-1" defaultValue={ev.date} onChange={(e) => {
+              const date = e.target.value;
+              const free = availableSlots(date, occupied, ev.id);
+              const start = free.some((s) => s.start === ev.startTime) ? ev.startTime : free[0]?.start;
+              const slot = slotByStart(start || ev.startTime);
+              void patch(ev.id, { date, startTime: slot?.start, endTime: slot?.end }, reload);
+            }}>
+              {COP_DAY_OPTIONS.map((d) => (
+                <option key={d.date} value={d.date}>{d.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">Saat
+            <select className="field mt-1" value={ev.startTime} onChange={(e) => {
+              const slot = slotByStart(e.target.value);
+              if (!slot) return;
+              const type = typesForSlot(slot.kind).includes(ev.type) ? ev.type : typesForSlot(slot.kind)[0];
+              void patch(ev.id, { startTime: slot.start, endTime: slot.end, type }, reload);
+            }}>
+              {availableSlots(ev.date, occupied, ev.id).map((s) => (
+                <option key={s.start} value={s.start}>{slotLabel(s.start)}</option>
+              ))}
+              {availableSlots(ev.date, occupied, ev.id).some((s) => s.start === ev.startTime) ? null : (
+                <option value={ev.startTime}>{slotLabel(ev.startTime)}</option>
+              )}
+            </select>
+          </label>
+          <label className="text-sm">Tür
+            <select className="field mt-1" value={ev.type} onChange={(e) => patch(ev.id, { type: e.target.value }, reload)}>
+              {typesForSlot(slotByStart(ev.startTime)?.kind || "normal").map((id) => (
+                <option key={id} value={id}>{tx(TYPE_LABEL[id] || id)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">Yer<input className="field mt-1" defaultValue={ev.location} onBlur={(e) => patch(ev.id, { location: e.target.value }, reload)} /></label>
+          <label className="text-sm md:col-span-2">Açıklama<textarea className="field mt-1" defaultValue={ev.description} onBlur={(e) => patch(ev.id, { description: e.target.value }, reload)} /></label>
+          <label className="text-sm md:col-span-2">İçerik (JSON: sorular / çark dilimleri)
+            <textarea className="field mt-1 font-mono text-xs" rows={10} defaultValue={pretty(ev.config)} onBlur={(e) => patch(ev.id, { config: e.target.value }, reload)} />
+          </label>
+        </div>
+        {canReview && ev.approvalStatus === "Onay bekliyor" ? (
+          <div className="flex gap-2">
+            <button className="btn" onClick={async () => { await api(`/api/events/${ev.id}`, { method: "PATCH", body: JSON.stringify({ review: "approve" }) }); await reload(); }}>{tx("Onayla")}</button>
+            <button className="btn ghost" onClick={async () => { await api(`/api/events/${ev.id}`, { method: "PATCH", body: JSON.stringify({ review: "reject" }) }); await reload(); }}>{tx("Reddet")}</button>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap gap-4 items-start">
+          <QrCard label="Ziyaretçi QR" path={`/e/${ev.slug}`} origin={origin} />
+          <QrCard label="Elçi kayıt QR" path={`/e/${ev.slug}?elci=Iklim+Saglik+Elcisi`} origin={origin} />
+        </div>
+        <EventActions ev={ev} />
       </div>
     );
   }
@@ -218,6 +297,7 @@ export default function EventsAdminPage() {
                   <span className="badge warn">{tx("Onay bekliyor")}</span>
                 </div>
                 <EventActions ev={ev} />
+                {openId === ev.id ? <EventEditor key={ev.id} ev={ev} /> : null}
               </div>
             ))}
         </section>
@@ -248,71 +328,7 @@ export default function EventsAdminPage() {
                 </div>
               </div>
             </div>
-            {openId === ev.id ? (
-              <div className="card p-5 space-y-3 ml-0 md:ml-4 border-[#00A3E0]">
-                <div className="flex justify-between">
-                  <h2 className="display text-3xl">{ev.title}</h2>
-                  <button className="btn ghost" onClick={() => setOpenId(null)}>Kapat</button>
-                </div>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <label className="text-sm">Başlık<input className="field mt-1" defaultValue={ev.title} onBlur={(e) => patch(ev.id, { title: e.target.value }, reload)} /></label>
-                  <label className="text-sm">Firma<input className="field mt-1" defaultValue={ev.companyName} onBlur={(e) => patch(ev.id, { companyName: e.target.value }, reload)} /></label>
-                  <label className="text-sm">Konu<input className="field mt-1" defaultValue={ev.topic} onBlur={(e) => patch(ev.id, { topic: e.target.value }, reload)} /></label>
-                  <label className="text-sm">Hediye<input className="field mt-1" defaultValue={ev.gift} onBlur={(e) => patch(ev.id, { gift: e.target.value }, reload)} /></label>
-                  <label className="text-sm">Tarih
-                    <select className="field mt-1" defaultValue={ev.date} onChange={(e) => {
-                      const date = e.target.value;
-                      const free = availableSlots(date, occupied, ev.id);
-                      const start = free.some((s) => s.start === ev.startTime) ? ev.startTime : free[0]?.start;
-                      const slot = slotByStart(start || ev.startTime);
-                      void patch(ev.id, { date, startTime: slot?.start, endTime: slot?.end }, reload);
-                    }}>
-                      {COP_DAY_OPTIONS.map((d) => (
-                        <option key={d.date} value={d.date}>{d.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm">Saat
-                    <select className="field mt-1" value={ev.startTime} onChange={(e) => {
-                      const slot = slotByStart(e.target.value);
-                      if (!slot) return;
-                      const type = typesForSlot(slot.kind).includes(ev.type) ? ev.type : typesForSlot(slot.kind)[0];
-                      void patch(ev.id, { startTime: slot.start, endTime: slot.end, type }, reload);
-                    }}>
-                      {availableSlots(ev.date, occupied, ev.id).map((s) => (
-                        <option key={s.start} value={s.start}>{slotLabel(s.start)}</option>
-                      ))}
-                      {availableSlots(ev.date, occupied, ev.id).some((s) => s.start === ev.startTime) ? null : (
-                        <option value={ev.startTime}>{slotLabel(ev.startTime)}</option>
-                      )}
-                    </select>
-                  </label>
-                  <label className="text-sm">Tür
-                    <select className="field mt-1" value={ev.type} onChange={(e) => patch(ev.id, { type: e.target.value }, reload)}>
-                      {typesForSlot(slotByStart(ev.startTime)?.kind || "normal").map((id) => (
-                        <option key={id} value={id}>{tx(TYPE_LABEL[id] || id)}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm">Yer<input className="field mt-1" defaultValue={ev.location} onBlur={(e) => patch(ev.id, { location: e.target.value }, reload)} /></label>
-                  <label className="text-sm md:col-span-2">Açıklama<textarea className="field mt-1" defaultValue={ev.description} onBlur={(e) => patch(ev.id, { description: e.target.value }, reload)} /></label>
-                  <label className="text-sm md:col-span-2">İçerik (JSON: sorular / çark dilimleri)
-                    <textarea className="field mt-1 font-mono text-xs" rows={10} defaultValue={pretty(ev.config)} onBlur={(e) => patch(ev.id, { config: e.target.value }, reload)} />
-                  </label>
-                </div>
-                {canReview && ev.approvalStatus === "Onay bekliyor" ? (
-                  <div className="flex gap-2">
-                    <button className="btn" onClick={async () => { await api(`/api/events/${ev.id}`, { method: "PATCH", body: JSON.stringify({ review: "approve" }) }); await reload(); }}>{tx("Onayla")}</button>
-                    <button className="btn ghost" onClick={async () => { await api(`/api/events/${ev.id}`, { method: "PATCH", body: JSON.stringify({ review: "reject" }) }); await reload(); }}>{tx("Reddet")}</button>
-                  </div>
-                ) : null}
-                <div className="flex flex-wrap gap-4 items-start">
-                  <QrCard label="Ziyaretçi QR" path={`/e/${ev.slug}`} origin={origin} />
-                  <QrCard label="Elçi kayıt QR" path={`/e/${ev.slug}?elci=Iklim+Saglik+Elcisi`} origin={origin} />
-                </div>
-                <EventActions ev={ev} />
-              </div>
-            ) : null}
+            {openId === ev.id ? <EventEditor key={ev.id} ev={ev} /> : null}
           </div>
         ))}
       </div>
