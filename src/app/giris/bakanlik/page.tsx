@@ -11,13 +11,7 @@ export default function BakanlikGate() {
       title="Halk sağlığı masası"
       lead="İklim kaynaklı sıcaklık, hava kirliliği, salgın ve gıda riskini koruyucu sağlıkla yönetin. Pavilion hazırlığı, elçiler, paneller ve firma onayları bu kapıdan."
     >
-      <GateLogin
-        heading="Bakanlık girişi"
-        accounts={[
-          { role: "Admin", email: "admin@cop31.saglik.gov.tr" },
-          { role: "Sağlık Bakanlığı", email: "sggm@cop31.saglik.gov.tr" },
-        ]}
-      />
+      <GateLogin heading="Bakanlık girişi" />
     </PortalChrome>
   );
 }

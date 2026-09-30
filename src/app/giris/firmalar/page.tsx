@@ -21,13 +21,7 @@ export default function FirmalarGate() {
         <button type="button" className={`tab ${tab === "kayit" ? "on" : ""}`} onClick={() => setTab("kayit")}>{tx("Hesap aç")}</button>
       </div>
       {tab === "giris" ? (
-        <GateLogin
-          heading="Firma girişi"
-          accounts={[
-            { role: "Atabay İlaç", email: "atabay-ilac@firma.cop31.tr" },
-            { role: "Sanofi TR", email: "sanofi@firma.cop31.tr" },
-          ]}
-        />
+        <GateLogin heading="Firma girişi" />
       ) : (
         <CompanyApply
           defaultScope="Local"

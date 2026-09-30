@@ -74,7 +74,6 @@ export const EN: Record<string, string> = {
   "İklim kaynaklı sıcaklık, hava kirliliği, salgın ve gıda riskini koruyucu sağlıkla yönetin. Pavilion hazırlığı, elçiler, paneller ve firma onayları bu kapıdan.":
     "Manage climate-driven heat, air pollution, outbreaks and food risk with protective health. Pavilion prep, ambassadors, panels and company approvals start here.",
   "Bakanlık girişi": "Ministry sign-in",
-  "Demo · şifre": "Demo · password",
 
   "Paydaş firmalar · yeşil üretim": "Partner companies · green production",
   "Karbonu kesen sağlık endüstrisi": "A health industry that cuts carbon",

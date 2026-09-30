@@ -21,13 +21,7 @@ export default function StartupGate() {
         <button type="button" className={`tab ${tab === "kayit" ? "on" : ""}`} onClick={() => setTab("kayit")}>{tx("Startup kaydı")}</button>
       </div>
       {tab === "giris" ? (
-        <GateLogin
-          heading="Startup girişi"
-          accounts={[
-            { role: "Yinwest Startups", email: "yinwest-startups@firma.cop31.tr" },
-            { role: "Dilek Hanım", email: "dilek-hanim@firma.cop31.tr" },
-          ]}
-        />
+        <GateLogin heading="Startup girişi" />
       ) : (
         <CompanyApply
           defaultScope="Startup"

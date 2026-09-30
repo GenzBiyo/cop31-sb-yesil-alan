@@ -3,22 +3,13 @@
 import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/client";
-import { DEMO_PASSWORD } from "@/lib/constants";
 import { useI18n } from "@/components/I18nProvider";
 
-export type DemoAccount = { role: string; email: string };
-
-function GateLoginForm({
-  heading,
-  accounts,
-}: {
-  heading: string;
-  accounts: DemoAccount[];
-}) {
+function GateLoginForm({ heading }: { heading: string }) {
   const params = useSearchParams();
   const { tx } = useI18n();
-  const [email, setEmail] = useState(accounts[0]?.email || "");
-  const [password, setPassword] = useState(DEMO_PASSWORD);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -52,30 +43,11 @@ function GateLoginForm({
       <button className="btn w-full justify-center" disabled={busy}>
         {busy ? tx("Giriş yapılıyor…") : tx("Giriş yap")}
       </button>
-      {accounts.length ? (
-        <div className="pt-2 text-sm">
-          <p className="text-[#57534e] mb-1">{tx("Demo · şifre")} <code>{DEMO_PASSWORD}</code></p>
-          {accounts.map((a) => (
-            <button
-              type="button"
-              key={a.email}
-              className="w-full text-left px-2 py-1 hover:bg-[#EEF8FD]"
-              onClick={() => {
-                setEmail(a.email);
-                setPassword(DEMO_PASSWORD);
-              }}
-            >
-              <span className="text-[#0077C2]">{tx(a.role)}</span>
-              <span className="block text-xs text-[#57534e]">{a.email}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
     </form>
   );
 }
 
-export function GateLogin(props: { heading: string; accounts: DemoAccount[] }) {
+export function GateLogin(props: { heading: string }) {
   return (
     <Suspense fallback={<p className="text-sm text-[#57534e]">…</p>}>
       <GateLoginForm {...props} />
