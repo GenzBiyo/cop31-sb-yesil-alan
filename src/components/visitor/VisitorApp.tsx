@@ -111,6 +111,7 @@ type Tab = "gundem" | "okut" | "katil" | "soru" | "gorus" | "mesaj";
 
 const TOKEN_KEY = "cop31-device";
 const PROFILE_KEY = "cop31-profile";
+const GUEST_KEY = "cop31-guest";
 
 function cookieToken() {
   const match = document.cookie.match(/(?:^|;\s*)cop31_device=([^;]+)/);
@@ -195,7 +196,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const stopCamera = useRef<(() => void) | null>(null);
   const scanned = useRef("");
   const restoreOnce = useRef(false);
+  const profileReady = useRef(false);
   const [heldName, setHeldName] = useState(false);
+  const [guest, setGuest] = useState(false);
 
   const load = useCallback(async (current: string) => {
     const next = await call<AppState>(current, "/api/app");
@@ -244,6 +247,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
   useEffect(() => {
     if (savedProfile()) setHeldName(true);
+    if (localStorage.getItem(GUEST_KEY) === "1") setGuest(true);
   }, []);
 
   useEffect(() => {
@@ -257,17 +261,23 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   }, [token, state]);
 
   useEffect(() => {
-    if (!state) return;
-    setProfile({
-      name: state.device.name,
-      email: state.device.email,
-      phone: state.device.phone,
-      organization: state.device.organization,
-      role: state.device.role || "ziyaretci",
-      companyId: state.device.companyId || "",
-      personId: state.device.personId || "",
-    });
-    if (!dayId && state.days[0]) setDayId(state.days[0].id);
+    if (!state || profileReady.current) return;
+    profileReady.current = true;
+    if (state.device.name) {
+      setProfile({
+        name: state.device.name,
+        email: state.device.email,
+        phone: state.device.phone,
+        organization: state.device.organization,
+        role: state.device.role || "ziyaretci",
+        companyId: state.device.companyId || "",
+        personId: state.device.personId || "",
+      });
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (!dayId && state?.days[0]) setDayId(state.days[0].id);
   }, [state, dayId]);
 
   const sessions = useMemo(
@@ -449,6 +459,13 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setUseBrowser(true);
   }
 
+  function continueAsGuest() {
+    localStorage.setItem(GUEST_KEY, "1");
+    setGuest(true);
+  }
+
+  const entered = Boolean(state?.device.name) || guest || heldName;
+
   const joined = new Set((state?.joins || []).map((item) => `${item.kind}:${item.refId}`));
   const day = state?.days.find((item) => item.id === dayId) || state?.days[0];
   const sessionQuestions = (state?.questions || []).filter((item) => !sessionId || item.agendaId === sessionId || item.mine || item.canAnswer);
@@ -500,20 +517,21 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
       <div className="phone-scroll">
         {error ? <p className="phone-error">{tx(error) === error ? error : tx(error)}</p> : null}
 
-        {state && !state.device.name && !heldName ? (
+        {state && !entered ? (
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
-            <p>{tx("Ziyaretçi, firma veya konuşmacı olarak girin. Sorular ve görüşme talepleri bu adla gider.")}</p>
+            <p>{tx("Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.")}</p>
             <RoleFields profile={profile} setProfile={setProfile} directory={state.directory} tx={tx} />
             <input className="phone-field" placeholder={tx("Ad soyad")} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
             <input className="phone-field" placeholder={tx("Kurum")} value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
             <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" />
             <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} inputMode="tel" />
             <button className="phone-btn" disabled={busy} type="submit">{tx("Kaydet ve devam et")}</button>
+            <button className="phone-btn is-quiet" type="button" onClick={continueAsGuest}>{tx("Kayıt olmadan devam et")}</button>
           </form>
         ) : null}
 
-        {tab === "gundem" ? (
+        {entered && tab === "gundem" ? (
           <section>
             <h2>{tx("COP31 Sağlık Bakanlığı gündemi")}</h2>
             <div className="phone-days">
@@ -554,7 +572,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {tab === "okut" ? (
+        {entered && tab === "okut" ? (
           <section>
             <h2>{tx("Etiket okut")}</h2>
             <p className="phone-muted">{tx("Stanttaki, kapıdaki veya koltuktaki karekodu okutun. Mesaj telefonunuza düşer.")}</p>
@@ -578,7 +596,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {tab === "katil" ? (
+        {entered && tab === "katil" ? (
           <section>
             <h2>{tx("Etkinliklere katıl")}</h2>
             {(state?.joins || []).length ? (
@@ -611,7 +629,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {tab === "soru" ? (
+        {entered && tab === "soru" ? (
           <section>
             <h2>{tx("Sunumda soru sor")}</h2>
             <p className="phone-muted">{tx("Konuşmacı ve firma, kendi oturumuna gelen soruyu burada yanıtlar.")}</p>
@@ -635,7 +653,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {tab === "gorus" ? (
+        {entered && tab === "gorus" ? (
           <section>
             <h2>{tx("İkili görüşme ve toplantı")}</h2>
             <p className="phone-muted">{tx("Talep bakanlığa, bir firmaya veya konuşmacıya gider. Kabul edilince saat ve yer düzenlenir.")}</p>
@@ -672,7 +690,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {tab === "mesaj" ? (
+        {entered && tab === "mesaj" ? (
           <section>
             <h2>{tx("Mesajlar")}</h2>
             <div className="phone-card">
@@ -703,7 +721,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         ) : null}
       </div>
 
-      <nav className="phone-nav">
+      {entered ? <nav className="phone-nav">
         {(
           [
             ["gundem", "Gündem"],
@@ -720,9 +738,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             {id === "gorus" && (state?.meetings || []).some((item) => item.canRespond) ? <i>{state?.meetings.filter((item) => item.canRespond).length}</i> : null}
           </button>
         ))}
-      </nav>
+      </nav> : null}
 
-      {phone && !standalone && !useBrowser && !initialCode && !flash ? (
+      {entered && phone && !standalone && !useBrowser && !initialCode && !flash ? (
         <div className="phone-setup" role="dialog">
           <img src="/icons/icon-192.png" alt="" width={72} height={72} />
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>

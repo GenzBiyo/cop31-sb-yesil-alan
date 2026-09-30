@@ -1032,6 +1032,9 @@ export const EN: Record<string, string> = {
   "Adınız sorularda ve katılım listesinde görünsün. E-posta yazarsanız program haberleri oraya da gider.":
     "Your name shows on questions and the attendance list. If you add an email, programme news goes there too.",
   "Kaydet ve devam et": "Save and continue",
+  "Kayıt olmadan devam et": "Continue without registering",
+  "Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.":
+    "Register first. The agenda, questions and messages open after that.",
   "COP31 Sağlık Bakanlığı gündemi": "COP31 Ministry of Health agenda",
   "Katıldınız": "You are in",
   "Katılacağım": "I will attend",
