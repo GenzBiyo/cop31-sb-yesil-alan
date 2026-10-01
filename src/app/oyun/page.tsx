@@ -15,6 +15,7 @@ type GameCard = {
   status: string;
   type: string;
   _count: { players: number; questions: number; slices?: number };
+  sponsor?: { company: string; prize: string; endTime: string } | null;
 };
 
 const STATUS: Record<string, string> = {
@@ -65,6 +66,13 @@ export default function GamesHubPage() {
               {tx(STATUS[g.status] || g.status)}
             </span>
             <h2 className="display text-3xl mt-2">{tx(g.title)}</h2>
+            {g.sponsor ? (
+              <p className="text-sm mt-1 text-[#22A34A] font-semibold">
+                {tx("Sponsor")}: {g.sponsor.company}
+                {g.sponsor.prize ? ` · ${tx("Ödül")}: ${g.sponsor.prize}` : ""}
+                {` · ${tx("bitiş")} ${g.sponsor.endTime}`}
+              </p>
+            ) : null}
             <p className="text-sm mt-1">{tx(g.description)}</p>
             <p className="text-xs text-[#57534e] mt-2">
               {tx("Duvar ekranı")} · {g.type === "wheel" ? t("common.slices", { n: g._count.slices || 0 }) : g.type === "match" ? tx("hafıza + eşleştirme") : g.type === "kilo" ? tx("yaş · boy · kilo") : g.type === "hatira" ? tx("hatıra selfie") : g.type === "plak" ? tx("YouTube Music · kapak çevir") : t("common.questions", { n: g._count.questions })} · {tx(g.location)}

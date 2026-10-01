@@ -44,6 +44,7 @@ model Company {
   users              User[]
   rules              CompanyRule[]
   submissions        CompanySubmission[]
+  gameSponsorships   GameSponsorship[]
 }
 
 model CompanyRule {
@@ -412,6 +413,7 @@ model Game {
   players        GamePlayer[]
   slices         GameSlice[]
   tracks         GameTrack[]
+  sponsorships   GameSponsorship[]
 }
 
 model GameTrack {
@@ -499,6 +501,28 @@ model GameAnswer {
 
   @@unique([playerId, questionId])
   @@index([questionId])
+}
+
+model GameSponsorship {
+  id           String   @id @default(cuid())
+  gameId       String
+  companyId    String
+  date         String
+  startTime    String
+  endTime      String
+  prize        String   @default("")
+  prizeQty     Int      @default(0)
+  notes        String   @default("")
+  status       String   @default("Onay bekliyor")
+  reviewNote   String   @default("")
+  proposedById String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([companyId])
 }
 
 model Sponsor {

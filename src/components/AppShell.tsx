@@ -22,6 +22,7 @@ import {
   GraduationCap,
   UserPlus,
   Gamepad2,
+  Handshake,
   Users,
   Trophy,
   BadgeCheck,
@@ -45,6 +46,7 @@ type Me = {
   pendingTalks?: number;
   pendingEvents?: number;
   pendingCompliance?: number;
+  pendingGameSponsors?: number;
 };
 
 const NAV = [
@@ -62,6 +64,7 @@ const NAV = [
   { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
   { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN", "SAGLIK"] },
+  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/soru-cevap", label: "Soru-cevap", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
@@ -134,6 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.href === "/sunumlar" && me && (me.pendingTalks || 0) > 0 ? <span className="badge warn">{me.pendingTalks}</span> : null}
                 {item.href === "/etkinlikler" && me && (me.pendingEvents || 0) > 0 ? <span className="badge warn">{me.pendingEvents}</span> : null}
                 {item.href === "/uygunluk" && me && (me.pendingCompliance || 0) > 0 ? <span className="badge warn">{me.pendingCompliance}</span> : null}
+                {item.href === "/oyun-sponsorluk" && me && (me.pendingGameSponsors || 0) > 0 ? <span className="badge warn">{me.pendingGameSponsors}</span> : null}
               </Link>
             );
           })}

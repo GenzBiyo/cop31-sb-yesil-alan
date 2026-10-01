@@ -13,6 +13,13 @@ type Stats = {
   openQa: number;
   days: { date: string; themeTr: string; agenda: { id: string }[] }[];
   recentTodos: { id: string; activity: string; dueDate: string; status: string; risk: string; remainingDays: number | null }[];
+  gameSponsors?: {
+    approved: number;
+    pending: number;
+    done: number;
+    firms: number;
+    upcoming: { id: string; date: string; startTime: string; endTime: string; game: string; company: string; prize: string }[];
+  };
 };
 
 export default function DashboardPage() {
@@ -88,6 +95,39 @@ export default function DashboardPage() {
           </ul>
         </div>
       </div>
+      {data.gameSponsors ? (
+        <div className="card p-4" style={{ borderLeft: "4px solid #32C45A" }}>
+          <div className="flex flex-wrap justify-between items-baseline gap-2">
+            <h2 className="display text-2xl">{tx("Oyun sponsorlukları")}</h2>
+            <Link href="/oyun-sponsorluk" className="text-sm text-[#0077C2]">{tx("Sponsorluk planı")}</Link>
+          </div>
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            {[
+              ["Onaylı oturum", data.gameSponsors.approved],
+              ["Onay bekleyen", data.gameSponsors.pending],
+              ["Tamamlanan", data.gameSponsors.done],
+              ["Sponsor firma", data.gameSponsors.firms],
+            ].map(([k, v]) => (
+              <div key={String(k)}>
+                <div className="text-xs uppercase tracking-[0.12em] text-[#3E6A88]">{tx(String(k))}</div>
+                <div className="display text-2xl text-[#0077C2]">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3">
+            <div className="text-xs uppercase tracking-[0.12em] text-[#3E6A88]">{tx("Sıradaki sponsorlu oyunlar")}</div>
+            <ul className="mt-2 space-y-2">
+              {data.gameSponsors.upcoming.map((s) => (
+                <li key={s.id} className="text-sm flex flex-wrap justify-between gap-2 border-b border-[#DCE8F0] pb-1">
+                  <span><strong>{s.game}</strong> · {s.company}{s.prize ? ` · ${s.prize}` : ""}</span>
+                  <span className="text-[#0077C2]">{formatDate(s.date)} · {s.startTime}–{s.endTime}</span>
+                </li>
+              ))}
+              {data.gameSponsors.upcoming.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Planlanmış sponsorlu oyun yok.")}</li> : null}
+            </ul>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

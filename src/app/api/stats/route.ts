@@ -13,6 +13,33 @@ export async function GET() {
     prisma.announcement.count(),
     prisma.thread.count({ where: { type: "qa", status: "Açık" } }),
   ]);
+  const sponsorships = await prisma.gameSponsorship.findMany({
+    where: {
+      status: { in: ["Onay bekliyor", "Onaylandı", "Tamamlandı"] },
+      ...(canManage(user.role) ? {} : { companyId: user.companyId || "-" }),
+    },
+    include: { company: { select: { name: true } }, game: { select: { title: true } } },
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+  });
+  const nowLocal = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 16).replace("T", " ");
+  const gameSponsors = {
+    approved: sponsorships.filter((s) => s.status === "Onaylandı").length,
+    pending: sponsorships.filter((s) => s.status === "Onay bekliyor").length,
+    done: sponsorships.filter((s) => s.status === "Tamamlandı").length,
+    firms: new Set(sponsorships.filter((s) => s.status !== "Onay bekliyor").map((s) => s.companyId)).size,
+    upcoming: sponsorships
+      .filter((s) => s.status === "Onaylandı" && `${s.date} ${s.endTime}` > nowLocal)
+      .slice(0, 6)
+      .map((s) => ({
+        id: s.id,
+        date: s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        game: s.game.title,
+        company: s.company.name,
+        prize: s.prize,
+      })),
+  };
   const computed = todos.map(withTodoComputed);
   const byStatus = computed.reduce<Record<string, number>>((acc, t) => {
     acc[t.status] = (acc[t.status] || 0) + 1;
@@ -43,6 +70,7 @@ export async function GET() {
       : { panels: 0, events: 0 },
     announcements,
     openQa,
+    gameSponsors,
     days,
     recentTodos: computed.filter((t) => t.risk).slice(0, 8),
   });
