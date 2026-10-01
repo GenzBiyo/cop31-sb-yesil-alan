@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Users, X } from "lucide-react";
 import { useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -45,9 +46,40 @@ export function SpeakerRail() {
     while (base.length < 10) base.push(...items);
     return [...base, ...base];
   }, [items]);
+  const [open, setOpen] = useState(false);
   if (!items.length) return null;
 
   return (
+    <>
+    <button type="button" className="speaker-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <Users size={15} aria-hidden />
+      {tx("Konuşmacılar")}
+      <span className="speaker-toggle-count">{items.length}</span>
+    </button>
+    {open ? (
+      <div className="speaker-sheet-backdrop" onClick={() => setOpen(false)}>
+        <div className="speaker-sheet" role="dialog" aria-label={tx("Konuşmacılar")} onClick={(e) => e.stopPropagation()}>
+          <div className="speaker-sheet-head">
+            <strong>{tx("Konuşmacılar")}</strong>
+            <button type="button" onClick={() => setOpen(false)} aria-label={tx("Kapat")}>
+              <X size={18} />
+            </button>
+          </div>
+          <div className="speaker-sheet-list">
+            {items.map((s) => (
+              <Link key={s.id} href={`/konusmacilar#${s.id}`} className="speaker-chip">
+                <SpeakerAvatar name={s.name} photoPath={s.photoPath} size={44} />
+                <span>
+                  <strong>{s.name}</strong>
+                  <em>{s.organization || s.title}</em>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link href="/konusmacilar" className="speaker-sheet-all">{tx("Tüm konuşmacılar ve özgeçmişler →")}</Link>
+        </div>
+      </div>
+    ) : null}
     <section className="speaker-rail" aria-label={tx("Konuşmacılar")}>
       <Link href="/konusmacilar" className="speaker-rail-kicker">{tx("Konuşmacılar")} →</Link>
       <div className="speaker-mask">
@@ -64,5 +96,6 @@ export function SpeakerRail() {
         </div>
       </div>
     </section>
+    </>
   );
 }

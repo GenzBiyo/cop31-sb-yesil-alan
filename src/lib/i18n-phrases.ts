@@ -980,6 +980,8 @@ export const EN: Record<string, string> = {
   "Hatıra fotoğrafı": "Keepsake photo",
   "Etkinlik sponsorları": "Event sponsors",
   "Paydaşlar": "Stakeholders",
+  "Kapat": "Close",
+  "Tüm konuşmacılar ve özgeçmişler →": "All speakers and bios →",
   "Moderatör": "Moderator",
   "Şimdi sahnede · Panel": "Now on stage · Panel",
   "Şimdi sahnede · Konuşma": "Now on stage · Talk",
