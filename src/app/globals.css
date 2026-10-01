@@ -86,19 +86,16 @@ a { color: inherit; text-decoration: none; }
 .page-nav a {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.38rem 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
   color: #EEF8FD;
 }
 .page-nav a + a { border-left: 1px solid rgba(255, 255, 255, 0.5); }
 .page-nav a:hover { background: #00A3E0; color: #FFFFFF; }
 @media (max-width: 640px) {
   .page-nav { right: 6.2rem; }
-  .page-nav a { padding: 0.38rem 0.5rem; font-size: 0.66rem; letter-spacing: 0.04em; }
+  .page-nav a { width: 1.9rem; height: 1.9rem; }
 }
 
 button, input, select, textarea { font: inherit; }
@@ -451,7 +448,7 @@ table.data td {
   align-items: center;
   gap: 0.8rem;
   width: 100%;
-  padding: 0.45rem 19rem 0.45rem 0.9rem;
+  padding: 0.45rem 11.6rem 0.45rem 0.9rem;
   background: rgba(255, 255, 255, 0.94);
   color: #0B1C33;
   box-shadow: 0 6px 18px rgba(0, 80, 140, 0.18);
@@ -474,7 +471,7 @@ table.data td {
 }
 .speaker-rail:hover .speaker-track { animation-play-state: paused; }
 @media (max-width: 640px) {
-  .speaker-rail { padding-right: 13.5rem; }
+  .speaker-rail { padding-right: 10.6rem; }
   .speaker-rail-kicker { display: none; }
 }
 .speaker-chip {
@@ -2405,6 +2402,24 @@ body:has(.phone-app) {
   padding: 10px;
   margin-top: 8px;
 }
+.phone-slots { margin: 10px 0; }
+.phone-slot-day { font-size: 12px; font-weight: 700; color: #0077c2; margin: 8px 0 4px; text-transform: capitalize; }
+.phone-slot-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.phone-slot {
+  border: 1px solid #b5dff2;
+  background: #fff;
+  color: #0b1c33;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.phone-slot small { font-size: 10px; color: #b7791f; }
+.phone-slot.is-on { background: #00a3e0; border-color: #00a3e0; color: #fff; }
+.phone-slot.is-on small { color: #fff; }
 .phone-days { display: flex; gap: 6px; overflow: auto; margin-bottom: 8px; }
 .phone-days button {
   border: 1px solid #b5dff2;

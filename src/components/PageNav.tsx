@@ -29,11 +29,11 @@ export function PageNav() {
   if (hidden(pathname)) return null;
   return (
     <nav className="page-nav no-print" aria-label={tx("Sayfa gezintisi")}>
-      <Link href={parentOf(pathname)}>
-        <ArrowLeft size={14} /> {tx("Geri")}
+      <Link href={parentOf(pathname)} aria-label={tx("Geri")} title={tx("Geri")}>
+        <ArrowLeft size={17} />
       </Link>
-      <Link href="/">
-        <Home size={14} /> {tx("Ana sayfa")}
+      <Link href="/" aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
+        <Home size={17} />
       </Link>
     </nav>
   );
