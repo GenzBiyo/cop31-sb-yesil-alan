@@ -9,6 +9,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileDown,
+  FileSpreadsheet,
   ScrollText,
   ClipboardCheck,
   Gift,
@@ -62,6 +63,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
   { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN"] },
+  { href: "/paydas-yanitlari", label: "Paydaş formu", icon: FileSpreadsheet, roles: ["ADMIN", "SAGLIK"] },
   { href: "/hesaplar", label: "Kullanıcı yönetimi", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Profilim", icon: Building2, roles: ["FIRMA"] },
   { href: "/toplantilar", label: "Toplantılarım", icon: Handshake, roles: ["FIRMA"] },
@@ -84,7 +86,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
 
-const MINISTRY_ONLY = ["/todos", "/takvim"];
+const MINISTRY_ONLY = ["/todos", "/takvim", "/paydas-yanitlari"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

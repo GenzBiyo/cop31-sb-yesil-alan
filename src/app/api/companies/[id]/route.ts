@@ -3,6 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 
+const FIRM_EDITABLE = [
+  "topic",
+  "topicEn",
+  "context",
+  "contribution",
+  "participationDates",
+  "website",
+  "contactName",
+  "contactEmail",
+  "contactPhone",
+  "notes",
+];
+
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
@@ -23,14 +36,13 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const body = await req.json();
   if (user.role === "FIRMA") {
     if (user.companyId !== id) return jsonError("Yetkiniz yok", 403);
-    const company = await prisma.company.update({
-      where: { id },
-      data: {
-        contactName: body.contactName,
-        contactPhone: body.contactPhone,
-        notes: body.notes,
-      },
-    });
+    const data: Record<string, string> = {};
+    for (const key of FIRM_EDITABLE) {
+      if (body[key] !== undefined) data[key] = String(body[key] ?? "").trim().slice(0, key === "context" || key === "contribution" ? 3000 : 300);
+    }
+    if (data.website && !/^https?:\/\//i.test(data.website)) data.website = `https://${data.website}`;
+    if (data.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contactEmail)) return jsonError("Geçerli bir e-posta yazın");
+    const company = await prisma.company.update({ where: { id }, data });
     return jsonOk(company);
   }
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);

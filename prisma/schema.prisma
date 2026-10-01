@@ -36,6 +36,7 @@ model Company {
   contribution       String               @default("")
   contributionEn     String               @default("")
   website            String               @default("")
+  logoPath           String               @default("")
   status             String               @default("Onaylandı")
   booth              String               @default("")
   contactName        String               @default("")
@@ -683,6 +684,44 @@ model MeetingSlot {
 
   @@unique([companyId, date, startTime])
   @@index([date])
+}
+
+model StakeholderResponse {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  companyName     String
+  contactName     String   @default("")
+  contactPhone    String   @default("")
+  theme           String   @default("")
+  headcount       Int      @default(0)
+  days            String   @default("[]")
+  speakerWilling  Boolean  @default(false)
+  speakers        String   @default("[]")
+  presentation    Boolean  @default(false)
+  standWanted     Boolean  @default(false)
+  standDays       String   @default("")
+  videoReady      String   @default("")
+  interactive     String   @default("")
+  meetingHost     String   @default("")
+  meetingIncoming String   @default("")
+  meetingRequests String   @default("[]")
+  ministryMeeting String   @default("")
+  source          String   @default("web")
+  submittedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MinistrySlot {
+  id           String   @id @default(cuid())
+  unit         String
+  date         String
+  time         String
+  open         Boolean  @default(false)
+  bookingEmail String   @default("")
+  updatedAt    DateTime @updatedAt
+
+  @@unique([unit, date, time])
+  @@index([bookingEmail])
 }
 
 model CalendarJoin {

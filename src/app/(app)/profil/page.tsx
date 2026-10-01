@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ImageUp } from "lucide-react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { PavilionRulesDialog } from "@/components/PavilionRules";
@@ -18,7 +19,10 @@ type Company = {
   contribution: string;
   booth: string;
   contactName: string;
+  contactEmail: string;
   contactPhone: string;
+  website: string;
+  logoPath: string;
   notes: string;
   status: string;
   rules: { id: string; title: string; body: string; dueDate: string; status: string }[];
@@ -59,14 +63,7 @@ export default function ProfilePage() {
           {kind.firmTools ? <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button> : null}
         </div>
       </div>
-      <div className="card p-4 grid md:grid-cols-2 gap-3">
-        <div><div className="text-xs uppercase text-[#57534e]">Konu</div><div>{company.topic || "—"}</div></div>
-        <div><div className="text-xs uppercase text-[#57534e]">Katılım</div><div>{company.participationDates}</div></div>
-        <div className="md:col-span-2"><div className="text-xs uppercase text-[#57534e]">Katkı</div><div>{company.contribution}</div></div>
-        <div className="md:col-span-2"><div className="text-xs uppercase text-[#57534e]">Bağlam</div><div>{company.context}</div></div>
-        <label className="text-sm">Yetkili adı<input className="field mt-1" defaultValue={company.contactName} onBlur={(e) => save(company.id, { contactName: e.target.value }, reload)} /></label>
-        <label className="text-sm">Telefon<input className="field mt-1" defaultValue={company.contactPhone} onBlur={(e) => save(company.id, { contactPhone: e.target.value }, reload)} /></label>
-      </div>
+      <ProfileEditor key={company.id} company={company} reload={reload} />
       {kind.firmTools ? (<>
       <section className="card p-4">
         <h2 className="display text-2xl">Size atanan kurallar</h2>
@@ -180,7 +177,127 @@ export default function ProfilePage() {
   );
 }
 
-async function save(id: string, body: Record<string, string>, reload: () => Promise<void>) {
-  await api(`/api/companies/${id}`, { method: "PATCH", body: JSON.stringify(body) });
-  await reload();
+const PROFILE_FIELDS: { key: keyof Company; label: string; area?: boolean; type?: string; placeholder?: string }[] = [
+  { key: "topic", label: "Ana konu / tema" },
+  { key: "participationDates", label: "Katılım günleri", placeholder: "Örn. 9–12 Kasım" },
+  { key: "contribution", label: "Pavilyona katkınız", area: true },
+  { key: "context", label: "Kurum tanıtımı", area: true },
+  { key: "website", label: "Web sitesi", type: "url", placeholder: "https://" },
+  { key: "contactName", label: "Yetkili adı soyadı" },
+  { key: "contactEmail", label: "Yetkili e-posta", type: "email" },
+  { key: "contactPhone", label: "Telefon", type: "tel" },
+];
+
+function ProfileEditor({ company, reload }: { company: Company; reload: () => Promise<void> }) {
+  const { tx } = useI18n();
+  const [form, setForm] = useState(() => Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key, String(company[f.key] ?? "")])) as Record<string, string>);
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const dirty = PROFILE_FIELDS.some((f) => form[f.key] !== String(company[f.key] ?? ""));
+
+  async function saveProfile() {
+    setBusy(true);
+    setMsg("");
+    try {
+      await api(`/api/companies/${company.id}`, { method: "PATCH", body: JSON.stringify(form) });
+      await reload();
+      setMsg(`${tx("Kaydedildi")} · ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : tx("Kaydedilemedi"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function uploadLogo(file: File) {
+    setLogoBusy(true);
+    setMsg("");
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      await api(`/api/companies/${company.id}/logo`, { method: "POST", body: fd });
+      await reload();
+      setMsg(tx("Logo yüklendi"));
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : tx("Logo yüklenemedi"));
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+
+  return (
+    <section className="card p-4 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="display text-2xl">{tx("Kurum profili")}</h2>
+        <span className="text-xs text-[#57534e]">{tx("Kurum adı değişikliği için Sağlık Bakanlığı ile iletişime geçin.")}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="w-40 h-24 border border-[#DCE8F0] bg-white flex items-center justify-center p-2">
+          {company.logoPath ? (
+            <img src={company.logoPath} alt={company.name} className="max-w-full max-h-full object-contain" />
+          ) : (
+            <span className="text-xs text-[#9AA5AD]">{tx("Logo yok")}</span>
+          )}
+        </div>
+        <div className="space-y-1">
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn" disabled={logoBusy} onClick={() => fileRef.current?.click()}>
+              <ImageUp size={15} />
+              {logoBusy ? tx("Yükleniyor…") : company.logoPath ? tx("Logoyu değiştir") : tx("Logo yükle")}
+            </button>
+            {company.logoPath ? (
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={async () => {
+                  await api(`/api/companies/${company.id}/logo`, { method: "DELETE" });
+                  await reload();
+                }}
+              >
+                {tx("Kaldır")}
+              </button>
+            ) : null}
+          </div>
+          <p className="text-xs text-[#57534e]">{tx("PNG, JPG, WebP veya SVG · en fazla 4 MB · şeffaf arka planlı yatay logo önerilir")}</p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploadLogo(f);
+              e.target.value = "";
+            }}
+          />
+        </div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-3">
+        {PROFILE_FIELDS.map((f) => (
+          <label key={f.key} className={`text-sm ${f.area ? "md:col-span-2" : ""}`}>
+            {tx(f.label)}
+            {f.area ? (
+              <textarea className="field mt-1" rows={3} value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+            ) : (
+              <input
+                className="field mt-1"
+                type={f.type || "text"}
+                placeholder={f.placeholder ? tx(f.placeholder) : undefined}
+                value={form[f.key]}
+                onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+              />
+            )}
+          </label>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" className="btn" disabled={busy || !dirty} onClick={() => void saveProfile()}>
+          {busy ? tx("Kaydediliyor…") : tx("Profili kaydet")}
+        </button>
+        {msg ? <span className="text-sm text-[#22A34A]">{msg}</span> : null}
+      </div>
+    </section>
+  );
 }
