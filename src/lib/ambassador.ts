@@ -12,11 +12,35 @@ Başvurusu uygun bulunan öğrenciler, oluşturulan gönüllü ekiplere yerleşt
 Etkinliğe katılacakların ayrıca COP31 ziyaretçi kaydını tamamlaması gerekmektedir:
 https://cop31.tr/tr/ziyaret-kaydi`;
 
+const NEARBY_PROVINCES = ["Antalya", "Burdur", "Isparta", "Muğla", "Konya", "Karaman", "Mersin", "Denizli"];
+
+export const TR_PROVINCES = [
+  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", "Ardahan", "Artvin",
+  "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur",
+  "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan",
+  "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Iğdır", "Isparta", "İstanbul",
+  "İzmir", "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kilis", "Kırıkkale", "Kırklareli",
+  "Kırşehir", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş",
+  "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", "Sakarya", "Samsun", "Şanlıurfa", "Siirt", "Sinop",
+  "Sivas", "Şırnak", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van", "Yalova", "Yozgat", "Zonguldak",
+];
+
+const PROVINCE_OPTIONS = [...NEARBY_PROVINCES, ...TR_PROVINCES.filter((p) => !NEARBY_PROVINCES.includes(p))].join("\n");
+
 export const DEFAULT_FIELDS = [
   { key: "fullName", label: "Ad soyad", type: "text", required: true, options: "", help: "", sortOrder: 1 },
   { key: "email", label: "E-posta", type: "email", required: true, options: "", help: "Kabul / red ve yerleştirme bilgilendirmesi bu adrese gider.", sortOrder: 2 },
   { key: "phone", label: "Telefon", type: "tel", required: true, options: "", help: "", sortOrder: 3 },
-  { key: "city", label: "İl / ilçe (Antalya ve çevre)", type: "text", required: true, options: "", help: "Konaklama olmadığı için günlük ulaşabileceğiniz yer.", sortOrder: 4 },
+  { key: "city", label: "İl", type: "select", required: true, options: PROVINCE_OPTIONS, help: "Antalya ve çevre iller listenin başında.", sortOrder: 4 },
+  {
+    key: "needsSupport",
+    label: "Konaklama veya ulaşım desteğine ihtiyacınız olacak mı?",
+    type: "select",
+    required: true,
+    options: "Evet\nHayır",
+    help: "Konaklama ve ulaşım desteği sağlanmamaktadır.",
+    sortOrder: 5,
+  },
   {
     key: "schoolType",
     label: "Okul türü",
@@ -59,8 +83,17 @@ export const DEFAULT_FIELDS = [
     help: "",
     sortOrder: 14,
   },
-  { key: "motivation", label: "Kısaca kendiniz ve motivasyonunuz", type: "textarea", required: true, options: "", help: "Neden İklim Sağlık Elçisi olmak istiyorsunuz?", sortOrder: 15 },
-];
+  {
+    key: "experience",
+    label: "Daha önce görev aldığınız etkinlik ve organizasyonlar",
+    type: "textarea",
+    required: false,
+    options: "",
+    help: "Varsa yazın: etkinlik adı, yıl ve göreviniz.",
+    sortOrder: 15,
+  },
+  { key: "motivation", label: "Kısaca kendiniz ve motivasyonunuz", type: "textarea", required: true, options: "", help: "Neden İklim Sağlık Elçisi olmak istiyorsunuz?", sortOrder: 16 },
+].map((field, index) => ({ ...field, sortOrder: index + 1 }));
 
 export const CORE_KEYS = [
   "fullName",

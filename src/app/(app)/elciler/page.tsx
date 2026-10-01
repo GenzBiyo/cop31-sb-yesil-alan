@@ -54,6 +54,15 @@ type Activity = {
 
 const ACTIVITY_DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
 
+function extraOf(app: { extra: string }): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(app.extra || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 const STATUSES = ["Beklemede", "Kabul edildi", "Yedek", "Yerleştirildi", "Reddedildi"];
 
 export default function AmbassadorsAdminPage() {
@@ -143,7 +152,11 @@ export default function AmbassadorsAdminPage() {
               <tbody>
                 {rows.map((a) => (
                   <tr key={a.id} className="cursor-pointer" onClick={() => { setOpen(a); setNote(a.adminNote); setMessage(""); }}>
-                    <td>{a.fullName}<div className="text-xs text-[#57534e]">{a.city}</div></td>
+                    <td>
+                      {a.fullName}
+                      <div className="text-xs text-[#57534e]">{a.city}</div>
+                      {extraOf(a).needsSupport === "Evet" ? <span className="badge warn mt-1">Konaklama/ulaşım ister</span> : null}
+                    </td>
                     <td>{a.schoolType} · {a.school}<div className="text-xs">{a.department}</div></td>
                     <td>{a.englishLevel}<div className="text-xs">{a.otherLanguages}</div></td>
                     <td>{a.daysCount}<div className="text-xs">{a.availableDates}</div></td>
@@ -310,6 +323,11 @@ export default function AmbassadorsAdminPage() {
             <div>Instagram: {open.instagram || "—"}</div>
             <div className="md:col-span-2">Alanlar: {open.skills}</div>
             <div className="md:col-span-2">Motivasyon: {open.motivation}</div>
+            {Object.entries(extraOf(open)).map(([key, value]) => (
+              <div key={key} className="md:col-span-2">
+                {(form.data?.fields || []).find((f) => f.key === key)?.label || key}: {Array.isArray(value) ? value.join(", ") : String(value || "—")}
+              </div>
+            ))}
           </div>
           <label className="text-sm">İç not<textarea className="field mt-1" value={note} onChange={(e) => setNote(e.target.value)} /></label>
           <label className="text-sm">Öğrenciye gidecek mesaj (boşsa varsayılan metin)
