@@ -459,9 +459,9 @@ table.data td {
   gap: 0.8rem;
   width: 100%;
   padding: 0.45rem 11.6rem 0.45rem 0.9rem;
-  background: linear-gradient(90deg, #c9f2d9 0%, #b4ede4 50%, #a6e6ea 100%);
-  color: #0B2E33;
-  box-shadow: 0 6px 18px rgba(0, 110, 110, 0.18);
+  background: linear-gradient(90deg, #0B2545 0%, #0D3B5E 55%, #0B5563 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6px 18px rgba(5, 25, 50, 0.35);
 }
 .speaker-rail-kicker {
   flex: none;
@@ -469,7 +469,7 @@ table.data td {
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #00796B;
+  color: #FFC857;
 }
 .speaker-mask { overflow: hidden; flex: 1 1 auto; min-width: 0; }
 .speaker-track {
@@ -492,7 +492,7 @@ table.data td {
 }
 .speaker-chip span { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
 .speaker-chip strong { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.speaker-chip em { font-style: normal; font-size: 0.7rem; color: #1F5F5B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.speaker-chip em { font-style: normal; font-size: 0.7rem; color: #9FE6DA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .speaker-card {
   background: rgba(255, 255, 255, 0.96);
