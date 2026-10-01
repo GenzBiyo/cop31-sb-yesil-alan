@@ -411,9 +411,6 @@ table.data td {
     z-index: 8;
     padding-bottom: 0.35rem;
   }
-  .climate-gates {
-    bottom: 7.4rem;
-  }
 }
 
 .gate-kicker {
@@ -877,6 +874,14 @@ table.data td {
   opacity: 1;
   pointer-events: auto;
   transform: none;
+}
+
+@media (min-width: 981px) {
+  /* Sits above the white sponsor rail (~7rem) and never climbs into the logo/slogan block (~15rem). */
+  .climate-root .climate-gates {
+    bottom: 8.4rem;
+    height: min(46vh, 420px, calc(100dvh - 8.4rem - 15rem));
+  }
 }
 
 @media (max-width: 980px) {
