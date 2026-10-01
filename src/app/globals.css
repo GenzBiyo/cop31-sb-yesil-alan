@@ -240,6 +240,12 @@ table.data td {
 @media print {
   aside, header, .no-print { display: none !important; }
   main { margin: 0 !important; padding: 0 !important; }
+  body:has(.concept-print) * { visibility: hidden; }
+  body:has(.concept-print) .concept-print,
+  body:has(.concept-print) .concept-print * { visibility: visible; }
+  .concept-print header { display: block !important; }
+  .concept-print-backdrop { position: absolute !important; inset: 0 auto auto 0 !important; display: block !important; width: 100% !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+  .concept-print { box-shadow: none !important; max-width: none !important; max-height: none !important; overflow: visible !important; width: 100% !important; padding: 0 !important; }
 }
 
 /* ——— Kapı sahnesi: sağlıklı insan, sağlıklı gezegen ——— */

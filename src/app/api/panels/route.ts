@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
-import { setPanelGuests, syncPanelAgenda } from "@/lib/panels";
+import { setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
 import { notifySbProposal, PENDING } from "@/lib/proposals";
 
@@ -32,7 +32,7 @@ export async function GET() {
   if (error || !user) return error!;
   const panels = await prisma.panel.findMany({
     include: {
-      participants: { include: { person: true } },
+      participants: { include: { person: true }, orderBy: { sortOrder: "asc" } },
       messages: { orderBy: { createdAt: "asc" } },
     },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
@@ -101,8 +101,12 @@ export async function POST(req: NextRequest) {
       proposedById: fromFirma ? user.id : "",
     },
   });
-  const { moderator, speakers } = guestsFromBody(body);
-  await setPanelGuests(panel.id, moderator, speakers);
+  if (Array.isArray(body.guests)) {
+    await setPanelLineup(panel.id, body.guests);
+  } else {
+    const { moderator, speakers } = guestsFromBody(body);
+    await setPanelGuests(panel.id, moderator, speakers);
+  }
   if (!fromFirma) await syncPanelAgenda(panel);
   if (fromFirma) {
     await notifySbProposal({

@@ -4,7 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
-import { setPanelGuests, syncPanelAgenda } from "@/lib/panels";
+import { setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
 import { APPROVED, notifyCompanyDecision, PENDING, REJECTED } from "@/lib/proposals";
 
@@ -59,7 +59,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.status != null && canManage(user.role) && body.status !== PENDING) data.status = body.status;
   if (body.notes != null) data.notes = body.notes;
   const panel = await prisma.panel.update({ where: { id }, data });
-  if (body.moderator != null || body.speakers != null) {
+  if (Array.isArray(body.guests)) {
+    await setPanelLineup(id, body.guests);
+  } else if (body.moderator != null || body.speakers != null) {
     const moderatorName = String(body.moderator || "").trim();
     const speakers = Array.isArray(body.speakers)
       ? body.speakers
@@ -102,12 +104,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
   if (body.action === "assign") {
     if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+    const last = await prisma.panelPerson.aggregate({ where: { panelId: id }, _max: { sortOrder: true } });
     const row = await prisma.panelPerson.create({
       data: {
         panelId: id,
         personId: body.personId,
         role: body.role || "panelist",
         confirmed: body.confirmed || "Davet edildi",
+        sortOrder: (last._max.sortOrder || 0) + 1,
       },
     });
     broadcast({ type: "panel" });

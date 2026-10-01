@@ -1,12 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, Plus, Printer, Trash2, X } from "lucide-react";
 import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
 import { useI18n } from "@/components/I18nProvider";
 import { ConceptEditor } from "@/components/ConceptEditor";
-import { emptyConcept, parseConcept, type SessionConcept } from "@/lib/session-concept";
+import { SessionBrief } from "@/components/SessionBrief";
+import { useSpeakers } from "@/components/speakers";
+import {
+  conceptCompletion,
+  emptyConcept,
+  GUEST_ROLE_LABELS,
+  parseConcept,
+  type SessionConcept,
+} from "@/lib/session-concept";
 
 type Person = { id: string; name: string; role: string; organization: string; email: string; track: string; kind: string };
 type Session = {
@@ -30,16 +38,171 @@ type Session = {
   messages: { id: string; authorId: string; body: string; createdAt: string }[];
 };
 
-type Guest = { name: string; organization: string };
+type Guest = { name: string; title: string; organization: string; role: string };
 
-function guestsOf(session: Session) {
-  const mod = session.participants.find((p) => p.role === "moderator");
-  const speakers = session.participants.filter((p) => p.role !== "moderator");
-  return {
-    moderator: mod?.person.name || "",
-    moderatorOrg: mod?.person.organization || "",
-    speakers: speakers.map((p) => ({ name: p.person.name, organization: p.person.organization || "" })),
+const ROLE_ORDER = ["acilis", "sunum", "panelist", "moderator", "kapanis"];
+
+function blankGuest(talk: boolean): Guest {
+  return { name: "", title: "", organization: "", role: talk ? "sunum" : "panelist" };
+}
+
+function lineupOf(session: Session): Guest[] {
+  return session.participants.map((p) => ({
+    name: p.person.name,
+    title: p.person.role || "",
+    organization: p.person.organization || "",
+    role: ROLE_ORDER.includes(p.role) ? p.role : p.role === "speaker" ? "sunum" : "panelist",
+  }));
+}
+
+function minutesBetween(start: string, end: string) {
+  const toMin = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
   };
+  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) return 0;
+  return Math.max(0, toMin(end) - toMin(start));
+}
+
+function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest[]; onChange: (next: Guest[]) => void }) {
+  const { data } = useSpeakers();
+  const known = data?.speakers || [];
+  const listId = talk ? "speaker-pick-talk" : "speaker-pick-panel";
+
+  function patch(i: number, part: Partial<Guest>) {
+    onChange(guests.map((g, idx) => (idx === i ? { ...g, ...part } : g)));
+  }
+  function pickName(i: number, name: string) {
+    const match = known.find((s) => s.name === name);
+    const current = guests[i];
+    patch(i, {
+      name,
+      ...(match
+        ? { title: current.title || match.title, organization: current.organization || match.organization }
+        : {}),
+    });
+  }
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= guests.length) return;
+    const next = [...guests];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{talk ? "Konuşmacılar" : "Konuşmacılar ve moderatör"}</div>
+        <span className="text-xs text-[#57534e]">
+          Sıra, programda ve panel ekranında görünen sıradır. Adı Konuşmacılar listesinden seçerseniz fotoğrafı ekrana gelir.
+        </span>
+      </div>
+      <datalist id={listId}>
+        {known.map((s) => <option key={s.id} value={s.name}>{[s.title, s.organization].filter(Boolean).join(" · ")}</option>)}
+      </datalist>
+      {guests.map((g, i) => {
+        const linked = known.some((s) => s.name === g.name.trim());
+        return (
+          <div key={i} className="grid gap-2 md:grid-cols-[1.3fr_1fr_1fr_10rem_auto] items-center">
+            <div className="relative">
+              <input className="field" list={listId} placeholder="Ad soyad" value={g.name} onChange={(e) => pickName(i, e.target.value)} />
+              {linked ? <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#22A34A] font-semibold">fotoğraflı</span> : null}
+            </div>
+            <input className="field" placeholder="Unvan" value={g.title} onChange={(e) => patch(i, { title: e.target.value })} />
+            <input className="field" placeholder="Kurum" value={g.organization} onChange={(e) => patch(i, { organization: e.target.value })} />
+            <select className="field" value={g.role} onChange={(e) => patch(i, { role: e.target.value })}>
+              {ROLE_ORDER.map((r) => <option key={r} value={r}>{GUEST_ROLE_LABELS[r]}</option>)}
+            </select>
+            <span className="flex">
+              <button type="button" className="btn ghost px-2" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Yukarı"><ArrowUp size={14} /></button>
+              <button type="button" className="btn ghost px-2" onClick={() => move(i, 1)} disabled={i === guests.length - 1} aria-label="Aşağı"><ArrowDown size={14} /></button>
+              <button type="button" className="btn ghost px-2" onClick={() => onChange(guests.filter((_, idx) => idx !== i))} aria-label="Sil"><Trash2 size={14} /></button>
+            </span>
+          </div>
+        );
+      })}
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn ghost" onClick={() => onChange([...guests, blankGuest(talk)])}>
+          <Plus size={14} /> {talk ? "Konuşmacı ekle" : "Panelist ekle"}
+        </button>
+        {!talk && !guests.some((g) => g.role === "moderator") ? (
+          <button type="button" className="btn ghost" onClick={() => onChange([...guests, { ...blankGuest(false), role: "moderator" }])}>
+            <Plus size={14} /> Moderatör ekle
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function ConceptBadge({ concept }: { concept?: string }) {
+  const { percent } = conceptCompletion(parseConcept(concept));
+  const tone = percent >= 80 ? "ok" : percent >= 30 ? "warn" : "muted";
+  return <span className={`badge ${tone}`} title="Detaylı konsept notunun doluluğu">Konsept %{percent}</span>;
+}
+
+function PreviewSheet({
+  talk,
+  title,
+  date,
+  startTime,
+  endTime,
+  location,
+  topic,
+  guests,
+  summary,
+  concept,
+  onClose,
+}: {
+  talk: boolean;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  topic: string;
+  guests: Guest[];
+  summary: string;
+  concept: SessionConcept;
+  onClose: () => void;
+}) {
+  const lineup = guests.filter((g) => g.name.trim());
+  return (
+    <div className="fixed inset-0 z-[80] bg-[rgba(11,28,51,0.55)] overflow-auto p-4 md:p-10 concept-print-backdrop" onClick={onClose}>
+      <article className="concept-print mx-auto max-w-3xl bg-white p-6 md:p-8 space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-wrap items-center justify-between gap-2 no-print">
+          <span className="text-xs tracking-[0.16em] uppercase text-[#57534e]">Ziyaretçi önizlemesi</span>
+          <span className="flex gap-2">
+            <button type="button" className="btn" onClick={() => window.print()}><Printer size={15} /> Yazdır / PDF</button>
+            <button type="button" className="btn ghost" onClick={onClose}><X size={15} /> Kapat</button>
+          </span>
+        </div>
+        <header className="space-y-1 border-b border-[#DCE8F0] pb-3">
+          <p className="text-xs tracking-[0.18em] uppercase text-[#0077C2]">
+            {talk ? "Konuşma" : "Panel"} · COP31 Sağlık Pavilionu
+          </p>
+          <h1 className="display text-3xl leading-tight">{title || "Başlıksız oturum"}</h1>
+          {topic ? <p className="text-[#57534e]">{topic}</p> : null}
+          <p className="text-sm font-semibold">
+            {[formatDate(date), startTime && endTime ? `${startTime}–${endTime}` : startTime, location].filter(Boolean).join(" · ")}
+          </p>
+        </header>
+        {lineup.length ? (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {lineup.map((g, i) => (
+              <li key={`${g.name}-${i}`} className="border border-[#DCE8F0] p-2">
+                <div className="font-semibold">{g.name}</div>
+                <div className="text-xs text-[#57534e]">{[g.title, g.organization].filter(Boolean).join(" · ")}</div>
+                <div className="text-[11px] uppercase tracking-[0.12em] text-[#00796B] mt-0.5">{GUEST_ROLE_LABELS[g.role] || g.role}</div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <SessionBrief summary={summary} concept={concept} startOpen lineup={lineup} />
+      </article>
+    </div>
+  );
 }
 
 export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
@@ -53,6 +216,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [form, setForm] = useState({
     title: "",
     date: "2026-11-09",
@@ -61,11 +225,9 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
     location: "Sağlık Pavilionu — Ana Sahne",
     topic: "",
     partners: "",
-    moderator: "",
-    moderatorOrg: "",
     summary: "",
   });
-  const [speakers, setSpeakers] = useState<Guest[]>([{ name: "", organization: "" }]);
+  const [guests, setGuests] = useState<Guest[]>([blankGuest(talk)]);
   const [concept, setConcept] = useState<SessionConcept>(emptyConcept());
 
   useRealtime((t) => {
@@ -110,12 +272,12 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
         body: JSON.stringify({
           ...form,
           kind: mode,
-          speakers: speakers.filter((s) => s.name.trim()),
+          guests: guests.filter((g) => g.name.trim()),
           concept,
         }),
       });
-      setForm({ ...form, title: "", topic: "", partners: "", moderator: "", moderatorOrg: "", summary: "" });
-      setSpeakers([{ name: "", organization: "" }]);
+      setForm({ ...form, title: "", topic: "", partners: "", summary: "" });
+      setGuests([blankGuest(talk)]);
       setConcept(emptyConcept());
       setShowForm(false);
       await reload();
@@ -158,23 +320,39 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
         <input className="field md:col-span-2" placeholder="Yer" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
         <input className="field md:col-span-2" placeholder="Konu" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
         <input className="field md:col-span-2" placeholder="Paydaşlar" value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
-        <input className="field" placeholder="Moderatör" value={form.moderator} onChange={(e) => setForm({ ...form, moderator: e.target.value })} />
-        <input className="field" placeholder="Moderatör kurumu" value={form.moderatorOrg} onChange={(e) => setForm({ ...form, moderatorOrg: e.target.value })} />
-        <div className="md:col-span-4 space-y-2">
-          <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{talk ? "Konuşmacılar" : "Panelistler"}</div>
-          {speakers.map((s, i) => (
-            <div key={i} className="grid md:grid-cols-2 gap-2">
-              <input className="field" placeholder={`${talk ? "Konuşmacı" : "Panelist"} ${i + 1}`} value={s.name} onChange={(e) => setSpeakers(speakers.map((row, idx) => (idx === i ? { ...row, name: e.target.value } : row)))} />
-              <input className="field" placeholder="Kurum" value={s.organization} onChange={(e) => setSpeakers(speakers.map((row, idx) => (idx === i ? { ...row, organization: e.target.value } : row)))} />
-            </div>
-          ))}
-          <button type="button" className="btn ghost" onClick={() => setSpeakers([...speakers, { name: "", organization: "" }])}>{talk ? "Konuşmacı ekle" : "Panelist ekle"}</button>
+        <div className="md:col-span-4">
+          <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
         </div>
         <div className="md:col-span-4">
-          <ConceptEditor summary={form.summary} concept={concept} onSummary={(summary) => setForm({ ...form, summary })} onConcept={setConcept} />
+          <ConceptEditor
+            summary={form.summary}
+            concept={concept}
+            onSummary={(summary) => setForm({ ...form, summary })}
+            onConcept={setConcept}
+            lineupNames={guests.map((g) => g.name).filter(Boolean)}
+            sessionMinutes={minutesBetween(form.startTime, form.endTime)}
+          />
         </div>
         {error ? <p className="text-sm text-[#E31C23] md:col-span-4">{error}</p> : null}
-        <button className="btn" disabled={busy}>{busy ? tx("Kaydediliyor…") : isFirma ? tx("SB'ye öner") : tx(talk ? "Konuşma ekle" : "Panel ekle")}</button>
+        <div className="md:col-span-4 flex flex-wrap gap-2">
+          <button className="btn" disabled={busy}>{busy ? tx("Kaydediliyor…") : isFirma ? tx("SB'ye öner") : tx(talk ? "Konuşma ekle" : "Panel ekle")}</button>
+          <button type="button" className="btn ghost" onClick={() => setPreview(true)}><Eye size={15} /> {tx("Önizle")}</button>
+        </div>
+        {preview ? (
+          <PreviewSheet
+            talk={talk}
+            title={form.title}
+            date={form.date}
+            startTime={form.startTime}
+            endTime={form.endTime}
+            location={form.location}
+            topic={form.topic}
+            guests={guests}
+            summary={form.summary}
+            concept={concept}
+            onClose={() => setPreview(false)}
+          />
+        ) : null}
       </form>
       ) : null}
 
@@ -190,7 +368,10 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                   <div className="font-semibold">{p.title}</div>
                   <div className="text-sm text-[#57534e]">{p.companyName || p.partners} · {p.topic}</div>
                 </div>
-                <span className="badge warn">{tx("Onay bekliyor")}</span>
+                <span className="flex gap-2 items-start">
+                  <ConceptBadge concept={p.concept} />
+                  <span className="badge warn">{tx("Onay bekliyor")}</span>
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {canReview ? (
@@ -208,6 +389,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               </div>
               {openId === p.id ? (
                 <SessionEditor
+                  key={p.id}
                   session={p}
                   people={data?.people || []}
                   canManage={!!canReview}
@@ -227,7 +409,9 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
             <h2 className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{g.label}</h2>
             {g.rows.length === 0 ? <p className="text-sm text-[#57534e]">Bu günde kayıt yok.</p> : null}
             {g.rows.map((p) => {
-              const people = guestsOf(p);
+              const lineup = lineupOf(p);
+              const mod = lineup.find((x) => x.role === "moderator");
+              const others = lineup.filter((x) => x.role !== "moderator").map((x) => x.name);
               return (
                 <div key={p.id} className="space-y-2">
                   <div className={`card p-4 ${openId === p.id ? "ring-2 ring-[#00A3E0]" : ""}`}>
@@ -242,23 +426,27 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                         <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {p.startTime}–{p.endTime}</div>
                         <div className="display text-2xl">{p.title}</div>
                         <div className="text-sm text-[#57534e]">
-                          {people.moderator ? `Moderatör: ${people.moderator} · ` : ""}
-                          {people.speakers.map((s) => s.name).filter(Boolean).join(", ") || p.topic || `${p.participants.length} kişi`}
+                          {mod ? `Moderatör: ${mod.name} · ` : ""}
+                          {others.join(", ") || p.topic || `${p.participants.length} kişi`}
                         </div>
                       </button>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className={`badge ${p.status === "Teyit edildi" || p.status === "Tamamlandı" ? "ok" : "warn"}`}>{tx(p.status)}</span>
+                        <span className="flex gap-1.5">
+                          <ConceptBadge concept={p.concept} />
+                          <span className={`badge ${p.status === "Teyit edildi" || p.status === "Tamamlandı" ? "ok" : "warn"}`}>{tx(p.status)}</span>
+                        </span>
                         {canEdit(p) ? (
-                          <>
+                          <span className="flex gap-1">
                             <button className="btn ghost" onClick={() => setOpenId(p.id)}>{tx("Düzenle")}</button>
                             <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
-                          </>
+                          </span>
                         ) : null}
                       </div>
                     </div>
                   </div>
                   {openId === p.id ? (
                     <SessionEditor
+                      key={p.id}
                       session={p}
                       people={data?.people || []}
                       canManage={!!canReview}
@@ -292,7 +480,6 @@ function SessionEditor({
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
-  const initial = guestsOf(session);
   const [title, setTitle] = useState(session.title);
   const [date, setDate] = useState(session.date);
   const [startTime, setStartTime] = useState(session.startTime);
@@ -300,17 +487,21 @@ function SessionEditor({
   const [location, setLocation] = useState(session.location);
   const [topic, setTopic] = useState(session.topic);
   const [partners, setPartners] = useState(session.partners);
-  const [moderator, setModerator] = useState(initial.moderator);
-  const [moderatorOrg, setModeratorOrg] = useState(initial.moderatorOrg);
-  const [speakers, setSpeakers] = useState<Guest[]>(initial.speakers.length ? initial.speakers : [{ name: "", organization: "" }]);
+  const [guests, setGuests] = useState<Guest[]>(() => {
+    const rows = lineupOf(session);
+    return rows.length ? rows : [blankGuest(talk)];
+  });
   const [summary, setSummary] = useState(session.summary || "");
   const [concept, setConcept] = useState<SessionConcept>(() => parseConcept(session.concept));
   const [msg, setMsg] = useState("");
   const [notify, setNotify] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState("");
+  const [preview, setPreview] = useState(false);
 
   async function save() {
     setBusy(true);
+    setSaved("");
     try {
       await api(`/api/panels/${session.id}`, {
         method: "PATCH",
@@ -323,18 +514,27 @@ function SessionEditor({
           location,
           topic,
           partners,
-          moderator,
-          moderatorOrg,
-          speakers: speakers.filter((s) => s.name.trim()),
+          guests: guests.filter((g) => g.name.trim()),
           summary,
           concept,
         }),
       });
       await onSaved();
+      setSaved(`Kaydedildi · ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (err) {
+      setSaved(err instanceof Error ? err.message : "Kaydedilemedi");
     } finally {
       setBusy(false);
     }
   }
+
+  const actions = (
+    <div className="flex flex-wrap items-center gap-2">
+      <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
+      <button type="button" className="btn ghost" onClick={() => setPreview(true)}><Eye size={15} /> Önizle / Yazdır</button>
+      {saved ? <span className={`text-sm ${saved.startsWith("Kaydedildi") ? "text-[#22A34A]" : "text-[#E31C23]"}`}>{saved}</span> : null}
+    </div>
+  );
 
   return (
     <div className="card p-5 space-y-4 md:ml-4 border-[#00A3E0]">
@@ -356,44 +556,53 @@ function SessionEditor({
         <label className="text-sm">Bitiş<input className="field mt-1" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></label>
         <label className="text-sm md:col-span-2">Konu<input className="field mt-1" value={topic} onChange={(e) => setTopic(e.target.value)} /></label>
         <label className="text-sm md:col-span-2">Paydaşlar<input className="field mt-1" value={partners} onChange={(e) => setPartners(e.target.value)} /></label>
-        <label className="text-sm">Moderatör<input className="field mt-1" value={moderator} onChange={(e) => setModerator(e.target.value)} /></label>
-        <label className="text-sm">Moderatör kurumu<input className="field mt-1" value={moderatorOrg} onChange={(e) => setModeratorOrg(e.target.value)} /></label>
       </div>
-      <div className="space-y-2">
-        <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{talk ? "Konuşmacılar" : "Panelistler"}</div>
-        {speakers.map((s, i) => (
-          <div key={i} className="grid md:grid-cols-2 gap-2">
-            <input className="field" placeholder="Ad" value={s.name} onChange={(e) => setSpeakers(speakers.map((row, idx) => (idx === i ? { ...row, name: e.target.value } : row)))} />
-            <input className="field" placeholder="Kurum" value={s.organization} onChange={(e) => setSpeakers(speakers.map((row, idx) => (idx === i ? { ...row, organization: e.target.value } : row)))} />
-          </div>
-        ))}
-        <button type="button" className="btn ghost" onClick={() => setSpeakers([...speakers, { name: "", organization: "" }])}>{talk ? "Konuşmacı ekle" : "Panelist ekle"}</button>
-      </div>
-      <ConceptEditor summary={summary} concept={concept} onSummary={setSummary} onConcept={setConcept} />
+      <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
+      <ConceptEditor
+        summary={summary}
+        concept={concept}
+        onSummary={setSummary}
+        onConcept={setConcept}
+        lineupNames={guests.map((g) => g.name).filter(Boolean)}
+        sessionMinutes={minutesBetween(startTime, endTime)}
+      />
+      {actions}
+      {preview ? (
+        <PreviewSheet
+          talk={talk}
+          title={title}
+          date={date}
+          startTime={startTime}
+          endTime={endTime}
+          location={location}
+          topic={topic}
+          guests={guests}
+          summary={summary}
+          concept={concept}
+          onClose={() => setPreview(false)}
+        />
+      ) : null}
       {canManage ? (
-        <>
-          <div className="flex flex-wrap gap-2">
-            <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
-          </div>
-          <label className="text-sm">Durum
-            <select className="field mt-1 max-w-xs" defaultValue={session.status} onChange={(e) => api(`/api/panels/${session.id}`, { method: "PATCH", body: JSON.stringify({ status: e.target.value }) })}>
-              <option>Planlama</option>
-              <option>Davetler gönderildi</option>
-              <option>Teyit edildi</option>
-              <option>Tamamlandı</option>
-            </select>
-          </label>
-        </>
-      ) : (
-        <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
-      )}
-      <h3 className="font-semibold">Kayıtlı kişiler</h3>
+        <label className="text-sm block">Durum
+          <select className="field mt-1 max-w-xs" defaultValue={session.status} onChange={async (e) => {
+            await api(`/api/panels/${session.id}`, { method: "PATCH", body: JSON.stringify({ status: e.target.value }) });
+            setSaved(`Durum: ${e.target.value}`);
+            await onSaved();
+          }}>
+            <option>Planlama</option>
+            <option>Davetler gönderildi</option>
+            <option>Teyit edildi</option>
+            <option>Tamamlandı</option>
+          </select>
+        </label>
+      ) : null}
+      <h3 className="font-semibold">Katılım teyidi</h3>
       <ul className="space-y-2">
         {session.participants.map((pt) => (
           <li key={pt.id} className="flex justify-between gap-2 text-sm">
             <span>
-              <strong>{pt.person.name}</strong> · {pt.person.organization}
-              <span className="badge muted ml-2">{pt.role === "moderator" ? "Moderatör" : "Konuşmacı"}</span>
+              <strong>{pt.person.name}</strong>{pt.person.organization ? ` · ${pt.person.organization}` : ""}
+              <span className="badge muted ml-2">{GUEST_ROLE_LABELS[pt.role] || (pt.role === "speaker" ? "Sunum" : "Panelist")}</span>
             </span>
             <select className="field w-40" defaultValue={pt.confirmed} onChange={(e) => api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "confirm", participantId: pt.id, confirmed: e.target.value }) })}>
               <option>Beklemede</option>
@@ -403,6 +612,7 @@ function SessionEditor({
             </select>
           </li>
         ))}
+        {session.participants.length === 0 ? <li className="text-sm text-[#57534e]">Kaydettikten sonra konuşmacılar burada teyit için listelenir.</li> : null}
       </ul>
       {canManage && people.length ? (
         <div className="flex gap-2">
@@ -413,9 +623,9 @@ function SessionEditor({
           </select>
           <button className="btn secondary" onClick={async () => {
             const personId = (document.getElementById(`personPick-${session.id}`) as HTMLSelectElement).value;
-            await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "assign", personId, role: talk ? "speaker" : "panelist" }) });
+            await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "assign", personId, role: talk ? "sunum" : "panelist" }) });
             await onSaved();
-          }}>Listeden ekle</button>
+          }}>Kişi havuzundan ekle</button>
         </div>
       ) : null}
       <h3 className="font-semibold">İletişim</h3>

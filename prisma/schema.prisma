@@ -196,6 +196,7 @@ model PanelPerson {
   personId  String
   role      String @default("panelist")
   confirmed String @default("Beklemede")
+  sortOrder Int    @default(0)
   panel     Panel  @relation(fields: [panelId], references: [id], onDelete: Cascade)
   person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
 }

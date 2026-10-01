@@ -17,10 +17,83 @@ export const CONCEPT_FIELDS = [
 ] as const;
 
 export type ConceptKey = (typeof CONCEPT_FIELDS)[number]["key"];
-export type SessionConcept = Record<ConceptKey, string>;
+/** `flow` holds the structured agenda as JSON (see FlowRow); the other keys are plain text. */
+export type SessionConcept = Record<ConceptKey, string> & { flow: string };
+
+export type FlowRow = { minutes: number; title: string; who: string };
+
+export const CONCEPT_SECTIONS: { id: string; label: string; intro: string; keys: ConceptKey[] }[] = [
+  {
+    id: "kimlik",
+    label: "Kimlik",
+    intro: "Oturumu kim düzenliyor, hangi tematik alana giriyor?",
+    keys: ["titleEn", "organiser", "partners", "organiserContact", "themePrimary", "themeSecondary"],
+  },
+  {
+    id: "icerik",
+    label: "İçerik",
+    intro: "Neden bu oturum, hangi soruya cevap arıyor?",
+    keys: ["purpose", "keyQuestion", "contribution"],
+  },
+  {
+    id: "akis",
+    label: "Akış",
+    intro: "Oturum dakika dakika nasıl ilerleyecek?",
+    keys: ["format"],
+  },
+  {
+    id: "kitle",
+    label: "Kitle ve sonuç",
+    intro: "Kimler için, oturumdan sonra ne kalacak?",
+    keys: ["audience", "outcomes", "followUp"],
+  },
+  {
+    id: "kaynak",
+    label: "Kaynaklar",
+    intro: "Dayandığınız rapor, program ve kanıtlar.",
+    keys: ["references"],
+  },
+];
+
+export const GUEST_ROLE_LABELS: Record<string, string> = {
+  acilis: "Açılış konuşması",
+  sunum: "Sunum",
+  panelist: "Panelist",
+  moderator: "Moderatör",
+  kapanis: "Kapanış",
+};
+
+export function flowRows(concept: SessionConcept): FlowRow[] {
+  try {
+    const rows = JSON.parse(concept.flow || "[]");
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .map((r) => ({ minutes: Math.max(0, Math.round(Number(r?.minutes) || 0)), title: String(r?.title || ""), who: String(r?.who || "") }))
+      .filter((r) => r.title.trim() || r.minutes);
+  } catch {
+    return [];
+  }
+}
+
+function sectionFilled(concept: SessionConcept, key: ConceptKey) {
+  if (key === "format") return flowRows(concept).length > 0 || !!concept.format.trim();
+  return !!concept[key].trim();
+}
+
+/** Share of filled fields per section and overall, ignoring the legacy speakers text. */
+export function conceptCompletion(concept: SessionConcept) {
+  const sections = CONCEPT_SECTIONS.map((s) => {
+    const filled = s.keys.filter((k) => sectionFilled(concept, k)).length;
+    return { id: s.id, filled, total: s.keys.length, done: filled === s.keys.length };
+  });
+  const filled = sections.reduce((n, s) => n + s.filled, 0);
+  const total = sections.reduce((n, s) => n + s.total, 0);
+  return { sections, percent: Math.round((filled / total) * 100) };
+}
 
 export function emptyConcept(): SessionConcept {
   return {
+    flow: "",
     titleEn: "",
     organiser: "",
     partners: "",
@@ -49,6 +122,7 @@ export function parseConcept(raw: string | null | undefined): SessionConcept {
       const value = data[field.key];
       if (typeof value === "string") concept[field.key] = value;
     }
+    if (typeof data.flow === "string") concept.flow = data.flow;
     return concept;
   } catch {
     return { ...concept, purpose: raw };
@@ -56,7 +130,7 @@ export function parseConcept(raw: string | null | undefined): SessionConcept {
 }
 
 export function conceptHasDetail(concept: SessionConcept) {
-  return CONCEPT_FIELDS.some((field) => concept[field.key].trim());
+  return CONCEPT_FIELDS.some((field) => concept[field.key].trim()) || flowRows(concept).length > 0;
 }
 
 export const HIDDEN_ASSETS_TITLE =
@@ -73,6 +147,7 @@ Sağlık Bakanlığı ve Tarım ve Orman Bakanlığından üst düzey temsilcile
 Oturum, iklim değişikliğinin etkilerini anlatmanın ötesine geçerek uygulama için somut fırsatları işaret eder. Bakanlıklar, uluslararası kuruluşlar, akademi ve iş dünyası arasında daha güçlü işbirliğini ve kanıt, teknoloji, finans ile ortaklıkların eylemi nerede destekleyebileceğini öne çıkarır.`;
 
 export const HIDDEN_ASSETS_CONCEPT: SessionConcept = {
+  flow: "",
   titleEn:
     "Unlocking the Hidden Assets of Climate Action: Health, Agriculture and Economic Benefits of Cutting Super Pollutants",
   organiser: "Astorg (Thermo Fisher)",

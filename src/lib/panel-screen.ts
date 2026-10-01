@@ -65,7 +65,7 @@ export async function livePanel() {
   if (!panelId) return { setting, panel: null };
   const panel = await prisma.panel.findUnique({
     where: { id: panelId },
-    include: { participants: { include: { person: true } } },
+    include: { participants: { include: { person: true }, orderBy: { sortOrder: "asc" } } },
   });
   if (!panel) return { setting, panel: null };
 
@@ -74,10 +74,8 @@ export async function livePanel() {
     select: { name: true, title: true, organization: true, photoPath: true },
   });
   const byName = new Map(speakers.map((s) => [normName(s.name), s]));
-  const order = (role: string) => (/moderat/i.test(role) ? 1 : 0);
   const people = panel.participants
-    .filter((p) => p.confirmed !== "Reddedildi" && p.confirmed !== "Katılamıyor")
-    .sort((a, b) => order(a.role) - order(b.role))
+    .filter((p) => p.confirmed !== "Red" && p.confirmed !== "Reddedildi")
     .map((p) => {
       const match = byName.get(normName(p.person.name));
       return {
