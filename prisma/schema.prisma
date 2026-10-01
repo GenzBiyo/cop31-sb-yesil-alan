@@ -45,6 +45,7 @@ model Company {
   rules              CompanyRule[]
   submissions        CompanySubmission[]
   gameSponsorships   GameSponsorship[]
+  meetingSlots       MeetingSlot[]
 }
 
 model CompanyRule {
@@ -658,10 +659,37 @@ model MeetingRequest {
   endTime       String    @default("")
   location      String    @default("")
   note          String    @default("")
+  slotId        String    @default("")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([fromDeviceId])
   @@index([withKind, withId])
   @@index([status])
+  @@index([slotId])
+}
+
+model MeetingSlot {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date      String
+  startTime String
+  endTime   String
+  location  String   @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, date, startTime])
+  @@index([date])
+}
+
+model CalendarJoin {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String   @default("")
+  itemKey   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemKey])
+  @@index([companyId])
 }

@@ -5,6 +5,8 @@ import { ensureEvents } from "./events-db";
 import { ensureAgendaSlots } from "./agenda";
 import { parseConcept } from "./session-concept";
 import { validEmail, validPhone } from "./agenda-time";
+import { MEETING_ACCEPTED, MEETING_PENDING, MEETING_REJECTED, openSlotsByCompany, slotIsPast, slotStates } from "./meeting-slots";
+import { notifyCompanyDecision } from "./proposals";
 
 const DEMO_TAGS = [
   {
@@ -196,6 +198,7 @@ export async function appState(deviceId: string) {
   ]);
   if (!device) return null;
   const fromIds = await samePartyIds(device);
+  const slotsByCompany = await openSlotsByCompany();
 
   return {
     device: {
@@ -208,7 +211,10 @@ export async function appState(deviceId: string) {
       personId: device.personId,
       push: Boolean(device.pushJson),
     },
-    directory: { companies, speakers },
+    directory: {
+      companies: companies.map((company) => ({ ...company, slots: slotsByCompany.get(company.id) || [] })),
+      speakers,
+    },
     vapidPublicKey: keys.publicKey,
     days: await (async () => {
       const panelIds = [...new Set(days.flatMap((day) => day.agenda.map((item) => item.panelId).filter((id): id is string => Boolean(id))))];
@@ -548,7 +554,16 @@ export async function answerSessionQuestion(deviceId: string, questionId: string
 
 export async function createMeeting(
   deviceId: string,
-  input: { kind: string; withKind: string; withId: string; topic: string; message: string; preferredDate: string; preferredTime: string }
+  input: {
+    kind: string;
+    withKind: string;
+    withId: string;
+    topic: string;
+    message: string;
+    preferredDate: string;
+    preferredTime: string;
+    slotId?: string;
+  }
 ) {
   const device = await prisma.appDevice.findUnique({ where: { id: deviceId } });
   if (!device?.name) throw new Error("Önce adınızı kaydedin");
@@ -575,6 +590,25 @@ export async function createMeeting(
     withName = person.organization ? `${person.name} · ${person.organization}` : person.name;
   }
 
+  let preferredDate = input.preferredDate.trim().slice(0, 10);
+  let preferredTime = input.preferredTime.trim().slice(0, 5);
+  let slotId = "";
+  if (input.slotId) {
+    if (withKind !== "firma") throw new Error("Saat seçimi yalnızca firma görüşmelerinde yapılır");
+    const slot = await prisma.meetingSlot.findUnique({ where: { id: input.slotId } });
+    if (!slot || slot.companyId !== withId) throw new Error("Seçilen saat bulunamadı");
+    if (slotIsPast(slot)) throw new Error("Seçilen saat geçti");
+    if ((await slotStates([slot.id])).get(slot.id)?.state === "dolu") throw new Error("Seçilen saat doldu, başka bir saat seçin");
+    const fromIds = await samePartyIds(device);
+    const dup = await prisma.meetingRequest.findFirst({
+      where: { slotId: slot.id, fromDeviceId: { in: fromIds }, status: MEETING_PENDING },
+    });
+    if (dup) throw new Error("Bu saat için talebiniz zaten onay bekliyor");
+    slotId = slot.id;
+    preferredDate = slot.date;
+    preferredTime = slot.startTime;
+  }
+
   const meeting = await prisma.meetingRequest.create({
     data: {
       fromDeviceId: device.id,
@@ -584,8 +618,9 @@ export async function createMeeting(
       withName,
       topic,
       message,
-      preferredDate: input.preferredDate.trim().slice(0, 10),
-      preferredTime: input.preferredTime.trim().slice(0, 5),
+      preferredDate,
+      preferredTime,
+      slotId,
     },
   });
   const label = kind === "ikili" ? "İkili görüşme" : "Toplantı";
@@ -593,6 +628,14 @@ export async function createMeeting(
   const targets = (await partyDeviceIds(meeting, device.id)).filter((id) => id !== device.id);
   if (targets.length) {
     await notifyDevices(targets, `Yeni ${label.toLowerCase()} talebi`, `${device.name}: ${topic}`, "meeting", meeting.id);
+  }
+  if (withKind === "firma") {
+    const when = [preferredDate, preferredTime].filter(Boolean).join(" ");
+    await notifyCompanyDecision({
+      companyId: withId,
+      title: `Yeni ${label.toLowerCase()} talebi`,
+      body: `${device.name}${device.organization ? ` (${device.organization})` : ""}: ${topic}${when ? ` — ${when}` : ""}\nFirma profilim → Toplantı takvimi bölümünden onaylayın.`,
+    });
   }
   return meeting;
 }
@@ -639,6 +682,14 @@ export async function updateMeeting(
       data.whenDate = meeting.preferredDate;
       data.startTime = meeting.preferredTime;
       data.location = meeting.kind === "ikili" ? "Sağlık Pavilionu — İkili görüşme masası" : "Sağlık Pavilionu";
+      const slot = meeting.slotId ? await prisma.meetingSlot.findUnique({ where: { id: meeting.slotId } }) : null;
+      if (slot) {
+        if ((await slotStates([slot.id])).get(slot.id)?.state === "dolu") throw new Error("Bu saat başka bir görüşmeyle doldu");
+        data.whenDate = slot.date;
+        data.startTime = slot.startTime;
+        data.endTime = slot.endTime;
+        if (slot.location) data.location = slot.location;
+      }
     }
   } else if (nextStatus && actor === "staff") {
     data.status = nextStatus;
@@ -656,6 +707,7 @@ export async function updateMeeting(
     if (input.note != null) data.note = String(input.note).trim().slice(0, 400);
   }
 
+  if (data.status === MEETING_REJECTED && input.note != null) data.note = String(input.note).trim().slice(0, 400);
   if (!Object.keys(data).length) throw new Error("Değişiklik yok");
   const saved = await prisma.meetingRequest.update({ where: { id }, data });
   const when = [saved.whenDate, saved.startTime && saved.endTime ? `${saved.startTime}–${saved.endTime}` : saved.startTime, saved.location]
@@ -666,6 +718,19 @@ export async function updateMeeting(
   const except = actor === "staff" ? undefined : actor;
   const listeners = await partyDeviceIds(saved, except);
   if (listeners.length) await notifyDevices(listeners, title, body, "meeting", saved.id);
+  if (data.status === MEETING_ACCEPTED && saved.slotId) {
+    const others = await prisma.meetingRequest.findMany({
+      where: { slotId: saved.slotId, status: MEETING_PENDING, NOT: { id: saved.id } },
+    });
+    for (const other of others) {
+      await prisma.meetingRequest.update({
+        where: { id: other.id },
+        data: { status: MEETING_REJECTED, note: "Seçtiğiniz saat başka bir görüşmeyle doldu. Lütfen başka bir saat seçin." },
+      });
+      await addNote(other.fromDeviceId, "Görüşme saati doldu", `${other.withName}: ${other.topic} — başka bir saat seçin.`, "meeting", other.id);
+    }
+  }
   broadcast({ type: "app" });
+  broadcast({ type: "agenda" });
   return saved;
 }

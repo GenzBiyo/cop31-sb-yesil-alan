@@ -49,7 +49,11 @@ type Question = {
 };
 
 type Directory = {
-  companies: { id: string; name: string }[];
+  companies: {
+    id: string;
+    name: string;
+    slots: { id: string; date: string; startTime: string; endTime: string; location: string; pending: boolean }[];
+  }[];
   speakers: { id: string; name: string; organization: string }[];
 };
 
@@ -184,7 +188,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const [question, setQuestion] = useState("");
   const [manual, setManual] = useState(initialCode);
   const [profile, setProfile] = useState<ProfileForm>({ name: "", email: "", phone: "", organization: "", role: "ziyaretci", companyId: "", personId: "" });
-  const [meet, setMeet] = useState({ kind: "ikili", target: "bakanlik", topic: "", message: "", preferredDate: "", preferredTime: "" });
+  const [meet, setMeet] = useState({ kind: "ikili", target: "bakanlik", topic: "", message: "", preferredDate: "", preferredTime: "", slotId: "" });
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [standalone, setStandalone] = useState(false);
   const [ios, setIos] = useState(false);
@@ -470,6 +474,12 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const day = state?.days.find((item) => item.id === dayId) || state?.days[0];
   const sessionQuestions = (state?.questions || []).filter((item) => !sessionId || item.agendaId === sessionId || item.mine || item.canAnswer);
 
+  const meetCompany = meet.target.startsWith("firma:")
+    ? state?.directory.companies.find((company) => company.id === meet.target.slice(6))
+    : undefined;
+  const meetSlots = meetCompany?.slots || [];
+  const meetSlotDays = [...new Set(meetSlots.map((slot) => slot.date))];
+
   async function sendMeeting() {
     if (!token) return;
     const [withKind, withId = ""] = meet.target.split(":");
@@ -487,10 +497,11 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             message: meet.message,
             preferredDate: meet.preferredDate,
             preferredTime: meet.preferredTime,
+            slotId: meet.slotId,
           }),
         })
       );
-      setMeet({ kind: meet.kind, target: "bakanlik", topic: "", message: "", preferredDate: "", preferredTime: "" });
+      setMeet({ kind: meet.kind, target: "bakanlik", topic: "", message: "", preferredDate: "", preferredTime: "", slotId: "" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Talep iletilemedi");
     } finally {
@@ -668,7 +679,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
                 <option value="ikili">{tx("İkili görüşme")}</option>
                 <option value="toplanti">{tx("Toplantı")}</option>
               </select>
-              <select className="phone-field" value={meet.target} onChange={(e) => setMeet({ ...meet, target: e.target.value })}>
+              <select className="phone-field" value={meet.target} onChange={(e) => setMeet({ ...meet, target: e.target.value, slotId: "" })}>
                 <option value="bakanlik">{tx("T.C. Sağlık Bakanlığı")}</option>
                 {(state?.directory.companies || []).map((company) => (
                   <option key={company.id} value={`firma:${company.id}`}>{company.name}</option>
@@ -679,9 +690,38 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
               </select>
               <input className="phone-field" placeholder={tx("Konu")} value={meet.topic} onChange={(e) => setMeet({ ...meet, topic: e.target.value })} />
               <textarea className="phone-field" rows={3} placeholder={tx("Kısa not")} value={meet.message} onChange={(e) => setMeet({ ...meet, message: e.target.value })} />
-              <input className="phone-field" type="date" value={meet.preferredDate} onChange={(e) => setMeet({ ...meet, preferredDate: e.target.value })} />
-              <input className="phone-field" type="time" value={meet.preferredTime} onChange={(e) => setMeet({ ...meet, preferredTime: e.target.value })} />
-              <button className="phone-btn" disabled={busy || meet.topic.trim().length < 3} type="submit">{tx("Talep gönder")}</button>
+              {meetSlots.length ? (
+                <div className="phone-slots">
+                  <p className="phone-muted">{tx("Firmanın uygun saatlerinden birini seçin. Firma onaylayınca saat dolar.")}</p>
+                  {meetSlotDays.map((date) => (
+                    <div key={date}>
+                      <div className="phone-slot-day">
+                        {new Date(date + "T00:00:00").toLocaleDateString(tag, { weekday: "short", day: "numeric", month: "long" })}
+                      </div>
+                      <div className="phone-slot-row">
+                        {meetSlots.filter((slot) => slot.date === date).map((slot) => (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            className={`phone-slot ${meet.slotId === slot.id ? "is-on" : ""} ${slot.pending ? "is-pending" : ""}`}
+                            aria-pressed={meet.slotId === slot.id}
+                            onClick={() => setMeet({ ...meet, slotId: meet.slotId === slot.id ? "" : slot.id })}
+                          >
+                            {slot.startTime}–{slot.endTime}
+                            {slot.pending ? <small>{tx("talep var")}</small> : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <input className="phone-field" type="date" value={meet.preferredDate} onChange={(e) => setMeet({ ...meet, preferredDate: e.target.value })} />
+                  <input className="phone-field" type="time" value={meet.preferredTime} onChange={(e) => setMeet({ ...meet, preferredTime: e.target.value })} />
+                </>
+              )}
+              <button className="phone-btn" disabled={busy || meet.topic.trim().length < 3 || (meetSlots.length > 0 && !meet.slotId)} type="submit">{tx("Talep gönder")}</button>
             </form>
             {(state?.meetings || []).map((item) => (
               <MeetingCard key={`${item.id}:${item.status}:${item.whenDate}:${item.startTime}`} item={item} token={token} tx={tx} onSaved={setState} onError={setError} />

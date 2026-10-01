@@ -4,7 +4,9 @@ import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { useMemo, useState } from "react";
 import { api, formatDay, useApi, useRealtime } from "@/lib/client";
 import { googleTemplateUrl } from "@/lib/calendar";
-import { CopDayGrid, type ProgramFilter, agendaMatchesFilter } from "@/components/CopDayGrid";
+import Link from "next/link";
+import { CalendarDays, Check, Plus } from "lucide-react";
+import { CopDayGrid, PlanChip, type ProgramFilter, agendaMatchesFilter, planMatchesFilter } from "@/components/CopDayGrid";
 import type { PlanDay } from "@/lib/plan-types";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
@@ -20,6 +22,59 @@ type Day = {
   notes: string;
   agenda: Agenda[];
 };
+
+function PavilionDay({ day, filter, onClose }: { day: PlanDay | null; filter: ProgramFilter; onClose: () => void }) {
+  const { tx } = useI18n();
+  const { data, reload } = useApi<{ keys: string[] }>("/api/calendar-joins");
+  const joined = new Set(data?.keys || []);
+  if (!day) return null;
+  const items = day.items.filter((item) => planMatchesFilter(item.kind, filter));
+
+  async function toggle(id: string) {
+    if (joined.has(id)) await api(`/api/calendar-joins?itemKey=${encodeURIComponent(id)}`, { method: "DELETE" });
+    else await api("/api/calendar-joins", { method: "POST", body: JSON.stringify({ itemKey: id }) });
+    await reload();
+  }
+
+  return (
+    <div className="card p-5 space-y-3">
+      <div className="flex flex-wrap justify-between gap-2">
+        <div>
+          <p className="text-xs tracking-[0.18em] uppercase text-[#0077C2]">{day.weekday} · {day.day} {tx("Kasım")} 2026</p>
+          <h2 className="display text-3xl mt-1">{tx(day.themeTr)}</h2>
+        </div>
+        <div className="flex gap-2 items-start">
+          <Link className="btn secondary" href="/takvimim"><CalendarDays size={16} />{tx("Takvimimi gör")}</Link>
+          <button className="btn ghost" onClick={onClose}>{tx("Kapat")}</button>
+        </div>
+      </div>
+      {items.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Bu günde henüz panel, sunum veya etkinlik yok.")}</p> : null}
+      <ul className="space-y-2">
+        {items.map((item) => {
+          const on = joined.has(item.id);
+          return (
+            <li key={item.id} className="border border-[#DCE8F0] p-3 flex flex-wrap gap-3 items-start">
+              <div className="text-sm tabular-nums w-24 shrink-0 text-[#0077C2] font-semibold">
+                {item.startTime ? `${item.startTime}–${item.endTime}` : tx("Saat belli değil")}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <PlanChip kind={item.kind} />
+                  <span className="font-semibold">{tx(item.title)}</span>
+                </div>
+                <p className="text-xs text-[#57534e] mt-1">{item.location}{item.people ? ` · ${item.people}` : ""}</p>
+              </div>
+              <button type="button" className={on ? "btn" : "btn ghost"} aria-pressed={on} onClick={() => void toggle(item.id)}>
+                {on ? <Check size={14} /> : <Plus size={14} />}
+                {on ? tx("Takvimimde") : tx("Katılmak istiyorum")}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function calendarEvent(day: Day, item: Agenda) {
   return {
@@ -78,8 +133,12 @@ export default function ProgramPage() {
     <div className="space-y-4">
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="display text-4xl">{tx("COP31 gündemi")}</h1>
-          <p className="text-[#57534e]">{tx("Onaylanan paneller, sunumlar ve etkinlikler burada. Saatleri kaydırın; QR ile kayıt ve otomatik haber.")}</p>
+          <h1 className="display text-4xl">{canEdit ? tx("COP31 gündemi") : tx("COP31 Sağlık Bakanlığı Pavilyon Gündemi")}</h1>
+          <p className="text-[#57534e]">
+            {canEdit
+              ? tx("Onaylanan paneller, sunumlar ve etkinlikler burada. Saatleri kaydırın; QR ile kayıt ve otomatik haber.")
+              : tx("Pavilyondaki tüm panel, konuşma ve etkinlikler. Bir güne basın, katılmak istediklerinizi takviminize ekleyin.")}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a className="btn" href="/api/pdf/program">Program PDF</a>
@@ -112,7 +171,14 @@ export default function ProgramPage() {
           setDraft(found);
         }}
       />
-      {day ? (
+      {day && !canEdit ? (
+        <PavilionDay
+          day={(plan?.days || []).find((d) => d.date === day.date) || null}
+          filter={programFilter}
+          onClose={() => setOpen(null)}
+        />
+      ) : null}
+      {day && canEdit ? (
         <div className="card p-5 space-y-4">
           <div className="flex justify-between">
             <h2 className="display text-3xl">{formatDay(day.date)}</h2>

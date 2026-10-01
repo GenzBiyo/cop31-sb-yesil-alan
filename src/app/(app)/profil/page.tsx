@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { PavilionRulesDialog } from "@/components/PavilionRules";
+import { MeetingAvailability } from "@/components/MeetingAvailability";
 
 type Company = {
   id: string;
@@ -47,7 +49,11 @@ export default function ProfilePage() {
           <h1 className="display text-4xl">{company.name}</h1>
           <p className="text-[#57534e]">{company.scope} · Stant {company.booth || "atanacak"} · {company.status}</p>
         </div>
-        <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button>
+        <div className="flex flex-wrap gap-2 items-start">
+          <Link className="btn secondary" href="/takvimim">{tx("Takvimimi gör")}</Link>
+          <a className="btn ghost" href="#toplanti">{tx("Toplantı takvimi")}</a>
+          <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button>
+        </div>
       </div>
       <div className="card p-4 grid md:grid-cols-2 gap-3">
         <div><div className="text-xs uppercase text-[#57534e]">Konu</div><div>{company.topic || "—"}</div></div>
@@ -125,6 +131,7 @@ export default function ProfilePage() {
           {compliance.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</li> : null}
         </ul>
       </section>
+      <MeetingAvailability participationDates={company.participationDates} />
       <section className="card p-4">
         <h2 className="display text-2xl">Takvim ve uygulamalar</h2>
         <p className="text-sm text-[#57534e] mb-3">Pavilion içindeki oturum, demo ve başvuru kayıtlarınızı girin.</p>

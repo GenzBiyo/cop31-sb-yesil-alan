@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       message: String(body.message || ""),
       preferredDate: String(body.preferredDate || ""),
       preferredTime: String(body.preferredTime || ""),
+      slotId: String(body.slotId || ""),
     });
   } catch (err) {
     return jsonError(err instanceof Error ? err.message : "Talep iletilemedi");

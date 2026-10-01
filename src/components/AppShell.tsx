@@ -61,6 +61,7 @@ const NAV = [
   { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN", "SAGLIK"] },
   { href: "/hesaplar", label: "Hesap onayları", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Firma profilim", icon: Building2, roles: ["FIRMA"] },
+  { href: "/takvimim", label: "Takvimim", icon: CalendarDays, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sunumlar", label: "Konuşmalar", icon: Presentation, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
