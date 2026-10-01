@@ -6,6 +6,7 @@ import { notifyCompanyDecision } from "@/lib/proposals";
 import { broadcast } from "@/lib/realtime";
 import {
   findSponsorConflict,
+  forgetLiveSponsors,
   SPONSOR_APPROVED,
   SPONSOR_PENDING,
   SPONSOR_REJECTED,
@@ -50,6 +51,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       title: approve ? "Oyun sponsorluğunuz onaylandı" : "Oyun sponsorluğu talebiniz reddedildi",
       body: `${row.game.title} · ${row.date} ${row.startTime}–${row.endTime}${reviewNote ? `\nNot: ${reviewNote}` : ""}`,
     });
+    forgetLiveSponsors();
     broadcast({ type: "agenda" });
     return jsonOk(updated);
   }
@@ -76,6 +78,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       ...(manager && SPONSOR_STATUSES.includes(body.status) ? { status: body.status } : {}),
     },
   });
+  forgetLiveSponsors();
   broadcast({ type: "agenda" });
   return jsonOk(updated);
 }
@@ -89,6 +92,7 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
   const own = user.role === "FIRMA" && row.companyId === user.companyId && row.status === SPONSOR_PENDING;
   if (!canManage(user.role) && !own) return jsonError("Yetkiniz yok", 403);
   await prisma.gameSponsorship.delete({ where: { id } });
+  forgetLiveSponsors();
   broadcast({ type: "agenda" });
   return jsonOk({ ok: true });
 }

@@ -7,6 +7,7 @@ import { notifySbProposal } from "@/lib/proposals";
 import { broadcast } from "@/lib/realtime";
 import {
   findSponsorConflict,
+  forgetLiveSponsors,
   SPONSOR_APPROVED,
   SPONSOR_PENDING,
   SPONSOR_REJECTED,
@@ -27,10 +28,10 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     }),
     prisma.gameSponsorship.findMany({
-      include: { company: { select: { id: true, name: true } }, game: { select: { id: true, title: true, type: true, slug: true } } },
+      include: { company: { select: { id: true, name: true, logoPath: true } }, game: { select: { id: true, title: true, type: true, slug: true } } },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     }),
-    manager ? prisma.company.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }) : Promise.resolve([]),
+    manager ? prisma.company.findMany({ select: { id: true, name: true, logoPath: true }, orderBy: { name: "asc" } }) : Promise.resolve([]),
   ]);
 
   const mine = manager ? rows : rows.filter((r) => r.companyId === user.companyId);
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
       href: "/oyun-sponsorluk",
     });
   }
+  forgetLiveSponsors();
   broadcast({ type: "agenda" });
   return jsonOk(row, 201);
 }

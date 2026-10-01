@@ -13,6 +13,7 @@ import { HatiraPlay } from "@/components/game/HatiraPlay";
 import type { PlayerMatchView } from "@/lib/match-live";
 import type { HatiraLogos } from "@/lib/hatira";
 import { GameStage } from "@/components/game/GameStage";
+import type { EventSponsorInfo } from "@/components/game/EventSponsor";
 import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
 import { ShareBar } from "@/components/game/ShareBar";
 import { useI18n } from "@/components/I18nProvider";
@@ -50,6 +51,7 @@ type Payload = {
   matchBoard?: PlayerMatchView | null;
   logos?: HatiraLogos | null;
   plak?: { tracks: PlakTrack[]; spinning: boolean; startedAt: string | null; index: number } | null;
+  sponsor?: EventSponsorInfo | null;
 };
 
 function MatchPhone({
@@ -186,6 +188,7 @@ function Join({ slug }: { slug: string }) {
         kicker="COP31 Türkiye · Hatıra / Souvenir"
         title={data.title}
         lead="Selfie çekin. Hazırla deyince Antalya doğası ve COP31 fonu gelir."
+        sponsor={data.sponsor}
       >
         <HatiraPlay slug={slug} logos={data.logos} />
       </GameStage>
@@ -198,6 +201,7 @@ function Join({ slug }: { slug: string }) {
         kicker="COP31 · Etkileşim"
         title={data.title}
         lead="Cinsiyet, yaş, boy ve kilonu gir. BKİ tablosu ve 2035 gıda izi."
+        sponsor={data.sponsor}
       >
         <KiloPlay slug={slug} />
       </GameStage>
@@ -212,6 +216,7 @@ function Join({ slug }: { slug: string }) {
       live={data.phase === "asking" || data.wheelMode === "coast" || data.wheelMode === "stop"}
       kicker="COP31 · Etkileşim"
       title={data.title}
+      sponsor={data.sponsor}
       lead="Rumuzunu yaz. Admin onaylayınca duvarda görünürsün."
     >
       <div className="space-y-4">

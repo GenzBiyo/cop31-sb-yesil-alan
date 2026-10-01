@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/I18nProvider";
+import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
 
 export function GameStage({
   kicker,
@@ -9,6 +10,7 @@ export function GameStage({
   children,
   live,
   wide,
+  sponsor,
 }: {
   kicker: string;
   title: string;
@@ -16,6 +18,7 @@ export function GameStage({
   children: React.ReactNode;
   live?: boolean;
   wide?: boolean;
+  sponsor?: EventSponsorInfo | null;
 }) {
   const { tx } = useI18n();
   return (
@@ -31,7 +34,10 @@ export function GameStage({
         <h1 className="display game-arena-title">{tx(title)}</h1>
         {lead ? <p className="game-arena-lead">{tx(lead)}</p> : null}
       </header>
-      <div className={`game-arena-body ${wide ? "is-wide" : ""}`}>{children}</div>
+      <div className={`game-arena-body ${wide ? "is-wide" : ""}`}>
+        {children}
+        <EventSponsor sponsor={sponsor} size="phone" />
+      </div>
     </main>
   );
 }

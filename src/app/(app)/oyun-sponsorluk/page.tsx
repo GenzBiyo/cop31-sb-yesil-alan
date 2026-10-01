@@ -20,13 +20,13 @@ type Row = {
   notes: string;
   status: string;
   reviewNote: string;
-  company: { id: string; name: string };
+  company: { id: string; name: string; logoPath?: string };
   game: Game;
   reach: { players: number; winners: number };
 };
 type Payload = {
   games: Game[];
-  companies: { id: string; name: string }[];
+  companies: { id: string; name: string; logoPath?: string }[];
   sponsorships: Row[];
   taken: { id: string; gameId: string; date: string; startTime: string; endTime: string }[];
 };
@@ -61,7 +61,7 @@ const EMPTY = {
 export default function GameSponsorsPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Payload>("/api/game-sponsors");
-  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  const { data: me } = useApi<{ role: string; companyId?: string | null }>("/api/auth/me");
   const manager = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -101,6 +101,9 @@ export default function GameSponsorsPage() {
     return [...map.values()].sort((a, b) => b.sessions - a.sessions);
   }, [live]);
 
+  const formCompany = manager
+    ? (data?.companies || []).find((c) => c.id === form.companyId)
+    : rows.find((r) => r.companyId === me?.companyId)?.company;
   const takenForForm = (data?.taken || []).filter((t) => t.gameId === form.gameId && t.date === form.date);
 
   async function submit(e: React.FormEvent) {
@@ -211,6 +214,14 @@ export default function GameSponsorsPage() {
                 : tx("Bu oyun için bu gün tüm saatler boş.")}
             </p>
           ) : null}
+          {formCompany ? (
+            <div className="md:col-span-4 flex items-center gap-3">
+              <SponsorLogo company={formCompany} canEdit onChange={reload} />
+              <p className="text-xs text-[#57534e]">
+                {tx("Onaylı saat aralığında oyunun duvar ekranında ve oyuncu telefonlarında “Etkinlik Sponsoru” başlığıyla bu logo büyük olarak gösterilir.")}
+              </p>
+            </div>
+          ) : null}
           <label className="text-sm md:col-span-2">{tx("Ödül / hediye")}
             <input className="field mt-1" placeholder={tx("Örn. termos, bez çanta")} value={form.prize} onChange={(e) => setForm({ ...form, prize: e.target.value })} />
           </label>
@@ -311,7 +322,8 @@ export default function GameSponsorsPage() {
               {d.rows.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Bu gün sponsorlu oyun yok.")}</p> : null}
               {d.rows.map((r) => (
                 <div key={r.id} className="card p-4 flex flex-wrap justify-between gap-3 items-start">
-                  <div className="min-w-0">
+                  <SponsorLogo company={r.company} canEdit={manager || r.companyId === me.companyId} onChange={reload} />
+                  <div className="min-w-0 flex-1">
                     <div className="text-xs text-[#0077C2]">{r.startTime}–{r.endTime} · {tx(GAME_TYPE[r.game.type] || r.game.type)}</div>
                     <div className="display text-2xl">{r.game.title}</div>
                     <div className="text-sm text-[#57534e]">
@@ -329,6 +341,7 @@ export default function GameSponsorsPage() {
                     {manager && r.status !== "Onay bekliyor" ? (
                       <div className="flex gap-2 flex-wrap justify-end">
                         <Link className="btn ghost" href={`/sunucu/${r.game.slug}`} target="_blank">{tx("Sunucu ekranı")}</Link>
+                        <Link className="btn ghost" href={`/oyun/${r.game.slug}`} target="_blank">{tx("Duvar ekranı")}</Link>
                         {r.status === "Onaylandı" ? (
                           <button className="btn ghost" onClick={() => void setStatus(r, "Tamamlandı")}>{tx("Tamamlandı")}</button>
                         ) : (
@@ -355,6 +368,65 @@ export default function GameSponsorsPage() {
           ) : null}
         </div>
       )}
+    </div>
+  );
+}
+
+function SponsorLogo({
+  company,
+  canEdit,
+  onChange,
+}: {
+  company: { id: string; name: string; logoPath?: string };
+  canEdit: boolean;
+  onChange: () => Promise<void> | void;
+}) {
+  const { tx } = useI18n();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function upload(file: File) {
+    setBusy(true);
+    setErr("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      await api(`/api/companies/${company.id}/logo`, { method: "POST", body });
+      await onChange();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : tx("Logo yüklenemedi"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1 w-32 shrink-0">
+      <div className="w-32 h-20 grid place-items-center bg-white border border-[#B5DFF2] rounded-lg p-2">
+        {company.logoPath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={company.logoPath} alt={company.name} className="max-h-full max-w-full object-contain" />
+        ) : (
+          <span className="text-[11px] text-center text-[#57534e]">{tx("Logo yok")}</span>
+        )}
+      </div>
+      {canEdit ? (
+        <label className="text-xs text-[#0077C2] cursor-pointer hover:underline">
+          {busy ? tx("Yükleniyor…") : company.logoPath ? tx("Logoyu değiştir") : tx("Logo yükle")}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void upload(f);
+            }}
+          />
+        </label>
+      ) : null}
+      {err ? <span className="text-[11px] text-[#E31C23] text-center">{err}</span> : null}
     </div>
   );
 }

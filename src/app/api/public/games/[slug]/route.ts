@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSharedGame } from "@/lib/game-live";
 import { parsePlayerMap, PLAYER_COOKIE } from "@/lib/games";
 import { playerMatchView } from "@/lib/match-live";
+import { liveSponsorFor } from "@/lib/game-sponsors";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
   const showReveal = shared.phase === "reveal" || shared.phase === "closed";
 
   const matchBoard = mine && shared.type === "match" && shared.phase === "asking" ? playerMatchView(shared.id, mine.id) : null;
+  const sponsor = await liveSponsorFor(shared.id);
   return jsonOk({
+    sponsor,
     slug: shared.slug,
     title: shared.title,
     description: shared.description,

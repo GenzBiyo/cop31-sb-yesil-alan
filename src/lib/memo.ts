@@ -22,3 +22,7 @@ export function memoClear(key?: string) {
   if (key) g.__copMemo!.delete(key);
   else g.__copMemo!.clear();
 }
+
+export function memoClearPrefix(prefix: string) {
+  for (const key of g.__copMemo!.keys()) if (key.startsWith(prefix)) g.__copMemo!.delete(key);
+}

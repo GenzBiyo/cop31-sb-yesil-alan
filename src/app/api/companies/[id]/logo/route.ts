@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
+import { forgetLiveSponsors } from "@/lib/game-sponsors";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const filename = `${id}-${Date.now()}.${ext}`;
   await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
   const row = await prisma.company.update({ where: { id }, data: { logoPath: `/uploads/companies/${filename}` } });
+  forgetLiveSponsors();
   return jsonOk({ logoPath: row.logoPath });
 }
 
@@ -38,5 +40,6 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
   const { id } = await ctx.params;
   if (!canManage(user.role) && user.companyId !== id) return jsonError("Yetkiniz yok", 403);
   await prisma.company.update({ where: { id }, data: { logoPath: "" } });
+  forgetLiveSponsors();
   return jsonOk({ ok: true });
 }

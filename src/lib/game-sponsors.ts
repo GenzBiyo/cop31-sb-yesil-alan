@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { COP_DATES } from "@/lib/cop-days";
+import { memoClear, memoClearPrefix, memoGet, memoSet } from "@/lib/memo";
 
 export const SPONSOR_PENDING = "Onay bekliyor";
 export const SPONSOR_APPROVED = "Onaylandı";
@@ -59,16 +60,51 @@ export async function sponsorReach(rows: Row[]) {
   return out;
 }
 
+export type LiveSponsor = { company: string; logo: string; prize: string; endTime: string };
+
+const norm = (s: string) => s.toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü]/g, "");
+
+/** Company profile logo first, otherwise a pavilion sponsor logo with the same name. */
+async function sponsorLogos(companies: { name: string; logoPath: string }[]) {
+  const missing = companies.filter((c) => !c.logoPath);
+  const pool = missing.length ? await prisma.sponsor.findMany({ where: { logoPath: { not: "" } }, select: { name: true, logoPath: true } }) : [];
+  return (c: { name: string; logoPath: string }) => {
+    if (c.logoPath) return c.logoPath;
+    const key = norm(c.name);
+    const hit = pool.find((s) => {
+      const n = norm(s.name);
+      return n && (n === key || key.startsWith(n) || n.startsWith(key));
+    });
+    return hit?.logoPath || "";
+  };
+}
+
 /** Approved sponsorship running right now for each game, keyed by gameId. */
-export async function liveSponsors(now = new Date()) {
+export async function liveSponsors(now = new Date(), gameId?: string) {
   const local = new Date(now.getTime() + 3 * 3600 * 1000).toISOString();
   const date = local.slice(0, 10);
   const time = local.slice(11, 16);
   const rows = await prisma.gameSponsorship.findMany({
-    where: { date, status: SPONSOR_APPROVED, startTime: { lte: time }, endTime: { gt: time } },
-    include: { company: { select: { name: true } } },
+    where: { date, status: SPONSOR_APPROVED, startTime: { lte: time }, endTime: { gt: time }, ...(gameId ? { gameId } : {}) },
+    include: { company: { select: { name: true, logoPath: true } } },
   });
-  const map: Record<string, { company: string; prize: string; endTime: string }> = {};
-  for (const r of rows) map[r.gameId] = { company: r.company.name, prize: r.prize, endTime: r.endTime };
+  const logoOf = await sponsorLogos(rows.map((r) => r.company));
+  const map: Record<string, LiveSponsor> = {};
+  for (const r of rows) map[r.gameId] = { company: r.company.name, logo: logoOf(r.company), prize: r.prize, endTime: r.endTime };
   return map;
+}
+
+export function forgetLiveSponsors() {
+  memoClearPrefix("game-sponsor:");
+  memoClear("public-games");
+}
+
+/** Live sponsor for one game; cached briefly because walls and phones poll every few seconds. */
+export async function liveSponsorFor(gameId: string): Promise<LiveSponsor | null> {
+  const key = `game-sponsor:${gameId}`;
+  const cached = memoGet<{ s: LiveSponsor | null }>(key, 15000);
+  if (cached) return cached.s;
+  const s = (await liveSponsors(new Date(), gameId))[gameId] || null;
+  memoSet(key, { s });
+  return s;
 }

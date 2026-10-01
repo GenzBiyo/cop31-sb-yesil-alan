@@ -14,6 +14,7 @@ import type { KiloPublic } from "@/lib/kilo-live";
 import { HatiraWallView } from "@/components/game/HatiraPlay";
 import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
 import { ShareBar } from "@/components/game/ShareBar";
+import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
 import type { HatiraPublic } from "@/lib/hatira";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -51,6 +52,7 @@ type Wall = {
   kilo?: KiloPublic | null;
   hatira?: HatiraPublic | null;
   plak?: { tracks: PlakTrack[]; spinning: boolean; startedAt: string | null; index: number } | null;
+  sponsor?: EventSponsorInfo | null;
 };
 
 function Wall({ slug }: { slug: string }) {
@@ -311,6 +313,7 @@ function Wall({ slug }: { slug: string }) {
             </div>
           </div>
         )}
+        <EventSponsor sponsor={wall.sponsor} />
       </section>
 
       <aside className="p-6 flex flex-col items-center gap-4" style={{ background: "#0088C8" }}>
