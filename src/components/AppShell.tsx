@@ -84,6 +84,8 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
 
+const MINISTRY_ONLY = ["/todos", "/takvim"];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -103,6 +105,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (me && me.role === "FIRMA" && MINISTRY_ONLY.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+      router.replace("/dashboard");
+    }
+  }, [me, pathname, router]);
 
   useRealtime(
     useCallback(

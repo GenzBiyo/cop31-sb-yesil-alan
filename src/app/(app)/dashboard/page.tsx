@@ -5,7 +5,7 @@ import { useApi, formatDate } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 
 type Stats = {
-  todos: { total: number; byStatus: Record<string, number>; avg: number; risk: number; upcoming: number };
+  todos: { total: number; byStatus: Record<string, number>; avg: number; risk: number; upcoming: number } | null;
   companies: { total: number; confirmed: number; pending: number };
   panels: number;
   pendingProposals?: { panels: number; talks?: number; events: number };
@@ -53,8 +53,12 @@ export default function DashboardPage() {
       ) : null}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
         {[
-          ["To-do tamamlanma", `%${data.todos.avg}`, "#00A3E0"],
-          ["Riskli / yaklaşan", `${data.todos.risk} / ${data.todos.upcoming}`, "#E31C23"],
+          ...(data.todos
+            ? [
+                ["To-do tamamlanma", `%${data.todos.avg}`, "#00A3E0"],
+                ["Riskli / yaklaşan", `${data.todos.risk} / ${data.todos.upcoming}`, "#E31C23"],
+              ]
+            : []),
           ["Onaylı firma", `${data.companies.confirmed}/${data.companies.total}`, "#32C45A"],
           ["Açık soru-cevap", String(data.openQa), "#00A3E0"],
         ].map(([k, v, accent]) => (
@@ -64,7 +68,7 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
-      <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4">
+      <div className={data.todos ? "grid lg:grid-cols-[1.2fr_0.8fr] gap-4" : "grid gap-4"}>
         <div className="card p-4">
           <div className="flex justify-between items-baseline">
             <h2 className="display text-2xl">{tx("Tematik günler")}</h2>
@@ -80,6 +84,7 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+        {data.todos ? (
         <div className="card p-4">
           <div className="flex justify-between">
             <h2 className="display text-2xl">{tx("Yaklaşan işler")}</h2>
@@ -98,6 +103,7 @@ export default function DashboardPage() {
             {data.recentTodos.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Riskli faaliyet yok.")}</li> : null}
           </ul>
         </div>
+        ) : null}
       </div>
       {data.gameSponsors && !sb ? (
         <div className="card p-4" style={{ borderLeft: "4px solid #32C45A" }}>

@@ -127,7 +127,7 @@ export default function ToplantilarPage() {
           <label className="text-sm">
             {tx("Kiminle?")}
             <select
-              className="input mt-1"
+              className="field mt-1"
               value={form.target}
               onChange={(e) => setForm({ ...form, target: e.target.value, slotId: "" })}
             >
@@ -146,7 +146,7 @@ export default function ToplantilarPage() {
           </label>
           <label className="text-sm">
             {tx("Görüşme türü")}
-            <select className="input mt-1" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+            <select className="field mt-1" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
               <option value="ikili">{tx("İkili görüşme")}</option>
               <option value="toplanti">{tx("Toplantı")}</option>
             </select>
@@ -176,14 +176,14 @@ export default function ToplantilarPage() {
             <>
               <label className="text-sm">
                 {tx("Tercih edilen gün")}
-                <select className="input mt-1" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}>
+                <select className="field mt-1" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}>
                   <option value="">{tx("Fark etmez")}</option>
                   {COP_DATES.map((d) => <option key={d} value={d}>{dayLabel(d)}</option>)}
                 </select>
               </label>
               <label className="text-sm">
                 {tx("Tercih edilen saat")}
-                <input className="input mt-1" type="time" value={form.preferredTime} onChange={(e) => setForm({ ...form, preferredTime: e.target.value })} />
+                <input className="field mt-1" type="time" value={form.preferredTime} onChange={(e) => setForm({ ...form, preferredTime: e.target.value })} />
               </label>
               {target ? (
                 <p className="text-xs text-[#57534e] md:col-span-2">
@@ -195,11 +195,11 @@ export default function ToplantilarPage() {
 
           <label className="text-sm md:col-span-2">
             {tx("Konu")}
-            <input className="input mt-1" value={form.topic} maxLength={140} onChange={(e) => setForm({ ...form, topic: e.target.value })} required />
+            <input className="field mt-1" value={form.topic} maxLength={140} onChange={(e) => setForm({ ...form, topic: e.target.value })} required />
           </label>
           <label className="text-sm md:col-span-2">
             {tx("Mesaj (isteğe bağlı)")}
-            <textarea className="input mt-1" rows={3} maxLength={500} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+            <textarea className="field mt-1" rows={3} maxLength={500} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <button className="btn" type="submit"><Send size={16} />{tx("Talep gönder")}</button>

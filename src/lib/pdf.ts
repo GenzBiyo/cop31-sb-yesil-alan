@@ -159,10 +159,6 @@ export async function pdfCompanyKit(companyId?: string): Promise<Buffer> {
   const company = companyId
     ? await prisma.company.findUnique({ where: { id: companyId }, include: { rules: true } })
     : null;
-  const todos = await prisma.todo.findMany({
-    where: { workPackage: { contains: "Paydaş" } },
-    orderBy: { no: "asc" },
-  });
   const doc = makePdf();
   const chunks: Buffer[] = [];
   doc.on("data", (c) => chunks.push(c as Buffer));
@@ -196,11 +192,6 @@ export async function pdfCompanyKit(companyId?: string): Promise<Buffer> {
     "Kurulum 2–8 Kasım, söküm 20–23 Kasım penceresindedir.",
   ];
   for (const r of rules) doc.fontSize(9).fillColor("#1a1a1a").text(`• ${r}`);
-  if (todos.length) {
-    doc.moveDown();
-    doc.fontSize(11).fillColor("#0077C2").text("Paydaş koordinasyon maddeleri");
-    for (const t of todos) doc.fontSize(9).text(`${t.no}. ${t.activity}`);
-  }
   doc.end();
   return done;
 }

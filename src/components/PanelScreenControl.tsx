@@ -46,7 +46,7 @@ export function PanelScreenControl() {
         </p>
         {msg ? <p className="text-sm text-[#c2410c]">{msg}</p> : null}
       </div>
-      <select className="input max-w-[22rem]" value={value} onChange={(e) => void change(e.target.value)}>
+      <select className="field max-w-[22rem]" value={value} onChange={(e) => void change(e.target.value)}>
         <option value="auto">{tx("Otomatik (takvime göre)")}</option>
         <option value="off">{tx("Kapalı · ana sayfa görünümü")}</option>
         {rows.map((p) => (

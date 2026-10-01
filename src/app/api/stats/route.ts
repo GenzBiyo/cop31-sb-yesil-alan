@@ -5,8 +5,9 @@ import { canManage } from "@/lib/auth";
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  const ministry = canManage(user.role);
   const [todos, companies, panels, days, announcements, openQa] = await Promise.all([
-    prisma.todo.findMany(),
+    ministry ? prisma.todo.findMany() : Promise.resolve([]),
     prisma.company.findMany(),
     prisma.panel.findMany(),
     prisma.thematicDay.findMany({ include: { agenda: true }, orderBy: { date: "asc" } }),
@@ -48,13 +49,15 @@ export async function GET() {
   const avg =
     computed.length === 0 ? 0 : Math.round(computed.reduce((s, t) => s + t.progress, 0) / computed.length);
   return jsonOk({
-    todos: {
-      total: computed.length,
-      byStatus,
-      avg,
-      risk: computed.filter((t) => t.risk).length,
-      upcoming: computed.filter((t) => t.remainingDays != null && t.remainingDays <= 7 && t.status !== "Tamamlandı").length,
-    },
+    todos: ministry
+      ? {
+          total: computed.length,
+          byStatus,
+          avg,
+          risk: computed.filter((t) => t.risk).length,
+          upcoming: computed.filter((t) => t.remainingDays != null && t.remainingDays <= 7 && t.status !== "Tamamlandı").length,
+        }
+      : null,
     companies: {
       total: companies.length,
       confirmed: companies.filter((c) => c.status === "Onaylandı").length,
@@ -72,6 +75,6 @@ export async function GET() {
     openQa,
     gameSponsors,
     days,
-    recentTodos: computed.filter((t) => t.risk).slice(0, 8),
+    recentTodos: ministry ? computed.filter((t) => t.risk).slice(0, 8) : [],
   });
 }

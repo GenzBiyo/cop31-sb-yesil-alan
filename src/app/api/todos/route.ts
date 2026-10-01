@@ -7,6 +7,7 @@ import { broadcast } from "@/lib/realtime";
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const todos = await prisma.todo.findMany({ orderBy: { no: "asc" } });
   return jsonOk(todos.map(withTodoComputed));
 }
