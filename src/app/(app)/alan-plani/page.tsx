@@ -1,9 +1,11 @@
 "use client";
 
 import { useI18n } from "@/components/I18nProvider";
+import { useApi } from "@/lib/client";
 
 export default function SpacePage() {
   const { tx } = useI18n();
+  const { data: me } = useApi<{ role: string }>("/api/auth/me");
   return (
     <div className="space-y-4">
       <div className="flex justify-between flex-wrap gap-3">
@@ -27,9 +29,11 @@ export default function SpacePage() {
           <strong>{tx("Eşantiyon dağıtımı")}</strong>{" "}
           {tx("bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve stand dışına ürün konmaz.")}
         </p>
-        <p>
-          <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
-        </p>
+        {me && me.role !== "SAGLIK" ? (
+          <p>
+            <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
+          </p>
+        ) : null}
       </div>
     </div>
   );

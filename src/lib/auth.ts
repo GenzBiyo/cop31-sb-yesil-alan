@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
 import { prisma } from "./prisma";
-import { COOKIE } from "./session-cookie";
+import { COOKIE, sessionSecret } from "./session-cookie";
 
 export type Role = "ADMIN" | "SAGLIK" | "FIRMA";
 
@@ -14,11 +14,7 @@ export type SessionUser = {
   title: string;
 };
 
-function secret() {
-  return new TextEncoder().encode(
-    process.env.AUTH_SECRET || "cop31-sb-hazirlik-secret-change-me"
-  );
-}
+const secret = sessionSecret;
 
 export async function signSession(user: SessionUser) {
   return new SignJWT(user)

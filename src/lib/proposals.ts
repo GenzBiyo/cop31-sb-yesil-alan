@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { broadcast } from "@/lib/realtime";
+import { sbCanSee } from "@/lib/access";
 
 export const PENDING = "Onay bekliyor";
 export const APPROVED = "Onaylandı";
@@ -10,7 +11,8 @@ export function isPendingStatus(status?: string | null) {
   return status === PENDING;
 }
 
-async function sbUsers() {
+async function sbUsers(href: string) {
+  if (!sbCanSee(href)) return prisma.user.findMany({ where: { role: "ADMIN" } });
   const sb = await prisma.user.findMany({ where: { role: "SAGLIK" } });
   if (sb.length) return sb;
   return prisma.user.findMany({ where: { role: "ADMIN" } });
@@ -21,7 +23,7 @@ export async function notifySbProposal(opts: {
   body: string;
   href: string;
 }) {
-  const staff = await sbUsers();
+  const staff = await sbUsers(opts.href);
   for (const u of staff) {
     await prisma.inboxItem.create({
       data: { userId: u.id, title: opts.title, body: `${opts.body}\n${opts.href}` },

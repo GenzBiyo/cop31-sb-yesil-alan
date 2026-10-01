@@ -58,26 +58,26 @@ const NAV = [
   { href: "/program", label: "COP31 gündem", icon: Sparkles, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
-  { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN", "SAGLIK"] },
+  { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN"] },
   { href: "/hesaplar", label: "Hesap onayları", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Firma profilim", icon: Building2, roles: ["FIRMA"] },
   { href: "/takvimim", label: "Takvimim", icon: CalendarDays, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sunumlar", label: "Konuşmalar", icon: Presentation, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "FIRMA"] },
+  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "FIRMA"] },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
-  { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN", "SAGLIK"] },
-  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN"] },
+  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "FIRMA"] },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/soru-cevap", label: "Soru-cevap", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"] },
   { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN", "SAGLIK"] },
+  { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="text-xs tracking-[0.18em] uppercase text-[#00A3E0]">{tx("Sağlık Pavilionu · Yeşil Alan")}</div>
             <div className="text-sm text-[#3E6A88]">{tx("Sağlıklı İnsan, Sağlıklı Gezegen")}</div>
           </div>
-          <Link href="/anonslar" className="relative">
+          <Link href={me?.role === "SAGLIK" ? "/mesajlar" : "/anonslar"} className="relative">
             <Bell size={18} />
             {me && me.unread > 0 ? (
               <span className="absolute -top-2 -right-2 badge high">{me.unread}</span>

@@ -25,25 +25,29 @@ type Stats = {
 export default function DashboardPage() {
   const { tx, t } = useI18n();
   const { data, loading } = useApi<Stats>("/api/stats");
-  if (loading || !data) return <p>{tx("Yükleniyor…")}</p>;
+  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  if (loading || !data || !me) return <p>{tx("Yükleniyor…")}</p>;
+  const sb = me.role === "SAGLIK";
+  const pendingEvents = sb ? 0 : data.pendingProposals?.events || 0;
   return (
     <div className="space-y-6">
       <div>
         <h1 className="display text-4xl">{tx("Hazırlık özeti")}</h1>
         <p className="text-[#57534e]">{tx("COP31 Sağlık Pavilionu (Yeşil Alan) · Antalya EXPO Center")}</p>
       </div>
-      {(data.pendingProposals?.panels || 0) + (data.pendingProposals?.talks || 0) + (data.pendingProposals?.events || 0) > 0 ? (
+      {(data.pendingProposals?.panels || 0) + (data.pendingProposals?.talks || 0) + pendingEvents > 0 ? (
         <div className="card p-4 flex flex-wrap justify-between gap-3 items-center" style={{ borderLeft: "4px solid #00A3E0" }}>
           <div>
             <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">{tx("Firma önerileri")}</div>
             <p className="text-sm mt-1">
-              {data.pendingProposals?.panels || 0} {tx("panel")} · {data.pendingProposals?.talks || 0} {tx("konuşma")} · {data.pendingProposals?.events || 0} {tx("etkinlik")} {tx("onay bekliyor")}
+              {data.pendingProposals?.panels || 0} {tx("panel")} · {data.pendingProposals?.talks || 0} {tx("konuşma")}
+              {sb ? "" : ` · ${pendingEvents} ${tx("etkinlik")}`} {tx("onay bekliyor")}
             </p>
           </div>
           <div className="flex gap-2">
             <Link className="btn" href="/paneller">{tx("Paneller")}</Link>
             <Link className="btn ghost" href="/sunumlar">{tx("Konuşmalar")}</Link>
-            <Link className="btn ghost" href="/etkinlikler">{tx("Etkinlikler")}</Link>
+            {sb ? null : <Link className="btn ghost" href="/etkinlikler">{tx("Etkinlikler")}</Link>}
           </div>
         </div>
       ) : null}
@@ -95,7 +99,7 @@ export default function DashboardPage() {
           </ul>
         </div>
       </div>
-      {data.gameSponsors ? (
+      {data.gameSponsors && !sb ? (
         <div className="card p-4" style={{ borderLeft: "4px solid #32C45A" }}>
           <div className="flex flex-wrap justify-between items-baseline gap-2">
             <h2 className="display text-2xl">{tx("Oyun sponsorlukları")}</h2>

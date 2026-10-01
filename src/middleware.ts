@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { COOKIE } from "@/lib/session-cookie";
+import { jwtVerify } from "jose";
+import { COOKIE, sessionSecret } from "@/lib/session-cookie";
+import { sbCanSee } from "@/lib/access";
 
 const PUBLIC = [
   "/login",
@@ -39,13 +41,30 @@ function isPublic(pathname: string) {
   return PUBLIC.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-export function middleware(req: NextRequest) {
+async function roleOf(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, sessionSecret());
+    return String(payload.role || "");
+  } catch {
+    return "";
+  }
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (isPublic(pathname) || pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
   const token = req.cookies.get(COOKIE)?.value;
-  if (token) return NextResponse.next();
+  if (token) {
+    if (!pathname.startsWith("/api/") && !sbCanSee(pathname) && (await roleOf(token)) === "SAGLIK") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
