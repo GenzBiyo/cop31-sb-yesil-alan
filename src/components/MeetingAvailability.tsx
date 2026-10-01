@@ -123,7 +123,7 @@ export function MeetingAvailability({ participationDates }: { participationDates
         <div>
           <h2 className="display text-2xl">{tx("Toplantı takvimi")}</h2>
           <p className="text-sm text-[#57534e]">
-            {tx("Toplantıya uygun olduğunuz günleri ve saat aralığını seçin. Ziyaretçi uygulamasından toplantı isteyenler bu saatlerden birini seçer; siz onaylayınca saat dolar.")}
+            {tx("Toplantıya uygun olduğunuz günleri ve saat aralığını seçin. Ziyaretçi uygulamasından veya diğer hesaplardan toplantı isteyenler bu saatlerden birini seçer; siz onaylayınca saat dolar.")}
           </p>
         </div>
         <Link className="btn" href="/takvimim"><CalendarDays size={16} />{tx("Takvimimi gör")}</Link>

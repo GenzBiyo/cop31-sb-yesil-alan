@@ -78,7 +78,7 @@ export default function MyCalendarPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
-          <Link className="btn ghost" href="/profil#toplanti">{tx("Toplantı saatlerimi düzenle")}</Link>
+          <Link className="btn ghost" href="/toplantilar">{tx("Toplantılarım")}</Link>
           <Link className="btn ghost" href="/program">{tx("Pavilyon gündemi")}</Link>
           <button type="button" className="btn ghost" onClick={() => window.print()}><Printer size={16} />{tx("Yazdır")}</button>
         </div>

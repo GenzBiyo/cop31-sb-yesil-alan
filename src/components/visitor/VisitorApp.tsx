@@ -5,6 +5,7 @@ import { useI18n } from "@/components/I18nProvider";
 import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 import { SessionBrief } from "@/components/SessionBrief";
 import { conceptHasDetail, emptyConcept, type SessionConcept } from "@/lib/session-concept";
+import { accountKind } from "@/lib/account-kinds";
 
 type AgendaItem = {
   id: string;
@@ -52,6 +53,7 @@ type Directory = {
   companies: {
     id: string;
     name: string;
+    kind: string;
     slots: { id: string; date: string; startTime: string; endTime: string; location: string; pending: boolean }[];
   }[];
   speakers: { id: string; name: string; organization: string }[];
@@ -682,7 +684,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
               <select className="phone-field" value={meet.target} onChange={(e) => setMeet({ ...meet, target: e.target.value, slotId: "" })}>
                 <option value="bakanlik">{tx("T.C. Sağlık Bakanlığı")}</option>
                 {(state?.directory.companies || []).map((company) => (
-                  <option key={company.id} value={`firma:${company.id}`}>{company.name}</option>
+                  <option key={company.id} value={`firma:${company.id}`}>
+                    {company.name}{company.kind && company.kind !== "firma" ? ` · ${tx(accountKind(company.kind).label)}` : ""}
+                  </option>
                 ))}
                 {(state?.directory.speakers || []).map((person) => (
                   <option key={person.id} value={`konusmaci:${person.id}`}>{person.name}{person.organization ? ` · ${person.organization}` : ""}</option>

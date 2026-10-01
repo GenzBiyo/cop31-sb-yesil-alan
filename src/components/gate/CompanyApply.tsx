@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { api } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { ACCOUNT_KINDS, accountKind } from "@/lib/account-kinds";
 
 const SCOPES = ["Local", "Global", "Startup", "UN", "Diğer"];
 
@@ -18,10 +19,11 @@ export function CompanyApply({
   blurb?: string;
 }) {
   const [form, setForm] = useState({
+    kind: lockScope ? "startup" : "firma",
     companyName: "",
     scope: defaultScope,
     name: "",
-    title: lockScope ? "Startup yetkilisi" : "Firma yetkilisi",
+    title: "",
     email: "",
     phone: "",
     password: "",
@@ -34,6 +36,7 @@ export function CompanyApply({
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
   const { tx } = useI18n();
+  const kind = accountKind(form.kind);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -69,20 +72,31 @@ export function CompanyApply({
         <h2 className="display text-3xl leading-tight">{tx(title)}</h2>
         <p className="text-sm text-[#57534e] mt-1">{tx(blurb)}</p>
       </div>
-      <label className="text-sm">{tx("Kurum adı *")}
-        <input className="field mt-1" required value={form.companyName} onChange={(e) => set("companyName", e.target.value)} />
+      <label className="text-sm">{tx("Hesap türü")} *
+        <select className="field mt-1" value={form.kind} onChange={(e) => set("kind", e.target.value)}>
+          {ACCOUNT_KINDS.map((k) => <option key={k.id} value={k.id}>{tx(k.label)}</option>)}
+        </select>
+      </label>
+      <label className="text-sm">{tx(kind.orgLabel)}{kind.id === "konusmaci" ? "" : " *"}
+        <input className="field mt-1" required={kind.id !== "konusmaci"} value={form.companyName} onChange={(e) => set("companyName", e.target.value)} />
       </label>
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-sm">{tx("Kapsam")}
-          <select className="field mt-1" value={form.scope} disabled={lockScope} onChange={(e) => set("scope", e.target.value)}>
-            {SCOPES.map((s) => <option key={s}>{tx(s)}</option>)}
-          </select>
-        </label>
+        {kind.id === "firma" ? (
+          <label className="text-sm">{tx("Kapsam")}
+            <select className="field mt-1" value={form.scope} disabled={lockScope} onChange={(e) => set("scope", e.target.value)}>
+              {SCOPES.map((s) => <option key={s}>{tx(s)}</option>)}
+            </select>
+          </label>
+        ) : (
+          <label className="text-sm">{tx("Unvan / görev")}
+            <input className="field mt-1" placeholder={tx(kind.contact)} value={form.title} onChange={(e) => set("title", e.target.value)} />
+          </label>
+        )}
         <label className="text-sm">{tx("Katılım")}
           <input className="field mt-1" placeholder={tx("ör. 9–12 Kasım")} value={form.participationDates} onChange={(e) => set("participationDates", e.target.value)} />
         </label>
       </div>
-      <label className="text-sm">{tx("Yetkili adı *")}
+      <label className="text-sm">{tx(kind.id === "konusmaci" ? "Ad soyad *" : "Yetkili adı *")}
         <input className="field mt-1" required value={form.name} onChange={(e) => set("name", e.target.value)} />
       </label>
       <div className="grid grid-cols-2 gap-2">

@@ -22,12 +22,12 @@ export default function FirmalarGate() {
         <button type="button" className={`tab ${tab === "kayit" ? "on" : ""}`} onClick={() => setTab("kayit")}>{tx("Hesap aç")}</button>
       </div>
       {tab === "giris" ? (
-        <GateLogin heading="Firma girişi" />
+        <GateLogin heading="Paydaş hesabı girişi" />
       ) : (
         <CompanyApply
           defaultScope="Local"
-          title="Firma hesabı"
-          blurb="Başvuru admin onayına düşer. Onaysız hesapla giriş yapılamaz."
+          title="Hesap başvurusu"
+          blurb="Firma, startup, kamu kurumu, konuşmacı, STK veya akademi hesabı açın. Başvuru admin onayına düşer; onaysız hesapla giriş yapılamaz."
         />
       )}
       <div className="mt-5 border-t border-[#DCE8F0] pt-4 text-sm">

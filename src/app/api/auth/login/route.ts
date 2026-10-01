@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
   if (user.accountStatus === "Beklemede") {
     return jsonError("Hesabınız admin onayını bekliyor. Onay maili e-posta adresinize düşecektir.", 403);
   }
+  if (user.accountStatus === "Askıda") {
+    return jsonError("Hesabınız askıya alındı. Sağlık Pavilionu ekibiyle iletişime geçin.", 403);
+  }
   if (user.accountStatus === "Reddedildi") {
     return jsonError("Hesap başvurunuz onaylanmadı. Sağlık Pavilionu ekibiyle iletişime geçin.", 403);
   }

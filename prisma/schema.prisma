@@ -26,6 +26,7 @@ model Company {
   slug               String               @unique
   name               String
   nameEn             String               @default("")
+  kind               String               @default("firma")
   scope              String               @default("Local")
   topic              String               @default("")
   topicEn            String               @default("")

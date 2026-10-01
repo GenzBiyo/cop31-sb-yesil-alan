@@ -32,6 +32,7 @@ import {
 import { api, copCountdown, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts } from "@/components/AgendaAlerts";
+import { accountKind } from "@/lib/account-kinds";
 
 type Me = {
   id: string;
@@ -49,9 +50,11 @@ type Me = {
   pendingCompliance?: number;
   pendingGameSponsors?: number;
   pendingSpeakers?: number;
+  accountKind?: string;
+  companyName?: string;
 };
 
-const NAV = [
+const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; firmTools?: boolean }[] = [
   { href: "/dashboard", label: "Özet", icon: LayoutDashboard, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/todos", label: "Hazırlık to-do", icon: ClipboardList, roles: ["ADMIN", "SAGLIK"] },
   { href: "/takvim", label: "Hazırlık takvimi", icon: CalendarDays, roles: ["ADMIN", "SAGLIK"] },
@@ -59,23 +62,24 @@ const NAV = [
   { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
   { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN"] },
-  { href: "/hesaplar", label: "Hesap onayları", icon: UserPlus, roles: ["ADMIN"] },
-  { href: "/profil", label: "Firma profilim", icon: Building2, roles: ["FIRMA"] },
+  { href: "/hesaplar", label: "Kullanıcı yönetimi", icon: UserPlus, roles: ["ADMIN"] },
+  { href: "/profil", label: "Profilim", icon: Building2, roles: ["FIRMA"] },
+  { href: "/toplantilar", label: "Toplantılarım", icon: Handshake, roles: ["FIRMA"] },
   { href: "/takvimim", label: "Takvimim", icon: CalendarDays, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sunumlar", label: "Konuşmalar", icon: Presentation, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "FIRMA"] },
-  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "FIRMA"] },
+  { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "FIRMA"], firmTools: true },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
   { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN"] },
-  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "FIRMA"] },
+  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "FIRMA"], firmTools: true },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/soru-cevap", label: "Soru-cevap", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"] },
+  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"], firmTools: true },
   { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
@@ -109,9 +113,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     )
   );
 
-  const items = useMemo(() => NAV.filter((n) => me && n.roles.includes(me.role)), [me]);
+  const kind = accountKind(me?.accountKind);
+  const items = useMemo(
+    () => NAV.filter((n) => me && n.roles.includes(me.role) && !(me.role === "FIRMA" && n.firmTools && !kind.firmTools)),
+    [me, kind.firmTools]
+  );
   const days = copCountdown();
-  const roleLabel = me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx("Firma");
+  const roleLabel = me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
 
   return (
     <div className="min-h-screen grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">

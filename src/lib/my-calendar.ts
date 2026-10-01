@@ -42,7 +42,7 @@ export async function companyCalendar(companyId: string) {
       include: { fromDevice: { select: { name: true, organization: true } } },
     }),
     prisma.meetingRequest.findMany({
-      where: { fromDevice: { role: "firma", companyId }, status: MEETING_ACCEPTED },
+      where: { fromDevice: { role: "firma", companyId }, status: { in: [MEETING_PENDING, MEETING_ACCEPTED] } },
     }),
     prisma.panel.findMany({
       where: {
@@ -94,7 +94,7 @@ export async function companyCalendar(companyId: string) {
         detail: m?.topic || "",
         location: m?.location || slot.location,
         status: "Onaylandı",
-        href: "/profil#toplanti",
+        href: "/toplantilar",
       });
     } else if (st?.state === "bekliyor") {
       out.push({
@@ -107,7 +107,7 @@ export async function companyCalendar(companyId: string) {
         detail: "Onayınızı bekliyor",
         location: slot.location,
         status: "Onay bekliyor",
-        href: "/profil#toplanti",
+        href: "/toplantilar",
       });
     } else {
       out.push({
@@ -120,7 +120,7 @@ export async function companyCalendar(companyId: string) {
         detail: "",
         location: slot.location,
         status: "Boş",
-        href: "/profil#toplanti",
+        href: "/toplantilar",
       });
     }
   }
@@ -139,22 +139,25 @@ export async function companyCalendar(companyId: string) {
       detail: m.topic,
       location: m.location,
       status: accepted ? "Onaylandı" : "Onay bekliyor",
-      href: "/profil#toplanti",
+      href: "/toplantilar",
     });
   }
 
   for (const m of outgoing) {
-    if (!m.whenDate) continue;
+    const accepted = m.status === MEETING_ACCEPTED;
+    const date = accepted ? m.whenDate : m.preferredDate;
+    if (!date) continue;
     out.push({
       id: `meeting-${m.id}`,
-      date: m.whenDate,
-      startTime: m.startTime,
-      endTime: m.endTime,
-      kind: "toplanti",
-      title: `Görüşme: ${m.withName}`,
+      date,
+      startTime: accepted ? m.startTime : m.preferredTime,
+      endTime: accepted ? m.endTime : "",
+      kind: accepted ? "toplanti" : "talep",
+      title: `${accepted ? "Görüşme" : "Gönderilen talep"}: ${m.withName}`,
       detail: m.topic,
       location: m.location,
-      status: "Onaylandı",
+      status: accepted ? "Onaylandı" : "Karşı taraf onayı bekleniyor",
+      href: "/toplantilar",
     });
   }
 

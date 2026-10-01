@@ -5,34 +5,39 @@ import { jsonError, jsonOk } from "@/lib/api";
 import { slugify } from "@/lib/company";
 import { sendMail } from "@/lib/mail";
 import { broadcast } from "@/lib/realtime";
+import { accountKind, validKind } from "@/lib/account-kinds";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
-  const companyName = String(body.companyName || "").trim();
+  const kind = accountKind(validKind(body.kind));
   const name = String(body.name || "").trim();
+  const companyName = String(body.companyName || "").trim() || (kind.id === "konusmaci" ? name : "");
   if (!email || !email.includes("@")) return jsonError("Geçerli bir e-posta girin");
   if (password.length < 8) return jsonError("Şifre en az 8 karakter olmalı");
-  if (!companyName) return jsonError("Firma adı gerekli");
+  if (!companyName) return jsonError(`${kind.orgLabel} gerekli`);
   if (!name) return jsonError("Yetkili adı gerekli");
 
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) return jsonError("Bu e-posta ile kayıtlı bir hesap var");
 
-  let company = await prisma.company.findFirst({
-    where: { name: { equals: companyName } },
-  });
+  let company =
+    kind.id === "konusmaci"
+      ? null
+      : await prisma.company.findFirst({
+          where: { name: { equals: companyName } },
+        });
   if (!company) {
-    let slug = slugify(companyName) || "firma";
+    let slug = slugify(kind.id === "konusmaci" ? name : companyName) || kind.id;
     const taken = await prisma.company.findUnique({ where: { slug } });
     if (taken) slug = `${slug}-${Date.now().toString(36).slice(-4)}`;
     company = await prisma.company.create({
       data: {
         slug,
-        name: companyName,
-        scope: body.scope || "Local",
-        topic: body.topic || "",
+        name: kind.id === "konusmaci" ? name : companyName,
+        kind: kind.id,
+        scope: kind.id === "startup" ? "Startup" : body.scope || "Local",
         contribution: body.contribution || "",
         website: body.website || "",
         participationDates: body.participationDates || "",
@@ -40,7 +45,8 @@ export async function POST(req: NextRequest) {
         contactName: name,
         contactEmail: email,
         contactPhone: body.phone || "",
-        notes: "Firma self-servis kaydı — admin onayı bekleniyor.",
+        topic: kind.id === "konusmaci" ? companyName : body.topic || "",
+        notes: `${kind.label} self-servis kaydı — admin onayı bekleniyor.`,
       },
     });
   } else {
@@ -62,28 +68,28 @@ export async function POST(req: NextRequest) {
       passwordHash,
       role: "FIRMA",
       phone: body.phone || "",
-      title: body.title || "Firma yetkilisi",
+      title: String(body.title || "").trim() || kind.contact,
       companyId: company.id,
       accountStatus: "Beklemede",
     },
   });
 
   const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
-  const summary = `${company.name} — ${name} (${email}) hesap onayı bekliyor.`;
+  const summary = `${kind.label}: ${company.name} — ${name} (${email}) hesap onayı bekliyor.`;
   for (const admin of admins) {
     await prisma.inboxItem.create({
       data: {
         userId: admin.id,
-        title: "Yeni firma hesap başvurusu",
+        title: `Yeni hesap başvurusu · ${kind.label}`,
         body: summary,
       },
     });
-    await sendMail(admin.email, "Yeni firma hesap başvurusu", `${summary}\n\nHazırlık masası → Hesap onayları.`);
+    await sendMail(admin.email, `Yeni hesap başvurusu · ${kind.label}`, `${summary}\n\nHazırlık masası → Kullanıcı yönetimi.`);
   }
   await sendMail(
     email,
-    "COP31 firma hesabınız alındı",
-    `Sayın ${name},\n\n${company.name} adına oluşturulan hesabınız admin onayına gönderildi. Onay sonrası bu e-posta ile giriş yapabilirsiniz.\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
+    "COP31 hesap başvurunuz alındı",
+    `Sayın ${name},\n\n${company.name} adına oluşturulan ${kind.label.toLocaleLowerCase("tr-TR")} hesabınız admin onayına gönderildi. Onay sonrası bu e-posta ile giriş yapabilirsiniz.\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
   );
   broadcast({ type: "inbox" });
   broadcast({ type: "account" });

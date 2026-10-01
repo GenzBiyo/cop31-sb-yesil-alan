@@ -1,4 +1,4 @@
-import { readSession } from "@/lib/auth";
+import { clearSessionCookie, readSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { pendingProposalCounts } from "@/lib/proposals";
@@ -6,6 +6,14 @@ import { pendingProposalCounts } from "@/lib/proposals";
 export async function GET() {
   const session = await readSession();
   if (!session) return jsonError("Oturum yok", 401);
+  const account = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { accountStatus: true, company: { select: { kind: true, name: true } } },
+  });
+  if (!account || account.accountStatus !== "Onaylandı") {
+    await clearSessionCookie();
+    return jsonError("Oturum yok", 401);
+  }
   const unread = await prisma.inboxItem.count({ where: { userId: session.id, read: false } });
   const openQa = await prisma.thread.count({
     where: {
@@ -38,6 +46,8 @@ export async function GET() {
       : 0;
   return jsonOk({
     ...session,
+    accountKind: session.role === "FIRMA" ? account.company?.kind || "firma" : "",
+    companyName: account.company?.name || "",
     unread,
     openQa,
     pendingAccounts,

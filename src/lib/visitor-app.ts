@@ -182,7 +182,7 @@ export async function appState(deviceId: string) {
     prisma.company.findMany({
       where: { status: "Onaylandı" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      select: { id: true, name: true, kind: true },
     }),
     prisma.person.findMany({
       where: { OR: [{ kind: "speaker" }, { panels: { some: {} } }] },
@@ -627,17 +627,44 @@ export async function createMeeting(
   await addNote(device.id, "Talebiniz iletildi", `${label}: ${withName} — ${topic}`, "meeting", meeting.id);
   const targets = (await partyDeviceIds(meeting, device.id)).filter((id) => id !== device.id);
   if (targets.length) {
-    await notifyDevices(targets, `Yeni ${label.toLowerCase()} talebi`, `${device.name}: ${topic}`, "meeting", meeting.id);
+    await notifyDevices(targets, `Yeni ${label.toLocaleLowerCase("tr")} talebi`, `${device.name}: ${topic}`, "meeting", meeting.id);
   }
   if (withKind === "firma") {
     const when = [preferredDate, preferredTime].filter(Boolean).join(" ");
     await notifyCompanyDecision({
       companyId: withId,
-      title: `Yeni ${label.toLowerCase()} talebi`,
-      body: `${device.name}${device.organization ? ` (${device.organization})` : ""}: ${topic}${when ? ` — ${when}` : ""}\nFirma profilim → Toplantı takvimi bölümünden onaylayın.`,
+      title: `Yeni ${label.toLocaleLowerCase("tr")} talebi`,
+      body: `${device.name}${device.organization ? ` (${device.organization})` : ""}: ${topic}${when ? ` — ${when}` : ""}\nPanel → Toplantılarım sayfasından onaylayın.`,
     });
   }
   return meeting;
+}
+
+export const WEB_DEVICE_PREFIX = "web-";
+
+async function notifyWebSender(deviceId: string, title: string, body: string) {
+  const device = await prisma.appDevice.findUnique({ where: { id: deviceId }, select: { token: true, companyId: true } });
+  if (!device?.token.startsWith(WEB_DEVICE_PREFIX) || !device.companyId) return;
+  await notifyCompanyDecision({ companyId: device.companyId, title, body: `${body}\nToplantılarım sayfasından takip edebilirsiniz.` });
+}
+
+export async function webDevice(user: { id: string; name: string; email: string; phone: string; companyId: string | null }) {
+  if (!user.companyId) throw new Error("Hesabınıza bağlı kurum yok");
+  const company = await prisma.company.findUnique({ where: { id: user.companyId } });
+  if (!company) throw new Error("Kurum bulunamadı");
+  const data = {
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    organization: company.kind === "konusmaci" ? company.topic : company.name,
+    role: "firma",
+    companyId: company.id,
+  };
+  return prisma.appDevice.upsert({
+    where: { token: `${WEB_DEVICE_PREFIX}${user.id}` },
+    create: { token: `${WEB_DEVICE_PREFIX}${user.id}`, ...data },
+    update: data,
+  });
 }
 
 export async function updateMeeting(
@@ -718,6 +745,9 @@ export async function updateMeeting(
   const except = actor === "staff" ? undefined : actor;
   const listeners = await partyDeviceIds(saved, except);
   if (listeners.length) await notifyDevices(listeners, title, body, "meeting", saved.id);
+  if (data.status && saved.fromDeviceId !== except) {
+    await notifyWebSender(saved.fromDeviceId, title, `${body}${saved.note ? `\nNot: ${saved.note}` : ""}`);
+  }
   if (data.status === MEETING_ACCEPTED && saved.slotId) {
     const others = await prisma.meetingRequest.findMany({
       where: { slotId: saved.slotId, status: MEETING_PENDING, NOT: { id: saved.id } },
@@ -728,6 +758,7 @@ export async function updateMeeting(
         data: { status: MEETING_REJECTED, note: "Seçtiğiniz saat başka bir görüşmeyle doldu. Lütfen başka bir saat seçin." },
       });
       await addNote(other.fromDeviceId, "Görüşme saati doldu", `${other.withName}: ${other.topic} — başka bir saat seçin.`, "meeting", other.id);
+      await notifyWebSender(other.fromDeviceId, "Görüşme saati doldu", `${other.withName}: ${other.topic} — başka bir saat seçin.`);
     }
   }
   broadcast({ type: "app" });

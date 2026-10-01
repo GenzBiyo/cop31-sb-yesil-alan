@@ -5,11 +5,12 @@ import { useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { PavilionRulesDialog } from "@/components/PavilionRules";
-import { MeetingAvailability } from "@/components/MeetingAvailability";
+import { accountKind } from "@/lib/account-kinds";
 
 type Company = {
   id: string;
   name: string;
+  kind: string;
   scope: string;
   topic: string;
   context: string;
@@ -39,20 +40,23 @@ export default function ProfilePage() {
   const [item, setItem] = useState({ type: "esantiyon", title: "", quantity: "", payload: "" });
   const [formError, setFormError] = useState("");
   if (!company) return <p>Yükleniyor…</p>;
+  const kind = accountKind(company.kind);
   const compliance = company.submissions.filter((row) => COMPLIANCE.some((kind) => kind.id === row.type));
   return (
     <div className="space-y-5">
       <PavilionRulesDialog open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">Firma profili</p>
+          <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">{tx(kind.label)} · {tx("profil")}</p>
           <h1 className="display text-4xl">{company.name}</h1>
-          <p className="text-[#57534e]">{company.scope} · Stant {company.booth || "atanacak"} · {company.status}</p>
+          <p className="text-[#57534e]">
+            {kind.firmTools ? `${company.scope} · Stant ${company.booth || "atanacak"} · ` : ""}{tx(company.status)}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 items-start">
           <Link className="btn secondary" href="/takvimim">{tx("Takvimimi gör")}</Link>
-          <a className="btn ghost" href="#toplanti">{tx("Toplantı takvimi")}</a>
-          <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button>
+          <Link className="btn ghost" href="/toplantilar">{tx("Toplantılarım")}</Link>
+          {kind.firmTools ? <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button> : null}
         </div>
       </div>
       <div className="card p-4 grid md:grid-cols-2 gap-3">
@@ -63,6 +67,7 @@ export default function ProfilePage() {
         <label className="text-sm">Yetkili adı<input className="field mt-1" defaultValue={company.contactName} onBlur={(e) => save(company.id, { contactName: e.target.value }, reload)} /></label>
         <label className="text-sm">Telefon<input className="field mt-1" defaultValue={company.contactPhone} onBlur={(e) => save(company.id, { contactPhone: e.target.value }, reload)} /></label>
       </div>
+      {kind.firmTools ? (<>
       <section className="card p-4">
         <h2 className="display text-2xl">Size atanan kurallar</h2>
         <ul className="mt-3 space-y-3">
@@ -131,7 +136,19 @@ export default function ProfilePage() {
           {compliance.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</li> : null}
         </ul>
       </section>
-      <MeetingAvailability participationDates={company.participationDates} />
+      </>) : null}
+      <section className="card p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="display text-2xl">{tx("Toplantılar ve takvim")}</h2>
+          <p className="text-sm text-[#57534e]">
+            {tx("Uygun toplantı saatlerinizi açın, gelen talepleri onaylayın, diğer hesaplardan toplantı isteyin.")}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link className="btn" href="/toplantilar">{tx("Toplantılarım")}</Link>
+          <Link className="btn ghost" href="/takvimim">{tx("Takvimimi gör")}</Link>
+        </div>
+      </section>
       <section className="card p-4">
         <h2 className="display text-2xl">Takvim ve uygulamalar</h2>
         <p className="text-sm text-[#57534e] mb-3">Pavilion içindeki oturum, demo ve başvuru kayıtlarınızı girin.</p>
