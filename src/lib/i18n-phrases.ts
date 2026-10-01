@@ -151,8 +151,8 @@ export const EN: Record<string, string> = {
 
   "Öğrenci gönüllüleri · COP31": "Student volunteers · COP31",
   "Sağlık ve İklim Elçisi": "Health and Climate Ambassador",
-  "Antalya ve çevresindeki üniversite ve liselerden gönüllü öğrenciler. Pavyon ve programda destek. Konaklama sağlanmaz.":
-    "Volunteer students from universities and high schools in and around Antalya. Pavilion and programme support. No lodging.",
+  "Sağlık Bakanlığı pavilyonundaki karşılama, oyunlar, QR kayıt ve koruyucu sağlık anlatımı konusunda yardımcı olacak öğrenciler.\n\nKonaklama ve ulaşım olmadığı için Antalya ve çevre illerden başvurular önerilir.":
+    "Students who will help at the Ministry of Health pavilion with welcoming visitors, games, QR registration and preventive health outreach.\n\nAs accommodation and transport are not provided, applications from Antalya and nearby provinces are recommended.",
 
   "Misafir · hesap yok": "Guest · no account",
   "Gezegeni dinle": "Listen to the planet",

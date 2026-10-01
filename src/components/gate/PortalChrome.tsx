@@ -43,7 +43,7 @@ export function PortalChrome({
           <Link href="/" className="text-xs tracking-[0.2em] uppercase opacity-80 underline underline-offset-4">{tx("← Kapılara dön")}</Link>
           <p className="text-xs tracking-[0.28em] uppercase mt-8 opacity-80">{tx(kicker)}</p>
           <h1 className="display text-4xl md:text-5xl mt-2 leading-tight">{tx(title)}</h1>
-          <p className="mt-3 max-w-lg text-[#C8EEFA]">{tx(lead)}</p>
+          <p className="mt-3 max-w-lg text-[#C8EEFA] whitespace-pre-line">{tx(lead)}</p>
           <p className="mt-6 display text-2xl italic text-[#d7e4d8]">{tx("Sağlıklı insan, sağlıklı gezegen")}</p>
         </div>
       </section>
