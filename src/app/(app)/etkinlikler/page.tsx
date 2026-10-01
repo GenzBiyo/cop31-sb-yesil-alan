@@ -2,6 +2,7 @@
 
 import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { useMemo, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { api, formatDate, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
@@ -51,6 +52,7 @@ export default function EventsAdminPage() {
   const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const isFirma = me?.role === "FIRMA";
   const [openId, setOpenId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     title: "",
     type: "survey",
@@ -236,6 +238,7 @@ export default function EventsAdminPage() {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="display text-4xl">{tx("Etkinlikler")}</h1>
         <p className="text-[#57534e]">
@@ -244,6 +247,12 @@ export default function EventsAdminPage() {
             : tx("Slotlar 1 saattir. 16:00’a kadar normal etkinlik; 17:00’den sonra yalnızca gençlik oyunları.")}
         </p>
       </div>
+        <button type="button" className={showForm ? "btn ghost" : "btn"} onClick={() => setShowForm((v) => !v)}>
+          {showForm ? <X size={16} /> : <Plus size={16} />}
+          {showForm ? tx("Formu kapat") : tx("Yeni etkinlik ekle")}
+        </button>
+      </div>
+      {showForm ? (
       <form
         className="card p-4 grid md:grid-cols-4 gap-2"
         onSubmit={async (e) => {
@@ -252,6 +261,7 @@ export default function EventsAdminPage() {
           try {
             await api("/api/events", { method: "POST", body: JSON.stringify(form) });
             setForm({ ...form, title: "", topic: "", gift: "" });
+            setShowForm(false);
             await reload();
           } catch (err) {
             setError(err instanceof Error ? err.message : tx("Kayıt alınamadı"));
@@ -280,6 +290,7 @@ export default function EventsAdminPage() {
         {error ? <p className="text-sm text-[#E31C23] md:col-span-4">{error}</p> : null}
         <button className="btn">{isFirma ? tx("SB'ye öner") : "Etkinlik ekle"}</button>
       </form>
+      ) : null}
       {(data || []).some((ev) => ev.approvalStatus === "Onay bekliyor") ? (
         <section className="card p-4 space-y-3">
           <h2 className="display text-2xl">{tx("Firma önerileri")}</h2>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
 import { useI18n } from "@/components/I18nProvider";
@@ -51,6 +52,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     title: "",
     date: "2026-11-09",
@@ -115,6 +117,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
       setForm({ ...form, title: "", topic: "", partners: "", moderator: "", moderatorOrg: "", summary: "" });
       setSpeakers([{ name: "", organization: "" }]);
       setConcept(emptyConcept());
+      setShowForm(false);
       await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : tx("Kayıt alınamadı"));
@@ -125,6 +128,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="display text-4xl">{tx(talk ? "Konuşmalar ve sunumlar" : "Paneller")}</h1>
         <p className="text-[#57534e]">
@@ -135,7 +139,13 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               : "Paneller buradan eklenir ve satıra tıklayınca düzenlenir. Konuşmalar ayrı sayfadadır.")}
         </p>
       </div>
+        <button type="button" className={showForm ? "btn ghost" : "btn"} onClick={() => setShowForm((v) => !v)}>
+          {showForm ? <X size={16} /> : <Plus size={16} />}
+          {showForm ? tx("Formu kapat") : tx(talk ? "Yeni konuşma ekle" : "Yeni panel ekle")}
+        </button>
+      </div>
 
+      {showForm ? (
       <form className="card p-4 grid md:grid-cols-4 gap-2" onSubmit={createSession}>
         <input className="field md:col-span-2" required placeholder={talk ? "Konuşma başlığı" : "Panel başlığı"} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <select className="field md:col-span-2" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })}>
@@ -166,6 +176,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
         {error ? <p className="text-sm text-[#E31C23] md:col-span-4">{error}</p> : null}
         <button className="btn" disabled={busy}>{busy ? tx("Kaydediliyor…") : isFirma ? tx("SB'ye öner") : tx(talk ? "Konuşma ekle" : "Panel ekle")}</button>
       </form>
+      ) : null}
 
       {rows.some((p) => p.status === "Onay bekliyor") ? (
         <section className="card p-4 space-y-3">
