@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Source_Sans_3, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/components/I18nProvider";
+import { PageNav } from "@/components/PageNav";
 
 const sans = Source_Sans_3({
   subsets: ["latin", "latin-ext"],
@@ -41,7 +42,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="tr">
       <body className={`${sans.variable} ${display.variable} antialiased`}>
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          {children}
+          <PageNav />
+        </I18nProvider>
       </body>
     </html>
   );

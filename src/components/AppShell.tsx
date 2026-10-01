@@ -159,7 +159,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <AgendaAlerts />
       <div className="min-w-0">
-        <header className="no-print flex items-center justify-between px-6 py-3 border-b border-[#D4ECF6] bg-white pr-28">
+        <header className="no-print flex items-center justify-between px-6 py-3 border-b border-[#D4ECF6] bg-white pr-28 md:pr-[19rem]">
           <div>
             <div className="text-xs tracking-[0.18em] uppercase text-[#00A3E0]">{tx("Sağlık Pavilionu · Yeşil Alan")}</div>
             <div className="text-sm text-[#3E6A88]">{tx("Sağlıklı İnsan, Sağlıklı Gezegen")}</div>

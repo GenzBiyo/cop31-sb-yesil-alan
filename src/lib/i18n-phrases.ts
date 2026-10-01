@@ -837,6 +837,9 @@ export const EN: Record<string, string> = {
   "Yeni konuşma ekle": "Add new talk",
   "Yeni etkinlik ekle": "Add new event",
   "Formu kapat": "Close form",
+  "Geri": "Back",
+  "Ana sayfa": "Home",
+  "Sayfa gezintisi": "Page navigation",
   "Paneller buradan eklenir ve satıra tıklayınca düzenlenir. Konuşmalar ayrı sayfadadır.":
     "Add panels here and edit a row by opening it. Talks live on their own page.",
   "Konuşmalar ve sunumlar buradan eklenir. Satıra tıklayınca özet ve detaylı konsept düzenlenir.":
