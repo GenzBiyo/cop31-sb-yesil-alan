@@ -9,6 +9,7 @@ const PUBLIC = [
   "/elci",
   "/giris",
   "/kesfet",
+  "/ekran",
   "/COP31saglikbakanligi",
   "/cop31saglikbakanligi",
   "/p",

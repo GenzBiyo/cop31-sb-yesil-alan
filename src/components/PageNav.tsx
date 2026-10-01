@@ -19,7 +19,7 @@ function parentOf(pathname: string) {
 
 function hidden(pathname: string) {
   const seg = pathname.split("/").filter(Boolean);
-  if (seg.length === 0) return true;
+  if (seg.length === 0 || seg[0] === "ekran") return true;
   return seg[0] === "oyun" && seg.length === 2;
 }
 

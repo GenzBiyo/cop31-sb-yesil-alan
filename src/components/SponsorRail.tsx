@@ -30,8 +30,8 @@ export function SponsorRail() {
   const duration = Math.max(22, items.length * 7);
 
   return (
-    <section className="sponsor-rail" aria-label={tx("Etkinlik sponsorları")}>
-      <p className="sponsor-kicker">{tx("Etkinlik sponsorları")}</p>
+    <section className="sponsor-rail" aria-label={tx("Paydaşlar")}>
+      <p className="sponsor-kicker">{tx("Paydaşlar")}</p>
       <div className="sponsor-mask">
         <div className="sponsor-track" style={{ animationDuration: `${duration}s` }}>
           {loop.map((s, i) => {
