@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MOTES } from "@/components/gate/motes";
 import { MainLogo, SponsorRail } from "@/components/SponsorRail";
+import { SpeakerRail } from "@/components/speakers";
 import { useI18n } from "@/components/I18nProvider";
 
 const GATES = [
@@ -22,11 +23,12 @@ const GATES = [
     body: "Yeşil üretim, düşük karbonlu ilaç ve pavilon katkısı. Hesap açın; onay sonrası masaya girin.",
   },
   {
-    href: "/giris/startuplar",
-    src: "/gate/gate-startup.webp",
-    kicker: "03 · Yenilik",
-    title: "Startuplar",
-    body: "Sağlık teknolojisi, sıfır atık ve gençlik demosu. İklim-sağlık çözümünü sahaya taşıyın.",
+    href: "/konusmacilar",
+    src: "/gate/gate-hero-earth.webp",
+    kicker: "03 · Program",
+    title: "Konuşmacılar",
+    body: "Pavilyon panel ve konuşmalarındaki isimler: kurum, özgeçmiş ve LinkedIn.",
+    guest: true,
   },
   {
     href: "/giris/elciler",
@@ -82,6 +84,7 @@ export default function HomePage() {
 
   return (
     <main className="gate-root climate-root is-open">
+      <SpeakerRail />
       <div className="climate-scene" aria-hidden>
         <div className="climate-sky" />
         <div className="climate-heat" />

@@ -503,6 +503,27 @@ model GameAnswer {
   @@index([questionId])
 }
 
+model Speaker {
+  id           String   @id @default(cuid())
+  name         String
+  title        String   @default("")
+  organization String   @default("")
+  summary      String   @default("")
+  bio          String   @default("")
+  linkedin     String   @default("")
+  photoPath    String   @default("")
+  companyId    String   @default("")
+  proposedById String   @default("")
+  status       String   @default("Onaylandı")
+  reviewNote   String   @default("")
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status, active])
+}
+
 model GameSponsorship {
   id           String   @id @default(cuid())
   gameId       String

@@ -32,6 +32,10 @@ export async function GET() {
     session.role === "ADMIN" || session.role === "SAGLIK"
       ? await prisma.gameSponsorship.count({ where: { status: "Onay bekliyor" } })
       : 0;
+  const pendingSpeakers =
+    session.role === "ADMIN" || session.role === "SAGLIK"
+      ? await prisma.speaker.count({ where: { status: "Onay bekliyor" } })
+      : 0;
   return jsonOk({
     ...session,
     unread,
@@ -42,5 +46,6 @@ export async function GET() {
     pendingEvents: proposals.events,
     pendingCompliance,
     pendingGameSponsors,
+    pendingSpeakers,
   });
 }

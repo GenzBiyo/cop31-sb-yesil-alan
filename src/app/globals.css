@@ -425,6 +425,78 @@ table.data td {
   border: 1px solid #B5DFF2;
 }
 
+.speaker-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 80, 140, 0.25);
+  background: #EEF8FD;
+}
+.speaker-avatar.is-initials {
+  background: linear-gradient(135deg, #00A3E0, #32C45A);
+  color: #FFFFFF;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.speaker-rail {
+  position: relative;
+  z-index: 6;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.45rem 19rem 0.45rem 0.9rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: #0B1C33;
+  box-shadow: 0 6px 18px rgba(0, 80, 140, 0.18);
+}
+.speaker-rail-kicker {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0077C2;
+}
+.speaker-mask { overflow: hidden; flex: 1 1 auto; min-width: 0; }
+.speaker-track {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  width: max-content;
+  animation: sponsor-scroll 40s linear infinite;
+}
+.speaker-rail:hover .speaker-track { animation-play-state: paused; }
+@media (max-width: 640px) {
+  .speaker-rail { padding-right: 13.5rem; }
+  .speaker-rail-kicker { display: none; }
+}
+.speaker-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 260px;
+}
+.speaker-chip span { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.speaker-chip strong { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.speaker-chip em { font-style: normal; font-size: 0.7rem; color: #3E6A88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.speaker-card {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0B1C33;
+  padding: 1.2rem;
+  border-top: 4px solid #00A3E0;
+  box-shadow: 0 14px 34px rgba(0, 80, 140, 0.2);
+  scroll-margin-top: 5rem;
+}
+.speaker-card:target { border-top-color: #32C45A; }
+
 @keyframes sponsor-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -908,7 +980,7 @@ table.data td {
   /* Sits above the white sponsor rail (~7rem) and never climbs into the logo/slogan block (~15rem). */
   .climate-root .climate-gates {
     bottom: 8.4rem;
-    height: min(46vh, 420px, calc(100dvh - 8.4rem - 15rem));
+    height: min(46vh, 420px, calc(100dvh - 8.4rem - 19rem));
   }
 }
 
@@ -933,7 +1005,7 @@ table.data td {
   .climate-earth, .climate-earth img, .climate-lung, .climate-ring, .climate-heat, .climate-ecg path, .climate-mote {
     animation: none !important;
   }
-  .sponsor-track {
+  .sponsor-track, .speaker-track {
     animation: none !important;
     overflow-x: auto;
     max-width: 100%;

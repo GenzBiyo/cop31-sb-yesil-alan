@@ -23,6 +23,7 @@ import {
   UserPlus,
   Gamepad2,
   Handshake,
+  UserRound,
   Users,
   Trophy,
   BadgeCheck,
@@ -47,6 +48,7 @@ type Me = {
   pendingEvents?: number;
   pendingCompliance?: number;
   pendingGameSponsors?: number;
+  pendingSpeakers?: number;
 };
 
 const NAV = [
@@ -61,6 +63,7 @@ const NAV = [
   { href: "/profil", label: "Firma profilim", icon: Building2, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sunumlar", label: "Konuşmalar", icon: Presentation, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
+  { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
   { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN", "SAGLIK"] },
@@ -88,9 +91,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setMe(user);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg === "Oturum yok" || msg === "Oturum gerekli") router.push("/");
+      if (msg === "Oturum yok" || msg === "Oturum gerekli") router.push(`/?next=${encodeURIComponent(pathname)}`);
     }
-  }, [router]);
+  }, [router, pathname]);
 
   useEffect(() => {
     void load();
@@ -138,6 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.href === "/etkinlikler" && me && (me.pendingEvents || 0) > 0 ? <span className="badge warn">{me.pendingEvents}</span> : null}
                 {item.href === "/uygunluk" && me && (me.pendingCompliance || 0) > 0 ? <span className="badge warn">{me.pendingCompliance}</span> : null}
                 {item.href === "/oyun-sponsorluk" && me && (me.pendingGameSponsors || 0) > 0 ? <span className="badge warn">{me.pendingGameSponsors}</span> : null}
+                {item.href === "/konusmaci-yonetimi" && me && (me.pendingSpeakers || 0) > 0 ? <span className="badge warn">{me.pendingSpeakers}</span> : null}
               </Link>
             );
           })}
