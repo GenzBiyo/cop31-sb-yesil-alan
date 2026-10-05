@@ -14,36 +14,29 @@ export async function GET() {
     await clearSessionCookie();
     return jsonError("Oturum yok", 401);
   }
-  const unread = await prisma.inboxItem.count({ where: { userId: session.id, read: false } });
-  const openQa = await prisma.thread.count({
-    where: {
-      type: "qa",
-      status: "Açık",
-      ...(session.role === "FIRMA" ? { companyId: session.companyId || undefined } : {}),
-    },
-  });
-  const pendingAccounts =
-    session.role === "ADMIN"
-      ? await prisma.user.count({ where: { role: "FIRMA", accountStatus: "Beklemede" } })
-      : 0;
-  const proposals =
-    session.role === "ADMIN" || session.role === "SAGLIK"
-      ? await pendingProposalCounts()
-      : { panels: 0, talks: 0, events: 0, total: 0 };
-  const pendingCompliance =
-    session.role === "ADMIN" || session.role === "SAGLIK"
-      ? await prisma.companySubmission.count({
-          where: { type: { in: ["etkinlik", "ikram", "esantiyon"] }, status: "Onay bekliyor" },
-        })
-      : 0;
-  const pendingGameSponsors =
-    session.role === "ADMIN" || session.role === "SAGLIK"
-      ? await prisma.gameSponsorship.count({ where: { status: "Onay bekliyor" } })
-      : 0;
-  const pendingSpeakers =
-    session.role === "ADMIN" || session.role === "SAGLIK"
-      ? await prisma.speaker.count({ where: { status: "Onay bekliyor" } })
-      : 0;
+  const staff = session.role === "ADMIN" || session.role === "SAGLIK";
+  const [unread, openQa, pendingAccounts, proposals, pendingCompliance, pendingGameSponsors, pendingSpeakers] =
+    await Promise.all([
+      prisma.inboxItem.count({ where: { userId: session.id, read: false } }),
+      prisma.thread.count({
+        where: {
+          type: "qa",
+          status: "Açık",
+          ...(session.role === "FIRMA" ? { companyId: session.companyId || undefined } : {}),
+        },
+      }),
+      session.role === "ADMIN"
+        ? prisma.user.count({ where: { role: "FIRMA", accountStatus: "Beklemede" } })
+        : Promise.resolve(0),
+      staff ? pendingProposalCounts() : Promise.resolve({ panels: 0, talks: 0, events: 0, total: 0 }),
+      staff
+        ? prisma.companySubmission.count({
+            where: { type: { in: ["etkinlik", "ikram", "esantiyon"] }, status: "Onay bekliyor" },
+          })
+        : Promise.resolve(0),
+      staff ? prisma.gameSponsorship.count({ where: { status: "Onay bekliyor" } }) : Promise.resolve(0),
+      staff ? prisma.speaker.count({ where: { status: "Onay bekliyor" } }) : Promise.resolve(0),
+    ]);
   return jsonOk({
     ...session,
     accountKind: session.role === "FIRMA" ? account.company?.kind || "firma" : "",

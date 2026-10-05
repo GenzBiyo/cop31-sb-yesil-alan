@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     "*.ngrok.io",
   ],
   async headers() {
+    const week = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }];
     return [
       {
         source: "/sw.js",
@@ -21,6 +22,11 @@ const nextConfig: NextConfig = {
           { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
+      { source: "/gate/:path*", headers: week },
+      { source: "/brand/:path*", headers: week },
+      { source: "/hatira/:path*", headers: week },
+      { source: "/icons/:path*", headers: week },
+      { source: "/fonts/:path*", headers: week },
     ];
   },
   async rewrites() {

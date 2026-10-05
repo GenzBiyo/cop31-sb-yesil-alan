@@ -287,8 +287,8 @@ table.data td {
 }
 
 @keyframes aurora {
-  from { opacity: 0.7; filter: hue-rotate(0deg); }
-  to { opacity: 1; filter: hue-rotate(18deg); }
+  from { opacity: 0.7; }
+  to { opacity: 1; }
 }
 
 .gate-vignette {
@@ -926,7 +926,6 @@ table.data td {
     0 0 0 2px rgba(232, 215, 192, 0.18),
     0 0 80px 18px rgba(176, 90, 48, 0.28),
     0 0 140px 40px rgba(227, 28, 35, 0.18);
-  animation: earth-spin-glow 18s ease-in-out infinite alternate;
   transition: box-shadow 1.4s ease, transform 1.4s ease;
 }
 .climate-earth img {
@@ -943,13 +942,9 @@ table.data td {
     0 0 150px 50px rgba(31, 78, 95, 0.2);
 }
 .climate-root.is-open .climate-earth {
-  top: 28%;
-  width: min(28vw, 220px);
-}
-
-@keyframes earth-spin-glow {
-  from { filter: saturate(0.95) brightness(0.88); }
-  to { filter: saturate(1.12) brightness(1.05); }
+  top: 43%;
+  width: min(16vw, 148px);
+  opacity: 0.9;
 }
 
 .climate-lung {
@@ -960,7 +955,6 @@ table.data td {
   border-radius: 58% 58% 48% 48%;
   background: radial-gradient(circle at 40% 40%, rgba(227, 28, 35, 0.28), rgba(46, 155, 74, 0.08) 70%, transparent);
   animation: lung-breath 5.4s ease-in-out infinite;
-  filter: blur(1px);
   transition: background 1.4s ease;
 }
 .climate-lung-l { left: 12%; transform-origin: 80% 50%; }
@@ -969,7 +963,7 @@ table.data td {
 .climate-root.is-open .climate-lung {
   background: radial-gradient(circle at 40% 40%, rgba(46, 155, 74, 0.38), rgba(31, 78, 95, 0.12) 70%, transparent);
 }
-.climate-root.is-open .climate-lung { opacity: 0.35; top: 22%; }
+.climate-root.is-open .climate-lung { opacity: 0.22; top: 38%; }
 
 @keyframes lung-breath {
   0%, 100% { transform: scale(0.92); opacity: 0.45; }
@@ -997,7 +991,7 @@ table.data td {
   animation-delay: 1.4s;
   border-color: rgba(46, 155, 74, 0.28);
 }
-.climate-root.is-open .climate-ring { top: 28%; opacity: 0.4; }
+.climate-root.is-open .climate-ring { top: 43%; opacity: 0.32; }
 
 @keyframes climate-pulse {
   0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.25; }
@@ -1030,8 +1024,8 @@ table.data td {
 }
 
 @keyframes heat-shimmer {
-  from { transform: translateY(0) scaleX(1); filter: blur(0); }
-  to { transform: translateY(-8px) scaleX(1.04); filter: blur(1px); }
+  from { transform: translateY(0) scaleX(1); }
+  to { transform: translateY(-8px) scaleX(1.04); }
 }
 
 .climate-ecg {
@@ -1052,14 +1046,12 @@ table.data td {
   opacity: 0.75;
   stroke-dasharray: 240 980;
   animation: ecg-run 3.2s linear infinite;
-  filter: drop-shadow(0 0 6px rgba(227, 28, 35, 0.7));
 }
 .climate-root.is-starting .climate-ecg path,
 .climate-root.is-open .climate-ecg path {
   stroke: #b7cdb8;
-  filter: drop-shadow(0 0 6px rgba(46, 155, 74, 0.7));
 }
-.climate-root.is-open .climate-ecg { bottom: auto; top: 42%; opacity: 0.35; height: 54px; }
+.climate-root.is-open .climate-ecg { bottom: auto; top: 54%; opacity: 0.3; height: 48px; }
 
 @keyframes ecg-run {
   from { stroke-dashoffset: 0; }
@@ -1099,12 +1091,68 @@ table.data td {
 .climate-hero { z-index: 2; pointer-events: none; }
 .climate-hero a { pointer-events: auto; }
 .climate-root.is-open .climate-hero {
-  padding-top: 0.85rem;
-  padding-bottom: 0;
+  padding: 0.85rem 1.25rem 0;
 }
-.climate-root.is-open .gate-slogan {
-  font-size: clamp(1.55rem, 3.2vw, 2.7rem);
+.climate-lockup {
+  width: min(720px, calc(100% - 15rem));
+  margin: 0 auto;
+  padding: 0.7rem 1.5rem 1.05rem;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(7, 36, 64, 0.34));
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow:
+    0 18px 46px rgba(0, 40, 80, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
+.climate-lockup .gate-main-logo {
+  width: min(156px, 34vw);
+  margin-bottom: 0.45rem;
+}
+.climate-lockup .gate-kicker {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.32rem 0.8rem;
+  border-radius: 999px;
+  letter-spacing: 0.12em;
+  font-size: 0.64rem;
+  line-height: 1.45;
+  opacity: 1;
+  color: #F4FBFE;
+  background: rgba(7, 28, 50, 0.38);
+  border: 1px solid rgba(200, 238, 250, 0.4);
+}
+.climate-lockup .gate-slogan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  margin-top: 0.65rem;
+  font-size: clamp(2rem, 3.6vw, 3.15rem);
+  line-height: 0.98;
+  text-shadow: 0 10px 28px rgba(0, 30, 60, 0.28);
+}
+.climate-lockup .gate-slogan em {
+  color: #F7FFFB;
+  background: linear-gradient(90deg, #FFFFFF 10%, #C8F5D4 55%, #9EE7F5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.climate-return {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.climate-return:hover { background: rgba(255, 255, 255, 0.26); }
 .climate-root.is-open .gate-lead { display: none; }
 
 .climate-cta {
@@ -1158,10 +1206,10 @@ table.data td {
 }
 
 @media (min-width: 981px) {
-  /* Sits above the white sponsor rail (~7rem) and never climbs into the logo/slogan block (~15rem). */
+  /* Below the hero lockup, just above the sponsor rail. */
   .climate-root .climate-gates {
-    bottom: 8.4rem;
-    height: min(46vh, 420px, calc(100dvh - 8.4rem - 19rem));
+    bottom: 7.6rem;
+    height: max(200px, min(38vh, 380px, calc(100dvh - 7.6rem - 21rem)));
   }
 }
 
@@ -1180,12 +1228,15 @@ table.data td {
   }
   .climate-lung { display: none; }
   .climate-ecg { bottom: 8%; }
+  .climate-lockup { width: min(640px, calc(100% - 1.2rem)); }
+  .climate-root.is-open .climate-earth { top: 46%; width: min(62vw, 280px); opacity: 1; }
 }
 @media (max-width: 640px) {
   .climate-scene { position: absolute; inset: 0; height: auto; }
   .climate-earth, .climate-ring, .climate-ecg { display: none; }
   .climate-root.is-open .climate-hero { padding-top: 3.6rem; }
-  .gate-kicker { font-size: 0.6rem; }
+  .climate-lockup { width: min(100% - 1rem, 420px); padding: 0.7rem 0.9rem 0.95rem; }
+  .climate-lockup .gate-kicker { font-size: 0.58rem; letter-spacing: 0.08em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2063,9 +2114,7 @@ button.q-opt:disabled { cursor: default; }
   padding: 1.4rem;
   text-align: center;
   color: #C8EEFA;
-  background:
-    linear-gradient(180deg, rgba(0, 119, 194, 0.28), rgba(0, 163, 224, 0.42)),
-    url("/hatira/hatira-nature.png") center / cover no-repeat;
+  background: #071628 center / cover no-repeat;
 }
 .hatira-cam-empty p {
   font-family: var(--font-display), Georgia, serif;
@@ -2365,6 +2414,35 @@ button.q-opt:disabled { cursor: default; }
 }
 .event-sponsor.is-phone .event-sponsor-name {
   font-size: 1.4rem;
+}
+.event-credits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+.event-credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem 0.75rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid #DCE8F0;
+  color: #0B1C33;
+  text-align: center;
+  font-size: 0.95rem;
+}
+.event-credit img {
+  height: 42px;
+  max-width: 168px;
+  object-fit: contain;
+}
+.event-credits.is-wall .event-credit {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 28px rgba(4, 30, 60, 0.18);
 }
 .gate.is-play {
   box-shadow: inset 0 0 0 3px #00A3E0;

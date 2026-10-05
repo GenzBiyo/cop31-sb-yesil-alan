@@ -61,7 +61,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
   const { tx } = useI18n();
   const [inApp, setInApp] = useState(false);
   const [next, setNext] = useState<string | null>(null);
-  const [qrSrc, setQrSrc] = useState("/api/qr?path=%2Fu");
+  const [qrSrc, setQrSrc] = useState("");
   const panel = useLivePanel(screen);
 
   useEffect(() => {
@@ -124,27 +124,23 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
       ) : (
         <>
           <header className="gate-hero climate-hero">
-            <MainLogo />
-            <p className="gate-kicker">{tx("T.C. Sağlık Bakanlığı · COP31 Türkiye · Antalya 9–20 Kasım 2026")}</p>
-            <h1 className="gate-slogan">
-              {tx("Sağlıklı insan")}
-              <br />
-              <em>{tx("Sağlıklı gezegen")}</em>
-            </h1>
-            <p className="gate-lead">
-              {tx("Isı yükseliyor, hava ağırlaşıyor, beden ödüyor. İklim değişikliği bir sağlık krizidir: solunum, sıcaklık, su ve gıda aynı nefeste.")}
-            </p>
-            {inApp ? (
-              <p className="mt-3">
-                <Link href={next && next.startsWith("/") ? next : "/dashboard"} className="text-sm underline underline-offset-4 text-[#C8EEFA]">
+            <div className="climate-lockup">
+              <MainLogo />
+              <p className="gate-kicker">{tx("T.C. Sağlık Bakanlığı · COP31 Türkiye · Antalya 9–20 Kasım 2026")}</p>
+              <h1 className="gate-slogan">
+                <span>{tx("Sağlıklı insan")}</span>
+                <em>{tx("Sağlıklı gezegen")}</em>
+              </h1>
+              {inApp ? (
+                <Link href={next && next.startsWith("/") ? next : "/dashboard"} className="climate-return">
                   {next?.startsWith("/sunucu") ? tx("Sunucu ekranına dön →") : tx("Hazırlık masasına dön →")}
                 </Link>
-              </p>
-            ) : null}
+              ) : null}
+            </div>
           </header>
 
           <a href="/u" className="phone-qr-card">
-            <img src={qrSrc} alt={tx("Uygulamayı telefona indir")} width={112} height={112} />
+            {qrSrc ? <img src={qrSrc} alt={tx("Uygulamayı telefona indir")} width={112} height={112} /> : null}
             <span>
               <strong>{tx("Uygulamayı telefona indir")}</strong>
               <em>{tx("Karekodu okutun, ana ekrana ekleyin.")}</em>
@@ -154,7 +150,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
           <nav className="gates climate-gates" aria-label={tx("Giriş kapıları")}>
             {GATES.map((g) => (
               <a key={g.href} href={href(g.href, g.guest)} className={`gate${g.href === "/oyun" ? " is-play" : ""}`} style={{ textDecoration: "none" }}>
-                <img src={g.src} alt="" />
+                <img src={g.src} alt="" loading="lazy" decoding="async" />
                 <div className="gate-shade" />
                 <div className="gate-copy">
                   <div className="text-[10px] tracking-[0.22em] uppercase opacity-80">{tx(g.kicker)}</div>

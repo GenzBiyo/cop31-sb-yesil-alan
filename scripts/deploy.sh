@@ -18,4 +18,23 @@ else
   pm2 start node --name cop31 --cwd "$APP" -- ./node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
 fi
 pm2 save
+
+if sudo -n true >/dev/null 2>&1; then
+  if ! sudo nginx -T 2>/dev/null | grep -q "gzip on;"; then
+    sudo tee /etc/nginx/conf.d/cop31-speed.conf >/dev/null <<'EOF'
+gzip on;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 5;
+gzip_min_length 1024;
+gzip_types text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml font/woff2;
+EOF
+    if sudo nginx -t; then
+      sudo systemctl reload nginx || true
+    else
+      sudo rm -f /etc/nginx/conf.d/cop31-speed.conf
+    fi
+  fi
+fi
+
 echo DEPLOY_OK

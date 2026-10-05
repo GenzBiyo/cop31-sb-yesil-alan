@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   Building2,
@@ -94,15 +94,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { tx, t } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
 
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
   const load = useCallback(async () => {
     try {
       const user = await api<Me>("/api/auth/me");
       setMe(user);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg === "Oturum yok" || msg === "Oturum gerekli") router.push(`/?next=${encodeURIComponent(pathname)}`);
+      if (msg === "Oturum yok" || msg === "Oturum gerekli") router.push(`/?next=${encodeURIComponent(pathRef.current)}`);
     }
-  }, [router, pathname]);
+  }, [router]);
 
   useEffect(() => {
     void load();

@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { memoGet, memoSet } from "@/lib/memo";
 
 function isLocalHost(value: string) {
   return /localhost|127\.0\.0\.1/i.test(value);
@@ -40,11 +41,13 @@ export async function GET(req: Request) {
   if (searchParams.get("debug") === "1") {
     return Response.json({ origin, path, target });
   }
-  const png = await QRCode.toBuffer(target, { type: "png", width: 240, margin: 1, errorCorrectionLevel: "M" });
+  const key = `qr:${target}`;
+  let png = memoGet<Buffer>(key, 60 * 60 * 1000);
+  if (!png) png = memoSet(key, await QRCode.toBuffer(target, { type: "png", width: 240, margin: 1, errorCorrectionLevel: "M" }));
   return new Response(new Uint8Array(png), {
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=300",
+      "Cache-Control": "public, max-age=86400",
       "X-QR-Url": target,
     },
   });
