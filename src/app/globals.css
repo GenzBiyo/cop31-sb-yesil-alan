@@ -1257,8 +1257,8 @@ table.data td {
 @media (min-width: 981px) {
   /* Below the hero lockup, just above the sponsor rail. */
   .climate-root .climate-gates {
-    bottom: 7.6rem;
-    height: max(200px, min(38vh, 380px, calc(100dvh - 7.6rem - 21rem)));
+    bottom: 6.15rem;
+    height: max(200px, min(38vh, 380px, calc(100dvh - 6.15rem - 21rem)));
   }
 }
 
