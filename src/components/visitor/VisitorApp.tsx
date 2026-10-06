@@ -821,7 +821,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
       {entered && phone && !standalone && !useBrowser && !initialCode && !flash ? (
         <div className="phone-setup" role="dialog">
-          <img src="/icons/icon-192.png" alt="" width={72} height={72} />
+          <img src="/icons/saglik-192.png" alt="" width={72} height={72} />
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>
           <h2>COP31</h2>
           <p>{tx("Ana ekrana ekleyin. Simge uygulama gibi durur, bildirimler o zaman gelir.")}</p>

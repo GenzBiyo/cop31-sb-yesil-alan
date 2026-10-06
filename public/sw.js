@@ -16,8 +16,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "COP31 Sağlık", {
       body: data.body || "",
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      icon: "/icons/saglik-192.png",
+      badge: "/icons/saglik-192.png",
       data: { url: data.url || "/u" },
     })
   );
