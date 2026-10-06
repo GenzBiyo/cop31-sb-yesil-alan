@@ -509,6 +509,16 @@ export const EN: Record<string, string> = {
   "Mesaj kutusu": "Inbox",
   "Soru-cevap": "Q&A",
   "Anonslar": "Announcements",
+  "Duyuruyu firmalara, bakanlığa veya ziyaretçi telefonlarına gönderebilirsiniz. Bir firma ile yazışmak için Mesaj kutusunu kullanın.":
+    "Send a notice to companies, the ministry, or visitor phones. Use the message box to write to one company.",
+  "Firmalar + SB": "Companies + ministry",
+  "Sadece firmalar": "Companies only",
+  "Sadece SB": "Ministry only",
+  "Sadece ziyaretçiler": "Visitors only",
+  "Firmalar + SB + ziyaretçiler": "Companies + ministry + visitors",
+  "Ziyaretçi mesajı telefon uygulamasının Bildirim sekmesine düşer.": "A visitor message appears in the phone app’s Notifications tab.",
+  "Ziyaretçilere gönder": "Send to visitors",
+  "Anonsu yayınla ve e-posta gönder": "Publish the announcement and send email",
   "Alan planı": "Floor plan",
   "PDF dökümanlar": "PDF documents",
   "Hazırlık özeti": "Prep overview",
@@ -539,6 +549,29 @@ export const EN: Record<string, string> = {
 
   "Kayıt": "Register",
   "Kurum adı *": "Organisation name *",
+  "Kurum adı": "Organisation name",
+  "Kullanıcı adı ve şifre": "Username and password",
+  "Paydaş bu e-posta ve şifreyle giriş yapar. Şifre en az 8 karakterdir. Boş bırakırsanız mevcut şifre değişmez.":
+    "The partner signs in with this email and password. Passwords need at least 8 characters. Leave the password blank to keep the current one.",
+  "Kullanıcı adı (e-posta)": "Username (email)",
+  "Yeni şifre": "New password",
+  "En az 8 karakter": "At least 8 characters",
+  "giriş yok": "no login",
+  "Giriş bilgisi kaydedildi.": "Sign-in details saved.",
+  "Giriş bilgisi kaydedilemedi": "Could not save sign-in details",
+  "Sağlık Bakanlığı genel müdürlükleri ve diğer paydaşlarla toplantı ayarlayın. Karşı taraf onaylayınca saat kesinleşir.":
+    "Arrange meetings with ministry directorates and other partners. The time is confirmed when they accept.",
+  "Paydaşların Sağlık Bakanlığı birimlerinden istediği toplantıları burada kabul edin, saat ve yerini belirleyin.":
+    "Accept meetings that partners request with ministry units, and set the time and place.",
+  "İlgili genel müdürlük talebi görünce kabul eder ve saati netleştirir.":
+    "The directorate accepts the request and confirms the time.",
+  "Gün ve saat önerin. Karşı paydaş onaylarken saati kesinleştirir.":
+    "Suggest a day and time. The other partner confirms it when they accept.",
+  "Toplantıyı ayarla": "Arrange the meeting",
+  "Bakanlık toplantı talepleri": "Ministry meeting requests",
+  "Henüz bakanlık birimine toplantı talebi yok.": "No meeting requests for a ministry unit yet.",
+  "Kabul et ve saati kaydet": "Accept and save the time",
+  "Yalnızca paydaşın pavilyonda olduğu günler listelenir.": "Only the days the partner is at the pavilion are listed.",
   "Kapsam": "Scope",
   "Katılım": "Attendance",
   "ör. 9–12 Kasım": "e.g. 9–12 November",

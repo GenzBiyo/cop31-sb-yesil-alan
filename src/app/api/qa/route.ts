@@ -17,7 +17,7 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
   const users = await prisma.user.findMany({ select: { id: true, name: true, role: true } });
-  return jsonOk({ threads, users });
+  return jsonOk({ me: { id: user.id, role: user.role }, threads, users });
 }
 
 export async function POST(req: NextRequest) {
@@ -30,30 +30,33 @@ export async function POST(req: NextRequest) {
     broadcast({ type: "qa" });
     return jsonOk(t);
   }
+  const text = String(body.body || "").trim().slice(0, 2000);
   if (body.threadId) {
+    if (text.length < 1) return jsonError("Mesaj yazın");
     const thread = await prisma.thread.findUnique({ where: { id: body.threadId } });
     if (!thread || thread.status === "Kapalı") return jsonError("Konu kapalı veya yok", 400);
+    if (user.role === "FIRMA" && thread.companyId && thread.companyId !== user.companyId) return jsonError("Yetkiniz yok", 403);
     const msg = await prisma.chatMessage.create({
-      data: { threadId: thread.id, authorId: user.id, body: body.body },
+      data: { threadId: thread.id, authorId: user.id, body: text },
     });
     await prisma.thread.update({ where: { id: thread.id }, data: { updatedAt: new Date() } });
     broadcast({ type: "qa", payload: { threadId: thread.id } });
     return jsonOk(msg, 201);
   }
+  const title = String(body.title || "").trim().slice(0, 140);
+  if (title.length < 3 || text.length < 1) return jsonError("Soru başlığı ve metni gerekli");
   const thread = await prisma.thread.create({
     data: {
       type: "qa",
-      title: body.title || "Soru",
+      title,
       status: "Açık",
       companyId: user.role === "FIRMA" ? user.companyId : body.companyId || null,
       createdById: user.id,
     },
   });
-  if (body.body) {
-    await prisma.chatMessage.create({
-      data: { threadId: thread.id, authorId: user.id, body: body.body },
-    });
-  }
+  await prisma.chatMessage.create({
+    data: { threadId: thread.id, authorId: user.id, body: text },
+  });
   broadcast({ type: "qa" });
   return jsonOk(await prisma.thread.findUnique({ where: { id: thread.id }, include: { messages: true } }), 201);
 }

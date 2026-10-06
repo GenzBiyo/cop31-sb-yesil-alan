@@ -3,31 +3,39 @@ import { subscribeGame } from "@/lib/realtime";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const encoder = new TextEncoder();
+  let ping: ReturnType<typeof setInterval> | undefined;
+  let unsub = () => {};
+  let closed = false;
+
+  const stop = () => {
+    if (closed) return;
+    closed = true;
+    if (ping) clearInterval(ping);
+    unsub();
+  };
+
   const stream = new ReadableStream({
     start(controller) {
-      const encoder = new TextEncoder();
-      controller.enqueue(encoder.encode(`event: hello\ndata: ${JSON.stringify({ ok: true })}\n\n`));
-      const unsub = subscribeGame((chunk) => {
+      const send = (chunk: string) => {
+        if (closed) return;
         try {
           controller.enqueue(encoder.encode(chunk));
         } catch {
-          unsub();
+          stop();
         }
-      });
-      const ping = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(`event: ping\ndata: {}\n\n`));
-        } catch {
-          clearInterval(ping);
-        }
-      }, 20000);
-      return () => {
-        clearInterval(ping);
-        unsub();
       };
+      send(`event: hello\ndata: ${JSON.stringify({ ok: true })}\n\n`);
+      unsub = subscribeGame((chunk) => send(chunk));
+      ping = setInterval(() => send(`event: ping\ndata: {}\n\n`), 20000);
+      req.signal.addEventListener("abort", stop);
+    },
+    cancel() {
+      stop();
     },
   });
+
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",

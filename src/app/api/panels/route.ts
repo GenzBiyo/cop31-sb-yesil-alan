@@ -6,6 +6,7 @@ import { broadcast } from "@/lib/realtime";
 import { setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
 import { notifySbProposal, PENDING } from "@/lib/proposals";
+import { companyPanelWhere, isOwnParticipant } from "@/lib/company-panels";
 
 function guestsFromBody(body: {
   moderator?: string;
@@ -47,8 +48,19 @@ export async function GET() {
           ? p.companyId === (user.companyId || "")
           : true
       );
+  const firm = user.role === "FIRMA" && user.companyId
+    ? await prisma.company.findUnique({ where: { id: user.companyId }, select: { id: true, slug: true, name: true } })
+    : null;
+  const mine = firm
+    ? new Set((await prisma.panel.findMany({ where: companyPanelWhere(firm), select: { id: true } })).map((p) => p.id))
+    : new Set<string>();
   return jsonOk({
-    panels: visible.map((p) => ({ ...p, companyName: names.get(p.companyId) || "" })),
+    panels: visible.map((p) => ({
+      ...p,
+      companyName: names.get(p.companyId) || "",
+      mine: mine.has(p.id),
+      participants: firm ? p.participants.map((row) => ({ ...row, own: isOwnParticipant(row, firm) })) : p.participants,
+    })),
     people,
     days: Object.entries(THEME_TR).map(([date, theme]) => ({ date, theme })),
   });

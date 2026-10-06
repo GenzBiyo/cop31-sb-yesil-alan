@@ -9,6 +9,7 @@ import { Scoreboard } from "@/components/game/Board";
 import { SLICE_COLORS } from "@/lib/wheel";
 import { CONCEPTS } from "@/lib/match-cards";
 import { useI18n } from "@/components/I18nProvider";
+import { HATIRA_H, HATIRA_NATURE, HATIRA_W, HATIRA_WINDOW, type HatiraLogos } from "@/lib/hatira";
 
 type Question = {
   id?: string;
@@ -50,11 +51,50 @@ type Detail = {
   questions: Question[];
   slices: Slice[];
   tracks?: { id: string; title: string; artist: string; url: string; imageUrl: string }[];
+  logos?: HatiraLogos | null;
   board: {
     players: BoardPlayer[];
     teams: { name: string; color: string; score: number; members: number }[];
   };
 };
+
+function HatiraUpload({
+  label,
+  src,
+  custom,
+  onFile,
+  onReset,
+}: {
+  label: string;
+  src: string;
+  custom?: boolean;
+  onFile: (file: File) => void;
+  onReset?: () => void;
+}) {
+  return (
+    <div className="border border-[#DCE8F0] p-3 space-y-2 bg-white">
+      <div className="text-sm font-semibold">{label}</div>
+      <div className="h-28 border border-[#DCE8F0] bg-[#F7F4EC] flex items-center justify-center p-2">
+        {src ? <img src={src} alt={label} className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-[#9AA5AD]">Yok</span>}
+      </div>
+      {custom ? <div className="text-xs text-[#0077C2]">Yüklü görsel</div> : null}
+      <label className="btn ghost text-xs w-full justify-center">
+        Yükle
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) onFile(file);
+          }}
+        />
+      </label>
+      {onReset ? <button type="button" className="text-xs underline" onClick={onReset}>Varsayılana dön</button> : null}
+    </div>
+  );
+}
 
 const emptyQ = (): Question => ({ prompt: "", options: ["", "", "", ""], answer: 0, points: 10, seconds: 15, videoUrl: "", videoPath: "" });
 const emptySlice = (): Slice => ({ label: "", color: SLICE_COLORS[0], kind: "prize" });
@@ -136,6 +176,32 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
     setSlices(hydrateSlices(saved.slices || []));
     await reload();
     setMsg("Kaydedildi");
+  }
+
+  async function uploadHatira(slot: "cop31" | "saglik" | "background", file: File) {
+    setMsg("");
+    try {
+      const fd = new FormData();
+      fd.set("kind", "logo");
+      fd.set("slot", slot);
+      fd.set("file", file);
+      await api(`/api/games/${id}/media`, { method: "POST", body: fd });
+      await reload();
+      setMsg(slot === "background" ? "Arka plan yüklendi" : "Logo yüklendi");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Yüklenemedi");
+    }
+  }
+
+  async function resetBackground() {
+    setMsg("");
+    try {
+      await api(`/api/games/${id}`, { method: "PATCH", body: JSON.stringify({ logos: { background: "" } }) });
+      await reload();
+      setMsg("Varsayılan arka plan kullanılıyor");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Sıfırlanamadı");
+    }
   }
 
   async function bump(playerId: string, delta: number) {
@@ -221,11 +287,28 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
       {data.type === "plak" ? <PlakEditor id={data.id} tracks={data.tracks || []} onDone={() => reload()} /> : null}
 
       {data.type === "hatira" ? (
-      <section className="card p-4 space-y-3">
-        <h2 className="display text-3xl">Hatıra</h2>
+      <section className="card p-4 space-y-4">
+        <h2 className="display text-3xl">Hatıra kartı</h2>
         <p className="text-sm text-[#57534e]">
-          Ziyaretçi karekodu okutur, selfie çeker, Hazırla deyince COP31 Türkiye Sağlık Bakanlığı Hatırası fonu gelir. Gönderince fotoğraf sunucu ekranına düşer. Onaylarsanız duvar ekranında, altında Teşekkür ederiz yazısıyla görünür.
+          Ziyaretçi selfie çekince kişi bu arka planın önüne oturur. Çerçevede COP31 ve Sağlık Bakanlığı logoları yer alır. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
         </p>
+        <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 text-sm space-y-1">
+          <div><b>Kart çıktısı:</b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>
+          <div><b>Arka plan:</b> aynı ölçü, {HATIRA_W} × {HATIRA_H} px. Fotoğraf penceresi {HATIRA_WINDOW.w} × {HATIRA_WINDOW.h} px; görsel bu alana sığdırılır, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
+          <div><b>COP31 logosu:</b> şeffaf PNG, yatay, örneğin 900 × 360 px.</div>
+          <div><b>Sağlık Bakanlığı logosu:</b> kare, örneğin 800 × 800 px. Siyah fon otomatik temizlenir.</div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-3">
+          <HatiraUpload
+            label="Arka plan"
+            src={data.logos?.background || HATIRA_NATURE}
+            custom={Boolean(data.logos?.background && data.logos.background !== HATIRA_NATURE)}
+            onFile={(file) => void uploadHatira("background", file)}
+            onReset={data.logos?.background && data.logos.background !== HATIRA_NATURE ? () => void resetBackground() : undefined}
+          />
+          <HatiraUpload label="COP31 logosu" src={data.logos?.cop31 || ""} onFile={(file) => void uploadHatira("cop31", file)} />
+          <HatiraUpload label="Sağlık Bakanlığı logosu" src={data.logos?.saglik || ""} onFile={(file) => void uploadHatira("saglik", file)} />
+        </div>
         <button className="btn" onClick={() => void saveMeta()}>Kaydet</button>
       </section>
       ) : data.type === "kilo" ? (

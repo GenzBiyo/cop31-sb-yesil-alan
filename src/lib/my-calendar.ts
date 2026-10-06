@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { COP_DATES } from "./cop-days";
 import { loadDayPlan } from "./plan";
 import { MEETING_ACCEPTED, MEETING_PENDING, participationDays, slotStates } from "./meeting-slots";
+import { companyPanelWhere } from "./company-panels";
 
 export type CalendarKind =
   | "katilim"
@@ -45,13 +46,7 @@ export async function companyCalendar(companyId: string) {
       where: { fromDevice: { role: "firma", companyId }, status: { in: [MEETING_PENDING, MEETING_ACCEPTED] } },
     }),
     prisma.panel.findMany({
-      where: {
-        OR: [
-          { companyId },
-          { participants: { some: { person: { companySlug: company.slug } } } },
-          { participants: { some: { person: { organization: company.name } } } },
-        ],
-      },
+      where: companyPanelWhere(company),
       include: { participants: { include: { person: { select: { name: true } } } } },
     }),
     prisma.pavilionEvent.findMany({ where: { companyId } }),
@@ -63,8 +58,9 @@ export async function companyCalendar(companyId: string) {
   ]);
 
   const out: CalendarEntry[] = [];
+  const openDays = participationDays(company.participationDates);
 
-  for (const date of participationDays(company.participationDates)) {
+  for (const date of openDays) {
     out.push({
       id: `katilim-${date}`,
       date,
@@ -261,7 +257,12 @@ export async function companyCalendar(companyId: string) {
   }
 
   out.sort((a, b) => a.date.localeCompare(b.date) || (a.startTime || "00").localeCompare(b.startTime || "00"));
-  const days = COP_DATES.map((date) => ({ date, items: out.filter((e) => e.date === date) }));
+  const days = COP_DATES.map((date) => ({ date, open: openDays.includes(date), items: out.filter((e) => e.date === date) }));
   const other = out.filter((e) => !COP_DATES.includes(e.date));
-  return { company: { id: company.id, name: company.name, booth: company.booth, participationDates: company.participationDates }, days, other };
+  return {
+    company: { id: company.id, name: company.name, booth: company.booth, participationDates: company.participationDates },
+    openDays,
+    days,
+    other,
+  };
 }

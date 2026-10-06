@@ -8,9 +8,12 @@ import { useI18n } from "@/components/I18nProvider";
 import { MeetingAvailability } from "@/components/MeetingAvailability";
 import { ACCOUNT_KINDS, accountKind } from "@/lib/account-kinds";
 import { COP_DATES, copDayMeta } from "@/lib/cop-days";
+import { MINISTRY_UNITS } from "@/lib/stakeholder-form";
 
 type Slot = { id: string; date: string; startTime: string; endTime: string; location: string; pending: boolean };
-type Target = { id: string; name: string; kind: string; topic: string; slots: Slot[] };
+type Target = { id: string; name: string; kind: string; topic: string; days: string[]; slots: Slot[] };
+type Incoming = Outgoing & { fromOrg: string; message: string };
+
 type Outgoing = {
   id: string;
   kind: string;
@@ -45,8 +48,10 @@ function statusClass(status: string) {
 
 export default function ToplantilarPage() {
   const { tx } = useI18n();
-  const { data, reload } = useApi<{ directory: Target[]; outgoing: Outgoing[] }>("/api/meetings");
-  const { data: companies } = useApi<{ participationDates: string }[]>("/api/companies");
+  const me = useApi<{ role: string }>("/api/auth/me");
+  const staff = me.data?.role === "ADMIN" || me.data?.role === "SAGLIK";
+  const { data, reload } = useApi<{ directory: Target[]; outgoing: Outgoing[]; incoming?: Incoming[] }>("/api/meetings");
+  const { data: companies, reload: reloadCompanies } = useApi<{ id: string; participationDates: string; formHint?: { days: string[] } | null }[]>(staff ? null : "/api/companies");
   const [form, setForm] = useState({ target: "", kind: "ikili", topic: "", message: "", slotId: "", preferredDate: "", preferredTime: "" });
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
@@ -69,13 +74,14 @@ export default function ToplantilarPage() {
     setInfo("");
     if (!form.target) return setError(tx("Kiminle görüşmek istediğinizi seçin"));
     if (target?.slots.length && !form.slotId) return setError(tx("Uygun saatlerden birini seçin"));
+    const ministry = form.target.startsWith("bakanlik:");
     try {
       await api("/api/meetings", {
         method: "POST",
         body: JSON.stringify({
           kind: form.kind,
-          withKind: form.target === MINISTRY ? MINISTRY : "firma",
-          withId: form.target === MINISTRY ? "" : form.target,
+          withKind: ministry || form.target === MINISTRY ? MINISTRY : "firma",
+          withId: ministry ? form.target.slice("bakanlik:".length) : form.target === MINISTRY ? "" : form.target,
           topic: form.topic,
           message: form.message,
           slotId: form.slotId || undefined,
@@ -115,13 +121,17 @@ export default function ToplantilarPage() {
           <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">{tx("Toplantı yönetimi")}</p>
           <h1 className="display text-4xl">{tx("Toplantılarım")}</h1>
           <p className="text-[#57534e]">
-            {tx("Firmalar, kurumlar, konuşmacılar ve Sağlık Bakanlığı ile toplantı isteyin; size gelen talepleri onaylayın.")}
+            {staff
+              ? tx("Paydaşların Sağlık Bakanlığı birimlerinden istediği toplantıları burada kabul edin, saat ve yerini belirleyin.")
+              : tx("Sağlık Bakanlığı genel müdürlükleri ve diğer paydaşlarla toplantı ayarlayın. Karşı taraf onaylayınca saat kesinleşir.")}
           </p>
         </div>
-        <Link className="btn ghost" href="/takvimim"><CalendarDays size={16} />{tx("Takvimimi gör")}</Link>
+        {staff ? null : <Link className="btn ghost" href="/takvimim"><CalendarDays size={16} />{tx("Takvimimi gör")}</Link>}
       </header>
 
-      <section className="card p-4 space-y-3">
+      {staff ? <MinistryDesk incoming={data?.incoming || []} onDone={reload} /> : null}
+
+      {staff ? null : <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">{tx("Yeni toplantı talebi")}</h2>
         <form className="grid gap-3 md:grid-cols-2" onSubmit={send}>
           <label className="text-sm">
@@ -132,7 +142,11 @@ export default function ToplantilarPage() {
               onChange={(e) => setForm({ ...form, target: e.target.value, slotId: "" })}
             >
               <option value="">{tx("Seçin")}</option>
-              <option value={MINISTRY}>T.C. Sağlık Bakanlığı</option>
+              <optgroup label={tx("Sağlık Bakanlığı")}>
+                {MINISTRY_UNITS.map((unit) => (
+                  <option key={unit} value={`bakanlik:${unit}`}>{tx("T.C. Sağlık Bakanlığı")} · {unit}</option>
+                ))}
+              </optgroup>
               {grouped.map((g) => (
                 <optgroup key={g.kind.id} label={tx(g.kind.label)}>
                   {g.rows.map((d) => (
@@ -178,18 +192,19 @@ export default function ToplantilarPage() {
                 {tx("Tercih edilen gün")}
                 <select className="field mt-1" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}>
                   <option value="">{tx("Fark etmez")}</option>
-                  {COP_DATES.map((d) => <option key={d} value={d}>{dayLabel(d)}</option>)}
+                  {(target?.days.length ? target.days : COP_DATES).map((d) => <option key={d} value={d}>{dayLabel(d)}</option>)}
                 </select>
+                {target?.days.length ? <span className="text-xs text-[#57534e]">{tx("Yalnızca paydaşın pavilyonda olduğu günler listelenir.")}</span> : null}
               </label>
               <label className="text-sm">
                 {tx("Tercih edilen saat")}
                 <input className="field mt-1" type="time" value={form.preferredTime} onChange={(e) => setForm({ ...form, preferredTime: e.target.value })} />
               </label>
-              {target ? (
-                <p className="text-xs text-[#57534e] md:col-span-2">
-                  {tx("Bu hesap henüz uygun saat açmamış; tercih ettiğiniz zamanı yazın, onaylarken saati belirlerler.")}
-                </p>
-              ) : null}
+              <p className="text-xs text-[#57534e] md:col-span-2">
+                {form.target.startsWith("bakanlik:")
+                  ? tx("İlgili genel müdürlük talebi görünce kabul eder ve saati netleştirir.")
+                  : tx("Gün ve saat önerin. Karşı paydaş onaylarken saati kesinleştirir.")}
+              </p>
             </>
           ) : null}
 
@@ -202,14 +217,14 @@ export default function ToplantilarPage() {
             <textarea className="field mt-1" rows={3} maxLength={500} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <button className="btn" type="submit"><Send size={16} />{tx("Talep gönder")}</button>
+            <button className="btn" type="submit"><Send size={16} />{tx("Toplantıyı ayarla")}</button>
             {info ? <span className="text-sm text-[#22A34A]">{info}</span> : null}
             {error ? <span className="text-sm text-[#c2410c]">{error}</span> : null}
           </div>
         </form>
-      </section>
+      </section>}
 
-      <section className="card p-4 space-y-3">
+      {staff ? null : <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">{tx("Gönderdiğim talepler")}</h2>
         {outgoing.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Henüz talep göndermediniz.")}</p> : null}
         <ul className="space-y-2">
@@ -236,9 +251,81 @@ export default function ToplantilarPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
 
-      {companies ? <MeetingAvailability participationDates={companies[0]?.participationDates || ""} /> : null}
+      {!staff && companies?.[0] ? <MeetingAvailability company={companies[0]} onCompanyChange={reloadCompanies} /> : null}
     </div>
+  );
+}
+
+function MinistryDesk({ incoming, onDone }: { incoming: Incoming[]; onDone: () => Promise<void> }) {
+  const { tx } = useI18n();
+  const [drafts, setDrafts] = useState<Record<string, { whenDate: string; startTime: string; endTime: string; location: string; note: string }>>({});
+  const [error, setError] = useState("");
+
+  function draft(m: Incoming) {
+    return drafts[m.id] || {
+      whenDate: m.whenDate || m.preferredDate,
+      startTime: m.startTime || m.preferredTime,
+      endTime: m.endTime,
+      location: m.location || "Sağlık Pavilionu",
+      note: m.note,
+    };
+  }
+
+  async function decide(m: Incoming, status: "Kabul" | "Red") {
+    setError("");
+    const row = draft(m);
+    try {
+      await api("/api/meetings", {
+        method: "PATCH",
+        body: JSON.stringify({ id: m.id, status, ...row }),
+      });
+      await onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("İşlem yapılamadı"));
+    }
+  }
+
+  return (
+    <section className="card p-4 space-y-3">
+      <h2 className="display text-2xl">{tx("Bakanlık toplantı talepleri")}</h2>
+      {error ? <p className="text-sm text-[#c2410c]">{error}</p> : null}
+      {!incoming.length ? <p className="text-sm text-[#57534e]">{tx("Henüz bakanlık birimine toplantı talebi yok.")}</p> : null}
+      <ul className="space-y-3">
+        {incoming.map((m) => {
+          const row = draft(m);
+          return (
+            <li key={m.id} className="border border-[#e7e5e4] rounded-lg p-3 space-y-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium">{m.withName}</p>
+                  <p className="text-sm">{m.topic}</p>
+                  <p className="text-xs text-[#57534e]">{m.fromName}{m.fromOrg ? ` · ${m.fromOrg}` : ""} · {formatDate(m.createdAt)}</p>
+                  {m.message ? <p className="text-sm mt-1">{m.message}</p> : null}
+                </div>
+                <span className={statusClass(m.status)}>
+                  {m.status === "Bekliyor" ? tx("Onay bekliyor") : m.status === "Kabul" ? tx("Kabul edildi") : tx("Reddedildi")}
+                </span>
+              </div>
+              {m.status === "Bekliyor" ? (
+                <div className="grid md:grid-cols-4 gap-2">
+                  <input className="field" type="date" value={row.whenDate} onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...row, whenDate: e.target.value } })} />
+                  <input className="field" type="time" value={row.startTime} onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...row, startTime: e.target.value } })} />
+                  <input className="field" type="time" value={row.endTime} onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...row, endTime: e.target.value } })} />
+                  <input className="field" placeholder={tx("Yer")} value={row.location} onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...row, location: e.target.value } })} />
+                  <div className="md:col-span-4 flex flex-wrap gap-2">
+                    <button type="button" className="btn" onClick={() => void decide(m, "Kabul")}>{tx("Kabul et ve saati kaydet")}</button>
+                    <button type="button" className="btn ghost" onClick={() => void decide(m, "Red")}>{tx("Reddet")}</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-[#57534e]">{[m.whenDate, m.startTime && m.endTime ? `${m.startTime}–${m.endTime}` : m.startTime, m.location].filter(Boolean).join(" · ")}</p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

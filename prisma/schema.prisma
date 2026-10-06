@@ -43,6 +43,7 @@ model Company {
   contactEmail       String               @default("")
   contactPhone       String               @default("")
   notes              String               @default("")
+  delegation         String               @default("[]")
   users              User[]
   rules              CompanyRule[]
   submissions        CompanySubmission[]
@@ -198,6 +199,9 @@ model PanelPerson {
   role      String @default("panelist")
   confirmed String @default("Beklemede")
   sortOrder Int    @default(0)
+  companyId String @default("")
+  talkTitle String @default("")
+  talkNote  String @default("")
   panel     Panel  @relation(fields: [panelId], references: [id], onDelete: Cascade)
   person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
 }

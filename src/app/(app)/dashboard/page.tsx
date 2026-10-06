@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useApi, formatDate } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { EventCreditDesk } from "@/components/game/EventCreditDesk";
 
 type Stats = {
   todos: { total: number; byStatus: Record<string, number>; avg: number; risk: number; upcoming: number } | null;
@@ -105,6 +106,7 @@ export default function DashboardPage() {
         </div>
         ) : null}
       </div>
+      {me.role === "ADMIN" || me.role === "SAGLIK" ? <EventCreditDesk /> : null}
       {data.gameSponsors && !sb ? (
         <div className="card p-4" style={{ borderLeft: "4px solid #32C45A" }}>
           <div className="flex flex-wrap justify-between items-baseline gap-2">

@@ -4,9 +4,10 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
-import { setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
+import { saveFirmTalks, setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
-import { APPROVED, notifyCompanyDecision, PENDING, REJECTED } from "@/lib/proposals";
+import { APPROVED, notifyCompanyDecision, notifySbProposal, PENDING, REJECTED } from "@/lib/proposals";
+import { SPEAKER_PENDING } from "@/lib/speakers";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
@@ -126,6 +127,40 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     });
     broadcast({ type: "panel" });
     return jsonOk(row);
+  }
+
+  if (body.action === "firm-talks") {
+    if (user.role !== "FIRMA" || !user.companyId) return jsonError("Yalnızca paydaş hesapları", 403);
+    const company = await prisma.company.findUnique({ where: { id: user.companyId }, select: { id: true, slug: true, name: true } });
+    if (!company) return jsonError("Firma bulunamadı", 404);
+    try {
+      const { panel, added } = await saveFirmTalks(id, company, Array.isArray(body.talks) ? body.talks : []);
+      const known = new Set((await prisma.speaker.findMany({ select: { name: true } })).map((s) => s.name.toLocaleLowerCase("tr")));
+      const fresh = added.filter((p) => !known.has(p.name.toLocaleLowerCase("tr")));
+      if (fresh.length) {
+        const last = await prisma.speaker.aggregate({ _max: { sortOrder: true } });
+        await prisma.speaker.createMany({
+          data: fresh.map((p, i) => ({
+            name: p.name,
+            title: p.title,
+            organization: company.name,
+            companyId: company.id,
+            proposedById: user.id,
+            status: SPEAKER_PENDING,
+            sortOrder: (last._max.sortOrder || 0) + i + 1,
+          })),
+        });
+      }
+      const talk = panel.kind === "sunum";
+      await notifySbProposal({
+        title: talk ? "Firma konuşma bilgisi girdi" : "Firma panel konuşmasını girdi",
+        body: `${company.name}: ${panel.title} · ${panel.date} ${panel.startTime}–${panel.endTime}${added.length ? `\nYeni konuşmacı: ${added.map((p) => p.name).join(", ")}` : ""}`,
+        href: talk ? "/sunumlar" : "/paneller",
+      });
+      return jsonOk({ ok: true, added: added.length });
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "Kaydedilemedi");
+    }
   }
 
   if (body.action === "message") {

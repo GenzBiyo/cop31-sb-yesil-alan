@@ -1,12 +1,14 @@
 import webpush from "web-push";
+import { memoClear, memoGet, memoSet } from "./memo";
 import { prisma } from "./prisma";
 import { broadcast } from "./realtime";
 import { ensureEvents } from "./events-db";
 import { ensureAgendaSlots } from "./agenda";
 import { parseConcept } from "./session-concept";
 import { validEmail, validPhone } from "./agenda-time";
-import { MEETING_ACCEPTED, MEETING_PENDING, MEETING_REJECTED, openSlotsByCompany, slotIsPast, slotStates } from "./meeting-slots";
+import { MEETING_ACCEPTED, MEETING_PENDING, MEETING_REJECTED, openSlotsByCompany, participationDays, slotIsPast, slotStates } from "./meeting-slots";
 import { notifyCompanyDecision } from "./proposals";
+import { MINISTRY_UNITS } from "./stakeholder-form";
 
 const DEMO_TAGS = [
   {
@@ -67,20 +69,46 @@ async function loadVapid() {
   return { publicKey: keys.publicKey, privateKey: keys.privateKey };
 }
 
+const tagFlag = globalThis as unknown as { tagsReady?: boolean };
+const readyFlag = globalThis as unknown as { appReady?: Promise<void> };
+
 export async function ensureTags() {
+  if (tagFlag.tagsReady) return;
   const count = await prisma.pavilionTag.count();
-  if (count > 0) return;
+  if (count > 0) {
+    tagFlag.tagsReady = true;
+    return;
+  }
   await prisma.pavilionTag.createMany({ data: DEMO_TAGS });
+  tagFlag.tagsReady = true;
+}
+
+function ensureAppReady() {
+  if (!readyFlag.appReady) {
+    readyFlag.appReady = Promise.all([ensureTags(), ensureEvents(), ensureAgendaSlots()])
+      .then(() => undefined)
+      .catch((error) => {
+        readyFlag.appReady = undefined;
+        throw error;
+      });
+  }
+  return readyFlag.appReady;
 }
 
 export async function deviceFromToken(token: string) {
   if (!validDeviceToken(token)) return null;
+  const existing = await prisma.appDevice.findUnique({ where: { token } });
+  if (existing) return existing;
   await ensureTags();
-  return prisma.appDevice.upsert({
-    where: { token },
-    create: { token },
-    update: {},
-  });
+  try {
+    return await prisma.appDevice.create({ data: { token } });
+  } catch {
+    return prisma.appDevice.findUnique({ where: { token } });
+  }
+}
+
+export function clearAppCatalog() {
+  memoClear("app-catalog");
 }
 
 async function pushTo(devices: { id: string; pushJson: string }[], title: string, body: string) {
@@ -141,17 +169,24 @@ export async function notifyAgendaFollowers(agendaId: string, title: string, bod
   return notifyDevices(ids, title, body, "agenda", agendaId);
 }
 
-export async function appState(deviceId: string) {
-  await ensureTags();
-  await ensureEvents();
-  await ensureAgendaSlots();
+type QuestionRow = {
+  id: string;
+  agendaId: string;
+  sessionTitle: string;
+  author: string;
+  authorRole: string;
+  body: string;
+  status: string;
+  answer: string;
+  createdAt: Date;
+  deviceId: string;
+  device: { organization: string };
+};
 
-  const deviceRow = await prisma.appDevice.findUnique({ where: { id: deviceId } });
-  if (!deviceRow) return null;
-  const answerable = await answerableAgendaIds(deviceRow);
+let catalogFlight: Promise<Awaited<ReturnType<typeof buildCatalog>>> | null = null;
 
-  const [device, days, events, notes, joins, questions, keys, companies, speakers, meetingRows] = await Promise.all([
-    prisma.appDevice.findUnique({ where: { id: deviceId } }),
+async function buildCatalog() {
+  const [days, events, keys, companies, speakers, publicQuestions] = await Promise.all([
     prisma.thematicDay.findMany({
       include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },
       orderBy: { date: "asc" },
@@ -160,6 +195,110 @@ export async function appState(deviceId: string) {
       where: { published: true },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     }),
+    vapidKeys(),
+    prisma.company.findMany({
+      where: { status: "Onaylandı" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, kind: true, participationDates: true },
+    }),
+    prisma.person.findMany({
+      where: { OR: [{ kind: "speaker" }, { panels: { some: {} } }] },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, organization: true },
+    }),
+    prisma.sessionQuestion.findMany({
+      where: { status: { in: ["Sahnede", "Yanıtlandı"] } },
+      orderBy: { createdAt: "desc" },
+      take: 80,
+      include: { device: { select: { organization: true } } },
+    }),
+  ]);
+  const slotsByCompany = await openSlotsByCompany();
+  const panelIds = [...new Set(days.flatMap((day) => day.agenda.map((item) => item.panelId).filter((id): id is string => Boolean(id))))];
+  const panels = panelIds.length
+    ? await prisma.panel.findMany({ where: { id: { in: panelIds } }, select: { id: true, summary: true, concept: true } })
+    : [];
+  const panelsById = new Map(panels.map((panel) => [panel.id, panel]));
+  return {
+    vapidPublicKey: keys.publicKey,
+    speakers,
+    publicQuestions,
+    companies: companies.map(({ participationDates, ...company }) => ({
+      ...company,
+      days: participationDays(participationDates),
+      slots: slotsByCompany.get(company.id) || [],
+    })),
+    days: days.map((day) => ({
+      id: day.id,
+      date: day.date,
+      theme: day.themeTr,
+      agenda: day.agenda.map((item) => {
+        const panel = item.panelId ? panelsById.get(item.panelId) : undefined;
+        return {
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          location: item.location,
+          description: panel?.summary || item.description,
+          concept: parseConcept(panel?.concept),
+          status: item.status,
+        };
+      }),
+    })),
+    events: events.map((event) => ({
+      id: event.id,
+      slug: event.slug,
+      title: event.title,
+      type: event.type,
+      date: event.date,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      location: event.location,
+      description: event.description,
+    })),
+  };
+}
+
+async function sharedCatalog() {
+  const cached = memoGet<Awaited<ReturnType<typeof buildCatalog>>>("app-catalog", 15_000);
+  if (cached) return cached;
+  if (!catalogFlight) {
+    catalogFlight = buildCatalog()
+      .then((value) => memoSet("app-catalog", value))
+      .finally(() => {
+        catalogFlight = null;
+      });
+  }
+  return catalogFlight;
+}
+
+function presentQuestion(question: QuestionRow, deviceId: string, answerable: string[]) {
+  return {
+    id: question.id,
+    agendaId: question.agendaId,
+    sessionTitle: question.sessionTitle,
+    author: question.author,
+    authorRole: question.authorRole,
+    organization: question.device.organization,
+    body: question.body,
+    status: question.status,
+    answer: question.answer,
+    createdAt: question.createdAt,
+    mine: question.deviceId === deviceId,
+    canAnswer: answerable.includes(question.agendaId),
+  };
+}
+
+export async function appState(deviceId: string) {
+  await ensureAppReady();
+  const device = await prisma.appDevice.findUnique({ where: { id: deviceId } });
+  if (!device) return null;
+  const visitor = device.role !== "firma" && device.role !== "konusmaci";
+  const catalog = await sharedCatalog();
+  const answerable = visitor ? [] : await answerableAgendaIds(device);
+  const [notes, joins, ownQuestions, extraQuestions, meetingRows] = await Promise.all([
     prisma.appNote.findMany({
       where: { deviceId },
       orderBy: { createdAt: "desc" },
@@ -167,38 +306,33 @@ export async function appState(deviceId: string) {
     }),
     prisma.appJoin.findMany({ where: { deviceId }, orderBy: { createdAt: "desc" } }),
     prisma.sessionQuestion.findMany({
-      where: {
-        OR: [
-          { deviceId },
-          { status: { in: ["Sahnede", "Yanıtlandı"] } },
-          ...(answerable.length ? [{ agendaId: { in: answerable } }] : []),
-        ],
-      },
+      where: { deviceId },
       orderBy: { createdAt: "desc" },
-      take: 80,
+      take: 40,
       include: { device: { select: { organization: true } } },
     }),
-    vapidKeys(),
-    prisma.company.findMany({
-      where: { status: "Onaylandı" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, kind: true },
-    }),
-    prisma.person.findMany({
-      where: { OR: [{ kind: "speaker" }, { panels: { some: {} } }] },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, organization: true },
-    }),
+    answerable.length
+      ? prisma.sessionQuestion.findMany({
+          where: { agendaId: { in: answerable }, deviceId: { not: deviceId } },
+          orderBy: { createdAt: "desc" },
+          take: 40,
+          include: { device: { select: { organization: true } } },
+        })
+      : Promise.resolve([]),
     prisma.meetingRequest.findMany({
-      where: { OR: await meetingVisibility(deviceRow) },
+      where: visitor ? { fromDeviceId: deviceId } : { OR: await meetingVisibility(device) },
       orderBy: { createdAt: "desc" },
       take: 40,
       include: { fromDevice: { select: { id: true, name: true, organization: true, role: true } } },
     }),
   ]);
-  if (!device) return null;
-  const fromIds = await samePartyIds(device);
-  const slotsByCompany = await openSlotsByCompany();
+  const fromIds = visitor ? [device.id] : await samePartyIds(device);
+  const merged = new Map<string, QuestionRow>();
+  for (const question of [...catalog.publicQuestions, ...extraQuestions, ...ownQuestions]) merged.set(question.id, question);
+  const questions = [...merged.values()]
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 80)
+    .map((question) => presentQuestion(question, deviceId, answerable));
 
   return {
     device: {
@@ -212,64 +346,16 @@ export async function appState(deviceId: string) {
       push: Boolean(device.pushJson),
     },
     directory: {
-      companies: companies.map((company) => ({ ...company, slots: slotsByCompany.get(company.id) || [] })),
-      speakers,
+      companies: catalog.companies,
+      speakers: catalog.speakers,
     },
-    vapidPublicKey: keys.publicKey,
-    days: await (async () => {
-      const panelIds = [...new Set(days.flatMap((day) => day.agenda.map((item) => item.panelId).filter((id): id is string => Boolean(id))))];
-      const panels = panelIds.length
-        ? await prisma.panel.findMany({ where: { id: { in: panelIds } }, select: { id: true, summary: true, concept: true } })
-        : [];
-      const byId = new Map(panels.map((panel) => [panel.id, panel]));
-      return days.map((day) => ({
-        id: day.id,
-        date: day.date,
-        theme: day.themeTr,
-        agenda: day.agenda.map((item) => {
-          const panel = item.panelId ? byId.get(item.panelId) : undefined;
-          return {
-            id: item.id,
-            title: item.title,
-            type: item.type,
-            startTime: item.startTime,
-            endTime: item.endTime,
-            location: item.location,
-            description: panel?.summary || item.description,
-            concept: parseConcept(panel?.concept),
-            status: item.status,
-          };
-        }),
-      }));
-    })(),
-    events: events.map((event) => ({
-      id: event.id,
-      slug: event.slug,
-      title: event.title,
-      type: event.type,
-      date: event.date,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      location: event.location,
-      description: event.description,
-    })),
+    vapidPublicKey: catalog.vapidPublicKey,
+    days: catalog.days,
+    events: catalog.events,
     notes,
     unread: notes.filter((note) => !note.read).length,
     joins: joins.map((join) => ({ kind: join.kind, refId: join.refId, title: join.title })),
-    questions: questions.map((question) => ({
-      id: question.id,
-      agendaId: question.agendaId,
-      sessionTitle: question.sessionTitle,
-      author: question.author,
-      authorRole: question.authorRole,
-      organization: question.device.organization,
-      body: question.body,
-      status: question.status,
-      answer: question.answer,
-      createdAt: question.createdAt,
-      mine: question.deviceId === deviceId,
-      canAnswer: answerable.includes(question.agendaId),
-    })),
+    questions,
     meetings: meetingRows.map((meeting) => presentMeeting(meeting, deviceId, fromIds)),
   };
 }
@@ -282,25 +368,17 @@ export async function saveProfile(
   const email = input.email.trim().toLowerCase().slice(0, 120);
   const phone = input.phone.trim().slice(0, 30);
   let organization = input.organization.trim().slice(0, 120);
-  const role = input.role === "firma" || input.role === "konusmaci" ? input.role : "ziyaretci";
   if (name.length < 2) throw new Error("Ad soyad gerekli");
   if (email && !validEmail(email)) throw new Error("E-posta geçersiz");
   if (phone && !validPhone(phone)) throw new Error("Telefon en az 10 hane olmalı");
 
-  let companyId = "";
-  let personId = "";
-  if (role === "firma") {
-    const company = await prisma.company.findFirst({ where: { id: String(input.companyId || ""), status: "Onaylandı" } });
-    if (!company) throw new Error("Firma seçin");
-    companyId = company.id;
-    if (!organization) organization = company.name;
-  }
-  if (role === "konusmaci") {
-    const person = await prisma.person.findUnique({ where: { id: String(input.personId || "") } });
-    if (!person) throw new Error("Konuşmacı kaydınızı seçin");
-    personId = person.id;
-    if (!organization) organization = person.organization;
-  }
+  const current = await prisma.appDevice.findUnique({
+    where: { id: deviceId },
+    select: { role: true, companyId: true, personId: true },
+  });
+  const role = current && (current.role === "firma" || current.role === "konusmaci") ? current.role : "ziyaretci";
+  const companyId = role === "firma" ? current?.companyId || "" : "";
+  const personId = role === "konusmaci" ? current?.personId || "" : "";
 
   const device = await prisma.appDevice.update({
     where: { id: deviceId },
@@ -550,6 +628,7 @@ export async function answerSessionQuestion(deviceId: string, questionId: string
     await addNote(question.deviceId, "Sorunuza yanıt", text, "question", question.id);
   }
   broadcast({ type: "app" });
+  clearAppCatalog();
 }
 
 export async function createMeeting(
@@ -575,6 +654,11 @@ export async function createMeeting(
 
   let withId = "";
   let withName = "T.C. Sağlık Bakanlığı";
+  if (withKind === "bakanlik") {
+    const unit = (MINISTRY_UNITS as readonly string[]).includes(input.withId) ? input.withId : "";
+    withId = unit;
+    withName = unit ? `T.C. Sağlık Bakanlığı · ${unit}` : "T.C. Sağlık Bakanlığı";
+  }
   if (withKind === "firma") {
     const company = await prisma.company.findFirst({ where: { id: input.withId, status: "Onaylandı" } });
     if (!company) throw new Error("Firma seçin");
@@ -608,6 +692,13 @@ export async function createMeeting(
     preferredDate = slot.date;
     preferredTime = slot.startTime;
   }
+  if (withKind === "firma") {
+    const company = await prisma.company.findUnique({ where: { id: withId }, select: { participationDates: true } });
+    const open = participationDays(company?.participationDates || "");
+    if (open.length && preferredDate && !open.includes(preferredDate)) {
+      throw new Error("Firma bu gün pavilyonda değil; katılım günlerinden birini seçin");
+    }
+  }
 
   const meeting = await prisma.meetingRequest.create({
     data: {
@@ -629,13 +720,31 @@ export async function createMeeting(
   if (targets.length) {
     await notifyDevices(targets, `Yeni ${label.toLocaleLowerCase("tr")} talebi`, `${device.name}: ${topic}`, "meeting", meeting.id);
   }
+  clearAppCatalog();
+  const when = [preferredDate, preferredTime].filter(Boolean).join(" ");
+  const asker = `${device.name}${device.organization ? ` (${device.organization})` : ""}: ${topic}${when ? ` — ${when}` : ""}`;
   if (withKind === "firma") {
-    const when = [preferredDate, preferredTime].filter(Boolean).join(" ");
     await notifyCompanyDecision({
       companyId: withId,
       title: `Yeni ${label.toLocaleLowerCase("tr")} talebi`,
-      body: `${device.name}${device.organization ? ` (${device.organization})` : ""}: ${topic}${when ? ` — ${when}` : ""}\nPanel → Toplantılarım sayfasından onaylayın.`,
+      body: `${asker}\nPanel → Toplantılarım sayfasından onaylayın.`,
     });
+  }
+  if (withKind === "bakanlik") {
+    const staff = await prisma.user.findMany({
+      where: { role: { in: ["SAGLIK", "ADMIN"] }, accountStatus: "Onaylandı" },
+      select: { id: true },
+    });
+    if (staff.length) {
+      await prisma.inboxItem.createMany({
+        data: staff.map((member) => ({
+          userId: member.id,
+          title: `Bakanlık toplantı talebi · ${withName}`,
+          body: `${asker}\nToplantılarım sayfasından kabul edin veya saati belirleyin.`,
+        })),
+      });
+      broadcast({ type: "inbox" });
+    }
   }
   return meeting;
 }
@@ -763,5 +872,6 @@ export async function updateMeeting(
   }
   broadcast({ type: "app" });
   broadcast({ type: "agenda" });
+  clearAppCatalog();
   return saved;
 }

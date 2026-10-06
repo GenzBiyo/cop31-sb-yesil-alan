@@ -15,6 +15,7 @@ type Company = {
   status: string;
   booth: string;
   rules: { status: string }[];
+  users?: { id: string; email: string; name: string; accountStatus: string }[];
 };
 
 const SCOPES = ["Local", "Global", "Startup", "UN", "Diğer"];
@@ -33,6 +34,11 @@ export default function FirmsPage() {
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [accessId, setAccessId] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginName, setLoginName] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginNote, setLoginNote] = useState("");
 
   async function removeCompany(company: Company) {
     if (!confirm(tx("Bu firmayı listeden çıkarmak istiyor musunuz? Kurallar ve kayıtlar da silinir."))) return;
@@ -69,7 +75,7 @@ export default function FirmsPage() {
         <input
           className="field md:col-span-2"
           required
-          placeholder={tx("Firma adı")}
+          placeholder={tx("Kurum adı")}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
@@ -103,6 +109,71 @@ export default function FirmsPage() {
         {error ? <p className="text-sm text-[#E31C23] md:col-span-4">{error}</p> : null}
         <button className="btn" disabled={busy}>{tx("Firma ekle")}</button>
       </form>
+      <section className="card p-4 space-y-3">
+        <h2 className="display text-2xl">{tx("Kullanıcı adı ve şifre")}</h2>
+        <p className="text-sm text-[#57534e]">{tx("Paydaş bu e-posta ve şifreyle giriş yapar. Şifre en az 8 karakterdir. Boş bırakırsanız mevcut şifre değişmez.")}</p>
+        <div className="grid md:grid-cols-4 gap-2">
+          <label className="text-sm md:col-span-2">{tx("Kurum")}
+            <select
+              className="field mt-1"
+              value={accessId}
+              onChange={(e) => {
+                const id = e.target.value;
+                const company = (data || []).find((c) => c.id === id);
+                const account = company?.users?.[0];
+                setAccessId(id);
+                setLoginEmail(account?.email || "");
+                setLoginName(account?.name || "");
+                setLoginPassword("");
+                setLoginNote("");
+              }}
+            >
+              <option value="">{tx("Kurum seçin")}</option>
+              {(data || []).map((c) => (
+                <option key={c.id} value={c.id}>{c.name}{c.users?.[0] ? ` · ${c.users[0].email}` : ` · ${tx("giriş yok")}`}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">{tx("Yetkili adı")}
+            <input className="field mt-1" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+          </label>
+          <label className="text-sm">{tx("Kullanıcı adı (e-posta)")}
+            <input className="field mt-1" type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
+          </label>
+          <label className="text-sm md:col-span-2">{tx("Yeni şifre")}
+            <input className="field mt-1" type="text" autoComplete="off" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder={tx("En az 8 karakter")} />
+          </label>
+          <div className="flex items-end">
+            <button
+              type="button"
+              className="btn"
+              disabled={!accessId || busy}
+              onClick={async () => {
+                setBusy(true);
+                setError("");
+                setLoginNote("");
+                try {
+                  await api(`/api/companies/${accessId}/access`, {
+                    method: "PUT",
+                    body: JSON.stringify({ email: loginEmail, name: loginName, password: loginPassword }),
+                  });
+                  setLoginPassword("");
+                  setLoginNote(tx("Giriş bilgisi kaydedildi."));
+                  await reload();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : tx("Giriş bilgisi kaydedilemedi"));
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {tx("Kaydet")}
+            </button>
+          </div>
+        </div>
+        {loginNote ? <p className="text-sm text-[#22A34A]">{loginNote}</p> : null}
+        {error ? <p className="text-sm text-[#E31C23]">{error}</p> : null}
+      </section>
       <div className="table-wrap">
         <table className="data">
           <thead>

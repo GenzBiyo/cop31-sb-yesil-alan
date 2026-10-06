@@ -130,7 +130,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.published !== undefined) data.published = Boolean(body.published);
   if (body.logoPath !== undefined) data.logoPath = String(body.logoPath);
   if (body.logos && typeof body.logos === "object") {
-    data.logoPath = JSON.stringify(mergeHatiraLogos(game.logoPath, body.logos as { cop31?: string; saglik?: string }));
+    data.logoPath = JSON.stringify(mergeHatiraLogos(game.logoPath, body.logos as { cop31?: string; saglik?: string; background?: string }));
   }
   if (body.status && !["draft", "lobby", "live", "closed"].includes(body.status)) {
     return jsonError("Geçersiz durum");

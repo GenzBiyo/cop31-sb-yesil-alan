@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/components/I18nProvider";
 import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
+import { EventCreditStrip } from "@/components/game/EventCreditStrip";
 
 export function GameStage({
   kicker,
@@ -37,6 +38,7 @@ export function GameStage({
       <div className={`game-arena-body ${wide ? "is-wide" : ""}`}>
         {children}
         <EventSponsor sponsor={sponsor} size="phone" />
+        <EventCreditStrip />
       </div>
     </main>
   );

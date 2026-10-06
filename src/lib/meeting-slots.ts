@@ -1,5 +1,8 @@
 import { prisma } from "./prisma";
 import { COP_DATES } from "./cop-days";
+import { participationDays } from "./participation";
+
+export { participationDays };
 
 export const MEETING_PENDING = "Bekliyor";
 export const MEETING_ACCEPTED = "Kabul";
@@ -79,11 +82,15 @@ export async function openSlotsByCompany() {
   const slots = await prisma.meetingSlot.findMany({
     where: { date: { gte: today }, company: { status: "Onaylandı" } },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    include: { company: { select: { participationDates: true } } },
   });
   const states = await slotStates(slots.map((s) => s.id));
+  const openDays = new Map<string, string[]>();
   const byCompany = new Map<string, { id: string; date: string; startTime: string; endTime: string; location: string; pending: boolean }[]>();
   for (const slot of slots) {
     if (slotIsPast(slot)) continue;
+    if (!openDays.has(slot.companyId)) openDays.set(slot.companyId, participationDays(slot.company.participationDates));
+    if (!openDays.get(slot.companyId)!.includes(slot.date)) continue;
     const st = states.get(slot.id);
     if (st?.state === "dolu") continue;
     const list = byCompany.get(slot.companyId) || [];
@@ -100,15 +107,15 @@ export async function openSlotsByCompany() {
   return byCompany;
 }
 
-/** Turns free text such as "9-10 Kasım", "9–20 November" or "9, 11 Kasım" into COP31 dates. */
-export function participationDays(text: string) {
-  const days = new Set<number>();
-  const clean = text.replace(/[–—]/g, "-");
-  for (const m of clean.matchAll(/(\d{1,2})\s*-\s*(\d{1,2})/g)) {
-    const a = Number(m[1]);
-    const b = Number(m[2]);
-    for (let d = Math.min(a, b); d <= Math.max(a, b); d += 1) days.add(d);
-  }
-  for (const m of clean.replace(/(\d{1,2})\s*-\s*(\d{1,2})/g, " ").matchAll(/\d{1,2}/g)) days.add(Number(m[0]));
-  return COP_DATES.filter((date) => days.has(Number(date.slice(8, 10))));
+/** Removes request-free slots on days the company is no longer at the pavilion; slots with requests stay. */
+export async function dropSlotsOutside(companyId: string, participationDates: string) {
+  const open = participationDays(participationDates);
+  const slots = await prisma.meetingSlot.findMany({
+    where: { companyId, ...(open.length ? { NOT: { date: { in: open } } } : {}) },
+    select: { id: true },
+  });
+  const states = await slotStates(slots.map((s) => s.id));
+  const free = slots.filter((s) => !states.has(s.id)).map((s) => s.id);
+  if (free.length) await prisma.meetingSlot.deleteMany({ where: { id: { in: free } } });
+  return { removed: free.length, kept: slots.length - free.length };
 }

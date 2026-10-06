@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 
 const MAX_VIDEO = 40 * 1024 * 1024;
 const MAX_LOGO = 4 * 1024 * 1024;
+const MAX_BG = 8 * 1024 * 1024;
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
@@ -25,9 +26,11 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const file = form.get("file");
 
   if (kind === "logo") {
-    const slot = String(form.get("slot") || "") === "saglik" ? "saglik" : "cop31";
-    if (!(file instanceof File)) return jsonError("Logo dosyası seçin");
-    if (file.size > MAX_LOGO) return jsonError("Logo en fazla 4 MB olabilir");
+    const asked = String(form.get("slot") || "");
+    const slot = asked === "saglik" || asked === "background" ? asked : "cop31";
+    const limit = slot === "background" ? MAX_BG : MAX_LOGO;
+    if (!(file instanceof File)) return jsonError(slot === "background" ? "Arka plan dosyası seçin" : "Logo dosyası seçin");
+    if (file.size > limit) return jsonError(slot === "background" ? "Arka plan en fazla 8 MB olabilir" : "Logo en fazla 4 MB olabilir");
     const type = file.type || "";
     if (!type.startsWith("image/") && !/\.(png|jpe?g|webp|svg)$/i.test(file.name)) {
       return jsonError("PNG, JPG veya WebP yükleyin");

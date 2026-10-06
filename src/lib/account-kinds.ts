@@ -1,6 +1,6 @@
 /** Special (approved) account types. All of them log in with the FIRMA role and own a Company record. */
 export const ACCOUNT_KINDS = [
-  { id: "firma", label: "Firma", orgLabel: "Firma adı", contact: "Firma yetkilisi", firmTools: true },
+  { id: "firma", label: "Firma", orgLabel: "Kurum adı", contact: "Firma yetkilisi", firmTools: true },
   { id: "startup", label: "Startup", orgLabel: "Startup adı", contact: "Startup yetkilisi", firmTools: true },
   { id: "kamu", label: "Kamu kurumu", orgLabel: "Kurum adı", contact: "Kurum temsilcisi", firmTools: false },
   { id: "konusmaci", label: "Konuşmacı", orgLabel: "Kurum / bağlı olduğunuz kuruluş", contact: "Konuşmacı", firmTools: false },

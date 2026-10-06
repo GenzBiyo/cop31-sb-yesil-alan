@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { canManage, type SessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
-import { buildSlots, overlaps, slotStates } from "@/lib/meeting-slots";
+import { buildSlots, overlaps, participationDays, slotStates } from "@/lib/meeting-slots";
+import { formatParticipationDays } from "@/lib/participation";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,16 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const companyId = companyOf(user, body.companyId ? String(body.companyId) : null);
   if (!companyId) return jsonError("Yetkiniz yok", 403);
+  const company = await prisma.company.findUnique({ where: { id: companyId }, select: { participationDates: true } });
+  if (!company) return jsonError("Firma bulunamadı", 404);
+  const open = participationDays(company.participationDates);
+  if (!open.length) return jsonError("Önce pavilyona katılacağınız günleri seçin; takviminiz yalnızca o günlerde açılır.");
+  const dates: string[] = Array.isArray(body.dates) ? body.dates.map(String) : [];
+  const closed = dates.filter((d) => !open.includes(d));
+  if (closed.length) return jsonError(`Katılım gününüz olmayan günlere saat açılamaz: ${formatParticipationDays(closed)}`);
   try {
     const wanted = buildSlots({
-      dates: Array.isArray(body.dates) ? body.dates.map(String) : [],
+      dates,
       from: String(body.from || ""),
       to: String(body.to || ""),
       minutes: Number(body.minutes || 0),

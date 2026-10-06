@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
-import { addNote } from "@/lib/visitor-app";
+import { addNote, clearAppCatalog } from "@/lib/visitor-app";
 
 export const dynamic = "force-dynamic";
 
@@ -27,5 +27,6 @@ export async function PATCH(req: Request) {
   if (answer && answer !== question.answer) {
     await addNote(question.deviceId, "Sorunuza yanıt", answer, "question", question.id);
   }
+  clearAppCatalog();
   return jsonOk({ ok: true });
 }

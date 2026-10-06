@@ -1,10 +1,15 @@
-export const HATIRA_FRAME = "/hatira/hatira-frame.png";
 export const HATIRA_NATURE = "/hatira/hatira-nature.png";
 /** Real photo: Çıralı / Olympos beach, Antalya (Wikimedia CC BY-SA). */
 export const HATIRA_WASM = "/hatira/wasm";
 export const HATIRA_MODEL = "/hatira/selfie_segmenter.tflite";
 export const HATIRA_LOGO_COP31 = "/hatira/logo-cop31.png";
 export const HATIRA_LOGO_SAGLIK = "/hatira/logo-saglik.jpg";
+
+/** Finished souvenir card. Portrait 3:4. */
+export const HATIRA_W = 1080;
+export const HATIRA_H = 1440;
+/** Area the uploaded background is cover-cropped into. */
+export const HATIRA_WINDOW = { x: 100, y: 308, w: 880, h: 800 };
 
 export const SAMPLE_HATIRA = {
   slug: "cop31-hatira",
@@ -18,10 +23,11 @@ export const SAMPLE_HATIRA = {
 export type HatiraLogos = {
   cop31: string;
   saglik: string;
+  background: string;
 };
 
 export function defaultHatiraLogos(): HatiraLogos {
-  return { cop31: HATIRA_LOGO_COP31, saglik: HATIRA_LOGO_SAGLIK };
+  return { cop31: HATIRA_LOGO_COP31, saglik: HATIRA_LOGO_SAGLIK, background: HATIRA_NATURE };
 }
 
 export function parseHatiraLogos(logoPath: string | null | undefined): HatiraLogos {
@@ -34,12 +40,13 @@ export function parseHatiraLogos(logoPath: string | null | undefined): HatiraLog
       return {
         cop31: j.cop31 || fallback.cop31,
         saglik: j.saglik || fallback.saglik,
+        background: j.background || fallback.background,
       };
     } catch {
       return fallback;
     }
   }
-  return { cop31: raw, saglik: fallback.saglik };
+  return { cop31: raw, saglik: fallback.saglik, background: fallback.background };
 }
 
 export function mergeHatiraLogos(logoPath: string | null | undefined, patch: Partial<HatiraLogos>) {

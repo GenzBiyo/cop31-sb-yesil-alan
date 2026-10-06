@@ -8,6 +8,7 @@ import { useI18n } from "@/components/I18nProvider";
 import { ConceptEditor } from "@/components/ConceptEditor";
 import { SessionBrief } from "@/components/SessionBrief";
 import { useSpeakers } from "@/components/speakers";
+import { parseDelegation } from "@/lib/delegation";
 import {
   conceptCompletion,
   emptyConcept,
@@ -34,11 +35,24 @@ type Session = {
   concept?: string;
   companyName?: string;
   companyId?: string;
-  participants: { id: string; role: string; confirmed: string; person: Person }[];
+  mine?: boolean;
+  participants: Participant[];
   messages: { id: string; authorId: string; body: string; createdAt: string }[];
 };
+type Participant = {
+  id: string;
+  role: string;
+  confirmed: string;
+  companyId?: string;
+  talkTitle?: string;
+  talkNote?: string;
+  own?: boolean;
+  person: Person;
+};
 
-type Guest = { name: string; title: string; organization: string; role: string };
+type Guest = { name: string; title: string; organization: string; role: string; talkTitle?: string };
+type FirmTalkRow = { participantId?: string; name: string; title: string; talkTitle: string; talkNote: string; removable: boolean };
+type FirmPeople = { companyId: string; names: { name: string; title: string }[] };
 
 const ROLE_ORDER = ["acilis", "sunum", "panelist", "moderator", "kapanis"];
 
@@ -52,7 +66,100 @@ function lineupOf(session: Session): Guest[] {
     title: p.person.role || "",
     organization: p.person.organization || "",
     role: ROLE_ORDER.includes(p.role) ? p.role : p.role === "speaker" ? "sunum" : "panelist",
+    talkTitle: p.talkTitle || "",
   }));
+}
+
+function FirmTalks({ session, talk, firm, onSaved }: { session: Session; talk: boolean; firm: FirmPeople; onSaved: () => Promise<void> }) {
+  const { tx } = useI18n();
+  const initial = (): FirmTalkRow[] => {
+    const own = session.participants
+      .filter((p) => p.own)
+      .map((p) => ({
+        participantId: p.id,
+        name: p.person.name,
+        title: p.person.role || "",
+        talkTitle: p.talkTitle || "",
+        talkNote: p.talkNote || "",
+        removable: p.companyId === firm.companyId,
+      }));
+    return own.length ? own : [{ name: "", title: "", talkTitle: "", talkNote: "", removable: true }];
+  };
+  const [rows, setRows] = useState<FirmTalkRow[]>(initial);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  const listId = `firm-people-${session.id}`;
+
+  function patch(i: number, part: Partial<FirmTalkRow>) {
+    setRows(rows.map((r, idx) => (idx === i ? { ...r, ...part } : r)));
+  }
+  function pickName(i: number, name: string) {
+    const match = firm.names.find((p) => p.name === name);
+    patch(i, { name, ...(match && !rows[i].title ? { title: match.title } : {}) });
+  }
+
+  async function save() {
+    setBusy(true);
+    setMsg("");
+    setError("");
+    try {
+      const res = await api<{ added: number }>(`/api/panels/${session.id}`, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "firm-talks",
+          talks: rows
+            .filter((r) => r.name.trim())
+            .map((r) => ({ participantId: r.participantId, name: r.name, title: r.title, talkTitle: r.talkTitle, talkNote: r.talkNote })),
+        }),
+      });
+      await onSaved();
+      setMsg(
+        `${tx("Kaydedildi, Sağlık Bakanlığına iletildi.")}${res.added ? ` ${res.added} ${tx("yeni konuşmacı onaya gönderildi.")}` : ""}`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("Kaydedilemedi"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 space-y-3">
+      <div>
+        <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{tx(talk ? "Konuşmalarımız" : "Paneldeki konuşmalarımız")}</div>
+        <p className="text-xs text-[#57534e]">
+          {tx("Bu oturumda kurumunuz adına konuşacak kişiyi, unvanını, konuşma başlığını ve kısa içeriğini girin. Yeni isimler Konuşmacılar listesine onay için eklenir.")}
+        </p>
+      </div>
+      <datalist id={listId}>
+        {firm.names.map((p) => <option key={p.name} value={p.name}>{p.title}</option>)}
+      </datalist>
+      {rows.map((r, i) => (
+        <div key={r.participantId || `new-${i}`} className="grid gap-2 md:grid-cols-2 bg-white border border-[#DCE8F0] p-2">
+          <input className="field" list={listId} placeholder={tx("Konuşmacı ad soyad")} value={r.name} onChange={(e) => pickName(i, e.target.value)} />
+          <input className="field" placeholder={tx("Unvan / görev")} value={r.title} onChange={(e) => patch(i, { title: e.target.value })} />
+          <input className="field md:col-span-2" placeholder={tx("Konuşma başlığı")} value={r.talkTitle} onChange={(e) => patch(i, { talkTitle: e.target.value })} />
+          <textarea className="field md:col-span-2" rows={2} maxLength={2000} placeholder={tx("Konuşmanın kısa içeriği, ana mesajlar, kullanılacak sunum/video")} value={r.talkNote} onChange={(e) => patch(i, { talkNote: e.target.value })} />
+          <div className="md:col-span-2 flex justify-end">
+            {r.removable ? (
+              <button type="button" className="text-xs text-[#E31C23] underline" onClick={() => setRows(rows.filter((_, idx) => idx !== i))}>{tx("Kaldır")}</button>
+            ) : (
+              <span className="text-xs text-[#57534e]">{tx("Sağlık Bakanlığı tarafından eklendi; çıkarmak için SB ile iletişime geçin.")}</span>
+            )}
+          </div>
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className="btn ghost" disabled={rows.length >= 10} onClick={() => setRows([...rows, { name: "", title: "", talkTitle: "", talkNote: "", removable: true }])}>
+          <Plus size={14} /> {tx("Konuşmacı ekle")}
+        </button>
+        <button type="button" className="btn" disabled={busy} onClick={() => void save()}>{busy ? tx("Kaydediliyor…") : tx("Konuşmaları kaydet")}</button>
+        {msg ? <span className="text-sm text-[#22A34A]">{msg}</span> : null}
+        {error ? <span className="text-sm text-[#E31C23]">{error}</span> : null}
+      </div>
+    </div>
+  );
 }
 
 function minutesBetween(start: string, end: string) {
@@ -194,6 +301,7 @@ function PreviewSheet({
               <li key={`${g.name}-${i}`} className="border border-[#DCE8F0] p-2">
                 <div className="font-semibold">{g.name}</div>
                 <div className="text-xs text-[#57534e]">{[g.title, g.organization].filter(Boolean).join(" · ")}</div>
+                {g.talkTitle ? <div className="text-xs italic mt-0.5">“{g.talkTitle}”</div> : null}
                 <div className="text-[11px] uppercase tracking-[0.12em] text-[#00796B] mt-0.5">{GUEST_ROLE_LABELS[g.role] || g.role}</div>
               </li>
             ))}
@@ -229,6 +337,16 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   });
   const [guests, setGuests] = useState<Guest[]>([blankGuest(talk)]);
   const [concept, setConcept] = useState<SessionConcept>(emptyConcept());
+  const [talkOpen, setTalkOpen] = useState<string | null>(null);
+  const { data: myCompany } = useApi<{ id: string; delegation: string }[]>(isFirma ? "/api/companies" : null);
+  const { data: mySpeakers } = useApi<{ speakers: { name: string; title: string }[] }>(isFirma ? "/api/speakers" : null);
+  const firm = useMemo<FirmPeople | null>(() => {
+    if (!isFirma || !myCompany?.[0]) return null;
+    const names = [...parseDelegation(myCompany[0].delegation), ...(mySpeakers?.speakers || [])]
+      .map((p) => ({ name: p.name, title: p.title }))
+      .filter((p, i, all) => all.findIndex((q) => q.name === p.name) === i);
+    return { companyId: myCompany[0].id, names };
+  }, [isFirma, myCompany, mySpeakers]);
 
   useRealtime((t) => {
     if (t === "panel" || t === "agenda") void reload();
@@ -249,6 +367,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
     }
     return COP_DAY_OPTIONS.map((opt) => ({ ...opt, rows: map.get(opt.date) || [] }));
   }, [rows]);
+  const mineRows = useMemo(() => rows.filter((p) => p.mine && p.status !== "Reddedildi" && p.title.trim()), [rows]);
 
   function canEdit(session: Session) {
     if (canReview) return true;
@@ -354,6 +473,51 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
           />
         ) : null}
       </form>
+      ) : null}
+
+      {firm ? (
+        <section className="card p-4 space-y-3">
+          <div>
+            <h2 className="display text-2xl">{tx(talk ? "Yer aldığınız konuşma ve sunumlar" : "Yer aldığınız paneller")}</h2>
+            <p className="text-sm text-[#57534e]">
+              {tx("Önerdiğiniz, paydaş olarak eklendiğiniz veya kurumunuzdan birinin konuştuğu oturumlar. Konuşmacılarınızı ve konuşmalarınızı buradan girin.")}
+            </p>
+          </div>
+          {mineRows.length === 0 ? (
+            <p className="text-sm text-[#57534e]">
+              {tx(talk
+                ? "Henüz yer aldığınız bir konuşma yok. Sağlık Bakanlığı sizi bir oturuma eklediğinde burada görünür; kendi önerinizi “Yeni konuşma ekle” ile gönderebilirsiniz."
+                : "Henüz yer aldığınız bir panel yok. Sağlık Bakanlığı sizi bir panele eklediğinde burada görünür; kendi önerinizi “Yeni panel ekle” ile gönderebilirsiniz.")}
+            </p>
+          ) : null}
+          {mineRows.map((p) => {
+            const own = p.participants.filter((x) => x.own);
+            return (
+              <div key={p.id} className="border border-[#DCE8F0] p-3 space-y-2">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <div>
+                    <div className="text-xs text-[#0077C2]">{formatDate(p.date)} · {p.startTime}–{p.endTime} · {p.location}</div>
+                    <div className="font-semibold">{p.title}</div>
+                    <div className="text-sm text-[#57534e]">
+                      {own.length
+                        ? own.map((x) => `${x.person.name}${x.talkTitle ? ` — “${x.talkTitle}”` : ` (${tx("konuşma başlığı girilmedi")})`}`).join(" · ")
+                        : tx("Bu oturuma henüz konuşmacı girmediniz.")}
+                    </div>
+                  </div>
+                  <span className="flex gap-2 items-start">
+                    <span className={`badge ${p.status === "Onay bekliyor" ? "warn" : "muted"}`}>{tx(p.status)}</span>
+                    <button type="button" className={talkOpen === p.id ? "btn ghost" : "btn"} onClick={() => setTalkOpen(talkOpen === p.id ? null : p.id)}>
+                      {talkOpen === p.id ? tx("Kapat") : own.length ? tx("Konuşmaları düzenle") : tx("Konuşmamızı gir")}
+                    </button>
+                  </span>
+                </div>
+                {talkOpen === p.id ? (
+                  <FirmTalks key={own.map((x) => x.id).join(",")} session={p} talk={talk} firm={firm} onSaved={reload} />
+                ) : null}
+              </div>
+            );
+          })}
+        </section>
       ) : null}
 
       {rows.some((p) => p.status === "Onay bekliyor") ? (
@@ -603,6 +767,9 @@ function SessionEditor({
             <span>
               <strong>{pt.person.name}</strong>{pt.person.organization ? ` · ${pt.person.organization}` : ""}
               <span className="badge muted ml-2">{GUEST_ROLE_LABELS[pt.role] || (pt.role === "speaker" ? "Sunum" : "Panelist")}</span>
+              {pt.companyId ? <span className="badge warn ml-1">Firma bildirdi</span> : null}
+              {pt.talkTitle ? <span className="block text-[#0077C2]">Konuşma: “{pt.talkTitle}”</span> : null}
+              {pt.talkNote ? <span className="block text-xs text-[#57534e] whitespace-pre-line">{pt.talkNote}</span> : null}
             </span>
             <select className="field w-40" defaultValue={pt.confirmed} onChange={(e) => api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "confirm", participantId: pt.id, confirmed: e.target.value }) })}>
               <option>Beklemede</option>

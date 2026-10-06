@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { PortalChrome } from "@/components/gate/PortalChrome";
 import { GateLogin } from "@/components/gate/GateLogin";
@@ -30,16 +29,6 @@ export default function FirmalarGate() {
           blurb="Firma, startup, kamu kurumu, konuşmacı, STK veya akademi hesabı açın. Başvuru admin onayına düşer; onaysız hesapla giriş yapılamaz."
         />
       )}
-      <div className="mt-5 border-t border-[#DCE8F0] pt-4 text-sm">
-        <div className="font-semibold">{tx("Konuşmacı eklemek")}</div>
-        <p className="text-[#57534e] mt-1">
-          {tx("Firma hesabınızla giriş yapıp konuşmacınızı fotoğraf, kurum, özgeçmiş ve LinkedIn bilgisiyle ekleyin. Sağlık Bakanlığı onaylayınca konuşmacılar sayfasında yayınlanır.")}
-        </p>
-        <div className="flex flex-wrap gap-2 mt-3">
-          <Link className="btn" href="/konusmaci-yonetimi">{tx("Konuşmacı ekle")}</Link>
-          <Link className="btn ghost" href="/konusmacilar">{tx("Konuşmacıları gör")}</Link>
-        </div>
-      </div>
     </PortalChrome>
   );
 }

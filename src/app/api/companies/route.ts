@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { ensureCompanyAccounts } from "@/lib/company-accounts";
+import { stakeholderFor } from "@/lib/stakeholder-match";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -12,10 +13,14 @@ export async function GET() {
       where: { id: user.companyId || "" },
       include: { rules: true, submissions: { orderBy: { createdAt: "desc" } }, users: true },
     });
-    return jsonOk(company ? [company] : []);
+    return jsonOk(company ? [{ ...company, formHint: await stakeholderFor(company) }] : []);
   }
   const companies = await prisma.company.findMany({
-    include: { rules: true, submissions: true, users: true },
+    include: {
+      rules: { select: { id: true, title: true, body: true, dueDate: true, status: true } },
+      submissions: { select: { id: true, type: true, title: true, payload: true, quantity: true, reviewNote: true, status: true, eventDate: true } },
+      users: { select: { id: true, email: true, name: true, accountStatus: true }, orderBy: { createdAt: "asc" } },
+    },
     orderBy: { name: "asc" },
   });
   return jsonOk(companies);

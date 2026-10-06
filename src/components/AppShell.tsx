@@ -66,7 +66,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/paydas-yanitlari", label: "Paydaş formu", icon: FileSpreadsheet, roles: ["ADMIN", "SAGLIK"] },
   { href: "/hesaplar", label: "Kullanıcı yönetimi", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Profilim", icon: Building2, roles: ["FIRMA"] },
-  { href: "/toplantilar", label: "Toplantılarım", icon: Handshake, roles: ["FIRMA"] },
+  { href: "/toplantilar", label: "Toplantılarım", icon: Handshake, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/takvimim", label: "Takvimim", icon: CalendarDays, roles: ["FIRMA"] },
   { href: "/paneller", label: "Paneller", icon: Mic2, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/sunumlar", label: "Konuşmalar", icon: Presentation, roles: ["ADMIN", "SAGLIK", "FIRMA"] },

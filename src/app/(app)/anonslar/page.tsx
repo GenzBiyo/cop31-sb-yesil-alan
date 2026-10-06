@@ -28,8 +28,8 @@ export default function AnnouncementsPage() {
   return (
     <div className="grid lg:grid-cols-2 gap-4">
       <section className="space-y-3">
-        <h1 className="display text-4xl">{tx("Mesaj kutusu / Anonslar")}</h1>
-        <p className="text-[#57534e]">Admin anonsları hem kayıtlı e-postanıza hem bu kutuya anlık düşer.</p>
+        <h1 className="display text-4xl">{tx("Anonslar")}</h1>
+        <p className="text-[#57534e]">{tx("Duyuruyu firmalara, bakanlığa veya ziyaretçi telefonlarına gönderebilirsiniz. Bir firma ile yazışmak için Mesaj kutusunu kullanın.")}</p>
         <button className="btn ghost" onClick={async () => { await api("/api/inbox", { method: "PATCH", body: JSON.stringify({ all: true }) }); await inbox.reload(); }}>Tümünü okundu işaretle</button>
         {(inbox.data || []).map((item) => (
           <button
@@ -55,16 +55,19 @@ export default function AnnouncementsPage() {
         <input className="field" placeholder="Başlık" value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea className="field" rows={5} placeholder="Metin" value={body} onChange={(e) => setBody(e.target.value)} />
         <select className="field" value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="">Firmalar + SB</option>
-          <option value="FIRMA">Sadece firmalar</option>
-          <option value="SAGLIK">Sadece SB</option>
+          <option value="">{tx("Firmalar + SB")}</option>
+          <option value="FIRMA">{tx("Sadece firmalar")}</option>
+          <option value="SAGLIK">{tx("Sadece SB")}</option>
+          <option value="ZIYARETCI">{tx("Sadece ziyaretçiler")}</option>
+          <option value="HERKES">{tx("Firmalar + SB + ziyaretçiler")}</option>
         </select>
+        <p className="text-xs text-[#57534e]">{tx("Ziyaretçi mesajı telefon uygulamasının Bildirim sekmesine düşer.")}</p>
         <button className="btn" onClick={async () => {
           await api("/api/announcements", { method: "POST", body: JSON.stringify({ title, body, role: role || undefined }) });
           setTitle(""); setBody("");
           await board.reload();
           await inbox.reload();
-        }}>Anonsu yayınla ve e-posta gönder</button>
+        }}>{role === "ZIYARETCI" ? tx("Ziyaretçilere gönder") : tx("Anonsu yayınla ve e-posta gönder")}</button>
         <h3 className="font-semibold pt-2">Gönderilenler</h3>
         {(board.data?.announcements || []).map((a) => (
           <div key={a.id} className="text-sm border-b border-[#DCE8F0] pb-2">

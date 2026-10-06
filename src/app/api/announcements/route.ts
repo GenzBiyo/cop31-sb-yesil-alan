@@ -4,6 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
+import { notifyDevices } from "@/lib/visitor-app";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -18,17 +19,25 @@ export async function POST(req: NextRequest) {
   if (error || !user) return error!;
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const body = await req.json();
+  const title = String(body.title || "").trim();
+  const text = String(body.body || "").trim();
+  if (!title || !text) return jsonError("Başlık ve metin gerekli");
+  const audience = String(body.role || "");
+  const toVisitors = audience === "ZIYARETCI" || audience === "HERKES";
+  const toAccounts = audience !== "ZIYARETCI";
   const announcement = await prisma.announcement.create({
     data: {
-      title: body.title,
-      body: body.body,
+      title,
+      body: text,
       createdById: user.id,
       emailStatus: "Gönderiliyor",
     },
   });
-  const targets = await prisma.user.findMany({
-    where: body.role ? { role: body.role } : { role: { in: ["FIRMA", "SAGLIK"] } },
-  });
+  const targets = toAccounts
+    ? await prisma.user.findMany({
+        where: audience === "FIRMA" || audience === "SAGLIK" ? { role: audience } : { role: { in: ["FIRMA", "SAGLIK"] } },
+      })
+    : [];
   let sent = 0;
   for (const t of targets) {
     await prisma.inboxItem.create({
@@ -46,9 +55,22 @@ export async function POST(req: NextRequest) {
       /* already logged */
     }
   }
+  let visitors = 0;
+  if (toVisitors) {
+    const devices = await prisma.appDevice.findMany({
+      where: { role: { in: ["ziyaretci", ""] } },
+      select: { id: true },
+    });
+    visitors = devices.length
+      ? await notifyDevices(devices.map((device) => device.id), title, text, "broadcast", announcement.id)
+      : 0;
+  }
+  const parts = [];
+  if (toAccounts) parts.push(`${sent}/${targets.length} e-posta`);
+  if (toVisitors) parts.push(`${visitors} ziyaretçi`);
   const updated = await prisma.announcement.update({
     where: { id: announcement.id },
-    data: { emailStatus: `${sent}/${targets.length} e-posta` },
+    data: { emailStatus: parts.join(" · ") },
   });
   broadcast({ type: "announcement" });
   broadcast({ type: "inbox" });

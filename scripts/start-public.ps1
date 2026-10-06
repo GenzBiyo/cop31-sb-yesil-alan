@@ -16,9 +16,12 @@ function Wait-Port([int]$Port, [int]$Seconds = 60) {
   return $false
 }
 
-$dev = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "next\\dist\\server\\lib\\start-server" }
-if (-not $dev) {
-  Start-Process -FilePath "npm" -ArgumentList "run","dev" -WorkingDirectory $Root -WindowStyle Hidden
+$running = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "next start|next\\dist\\bin\\next|start-server" }
+if (-not $running) {
+  if (-not (Test-Path (Join-Path $Root ".next\BUILD_ID"))) {
+    npm run build
+  }
+  Start-Process -FilePath "npm" -ArgumentList "run","start" -WorkingDirectory $Root -WindowStyle Hidden
 }
 
 $port = 3000

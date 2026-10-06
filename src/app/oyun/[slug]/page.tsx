@@ -15,6 +15,7 @@ import { HatiraWallView } from "@/components/game/HatiraPlay";
 import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
 import { ShareBar } from "@/components/game/ShareBar";
 import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
+import { EventCreditStrip } from "@/components/game/EventCreditStrip";
 import type { HatiraPublic } from "@/lib/hatira";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -314,6 +315,7 @@ function Wall({ slug }: { slug: string }) {
           </div>
         )}
         <EventSponsor sponsor={wall.sponsor} />
+        <EventCreditStrip tone="wall" />
       </section>
 
       <aside className="p-6 flex flex-col items-center gap-4" style={{ background: "#0088C8" }}>

@@ -6,6 +6,8 @@ import { CalendarDays, Check, Trash2, X } from "lucide-react";
 import { api, useApi, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { COP_DATES, copDayMeta } from "@/lib/cop-days";
+import { formatParticipationDays, participationDays } from "@/lib/participation";
+import { ParticipationDays } from "@/components/ParticipationDays";
 
 type Slot = { id: string; date: string; startTime: string; endTime: string; location: string; state: "bos" | "bekliyor" | "dolu"; pending: number };
 type Meeting = {
@@ -35,18 +37,19 @@ function dayLabel(date: string) {
   return `${m.day} Kas · ${m.weekdayShort}`;
 }
 
-export function MeetingAvailability({ participationDates }: { participationDates: string }) {
+type CompanyDays = { id: string; participationDates: string; formHint?: { days: string[] } | null };
+
+export function MeetingAvailability({ company, onCompanyChange }: { company: CompanyDays; onCompanyChange: () => Promise<void> }) {
   const { tx } = useI18n();
   const { data, reload } = useApi<{ slots: Slot[]; meetings: Meeting[] }>("/api/meeting-slots");
-  const preset = useMemo(() => {
-    const days = new Set<number>();
-    const clean = participationDates.replace(/[–—]/g, "-");
-    for (const m of clean.matchAll(/(\d{1,2})\s*-\s*(\d{1,2})/g)) {
-      for (let d = Math.min(+m[1], +m[2]); d <= Math.max(+m[1], +m[2]); d += 1) days.add(d);
-    }
-    return COP_DATES.filter((date) => days.has(Number(date.slice(8, 10))));
-  }, [participationDates]);
-  const [form, setForm] = useState({ dates: preset, from: "10:00", to: "17:00", minutes: 30, breakMinutes: 0, location: "" });
+  const openDays = useMemo(() => participationDays(company.participationDates), [company.participationDates]);
+  const [editDays, setEditDays] = useState(false);
+  const [form, setForm] = useState({ dates: openDays, from: "10:00", to: "17:00", minutes: 30, breakMinutes: 0, location: "" });
+  const [shownDays, setShownDays] = useState(openDays);
+  if (shownDays !== openDays) {
+    setShownDays(openDays);
+    setForm((f) => ({ ...f, dates: openDays }));
+  }
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -63,6 +66,7 @@ export function MeetingAvailability({ participationDates }: { participationDates
   const slotById = new Map(slots.map((s) => [s.id, s]));
 
   function toggleDay(date: string) {
+    if (!openDays.includes(date)) return;
     setForm((f) => ({ ...f, dates: f.dates.includes(date) ? f.dates.filter((d) => d !== date) : [...f.dates, date].sort() }));
   }
 
@@ -123,30 +127,58 @@ export function MeetingAvailability({ participationDates }: { participationDates
         <div>
           <h2 className="display text-2xl">{tx("Toplantı takvimi")}</h2>
           <p className="text-sm text-[#57534e]">
-            {tx("Toplantıya uygun olduğunuz günleri ve saat aralığını seçin. Ziyaretçi uygulamasından veya diğer hesaplardan toplantı isteyenler bu saatlerden birini seçer; siz onaylayınca saat dolar.")}
+            {tx("Önce pavilyona katılacağınız günleri seçin, sonra bu günlerde toplantıya uygun saat aralığını açın. Ziyaretçi uygulamasından veya diğer hesaplardan toplantı isteyenler bu saatlerden birini seçer; siz onaylayınca saat dolar.")}
           </p>
         </div>
         <Link className="btn" href="/takvimim"><CalendarDays size={16} />{tx("Takvimimi gör")}</Link>
       </div>
 
+      {!openDays.length || editDays ? (
+        <ParticipationDays
+          companyId={company.id}
+          participationDates={company.participationDates}
+          formDays={company.formHint?.days}
+          onCancel={openDays.length ? () => setEditDays(false) : undefined}
+          onSaved={async () => {
+            await onCompanyChange();
+            await reload();
+            setEditDays(false);
+          }}
+        />
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 text-sm border border-[#DCE8F0] p-2">
+          <span>{tx("Katılım günleriniz")}: <b className="text-[#0077C2]">{formatParticipationDays(openDays)}</b></span>
+          <span className="text-xs text-[#57534e]">{tx("Takviminiz yalnızca bu günlerde açık; diğer günler kapalı.")}</span>
+          <button type="button" className="text-xs underline ml-auto" onClick={() => setEditDays(true)}>{tx("Günleri değiştir")}</button>
+        </div>
+      )}
+
       {info ? <p className="text-sm text-[#22A34A]">{info}</p> : null}
       {error ? <p className="text-sm text-[#E31C23]">{error}</p> : null}
 
-      <form className="border border-[#DCE8F0] p-3 space-y-3" onSubmit={create}>
+      <form className={`border border-[#DCE8F0] p-3 space-y-3 ${openDays.length ? "" : "opacity-50 pointer-events-none"}`} onSubmit={create} aria-disabled={!openDays.length}>
         <div>
-          <div className="text-sm font-semibold mb-1">{tx("Uygun günler")}</div>
+          <div className="text-sm font-semibold mb-1">{tx("Toplantı saati açılacak günler")}</div>
           <div className="flex flex-wrap gap-1.5">
-            {COP_DATES.map((date) => (
-              <button
-                key={date}
-                type="button"
-                className={`px-2 py-1 text-xs border ${form.dates.includes(date) ? "bg-[#00A3E0] border-[#00A3E0] text-white" : "border-[#B5DFF2] bg-white"}`}
-                aria-pressed={form.dates.includes(date)}
-                onClick={() => toggleDay(date)}
-              >
-                {dayLabel(date)}
-              </button>
-            ))}
+            {COP_DATES.map((date) => {
+              const open = openDays.includes(date);
+              const on = open && form.dates.includes(date);
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  disabled={!open}
+                  title={open ? undefined : tx("Katılım gününüz değil — takvim kapalı")}
+                  className={`px-2 py-1 text-xs border ${
+                    on ? "bg-[#00A3E0] border-[#00A3E0] text-white" : open ? "border-[#B5DFF2] bg-white" : "border-[#E5E7EB] bg-[#F3F4F6] text-[#9AA5AD] line-through cursor-not-allowed"
+                  }`}
+                  aria-pressed={on}
+                  onClick={() => toggleDay(date)}
+                >
+                  {dayLabel(date)}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -205,7 +237,10 @@ export function MeetingAvailability({ participationDates }: { participationDates
           {slotDays.map((date) => (
             <div key={date}>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <div className="text-sm font-semibold">{dayLabel(date)}</div>
+                <div className="text-sm font-semibold">
+                  {dayLabel(date)}
+                  {!openDays.includes(date) ? <span className="badge high ml-2">{tx("Kapalı gün · yalnızca talepli saatler")}</span> : null}
+                </div>
                 <button type="button" className="text-xs underline text-[#57534e]" onClick={() => void clearDay(date)}>{tx("Boş saatleri temizle")}</button>
               </div>
               <div className="flex flex-wrap gap-1.5">

@@ -54,6 +54,7 @@ type Directory = {
     id: string;
     name: string;
     kind: string;
+    days: string[];
     slots: { id: string; date: string; startTime: string; endTime: string; location: string; pending: boolean }[];
   }[];
   speakers: { id: string; name: string; organization: string }[];
@@ -147,7 +148,7 @@ function savedProfile(): ProfileForm | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProfileForm;
     if (!parsed?.name || parsed.name.trim().length < 2) return null;
-    return parsed;
+    return { ...parsed, role: "ziyaretci", companyId: "", personId: "" };
   } catch {
     return null;
   }
@@ -238,10 +239,16 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
   useEffect(() => {
     if (!token) return;
-    const timer = window.setInterval(() => {
+    const tick = () => {
+      if (document.visibilityState === "hidden") return;
       void load(token).catch(() => undefined);
-    }, 12000);
-    return () => window.clearInterval(timer);
+    };
+    const timer = window.setInterval(tick, 20000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [token, load]);
 
   useEffect(() => {
@@ -339,8 +346,10 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setBusy(true);
     setError("");
     try {
-      const next = await call<AppState>(token, "/api/app", { method: "POST", body: JSON.stringify(profile) });
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      const guestProfile = { ...profile, role: "ziyaretci", companyId: "", personId: "" };
+      const next = await call<AppState>(token, "/api/app", { method: "POST", body: JSON.stringify(guestProfile) });
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(guestProfile));
+      setProfile(guestProfile);
       setState(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kaydedilemedi");
@@ -534,7 +543,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
             <p>{tx("Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.")}</p>
-            <RoleFields profile={profile} setProfile={setProfile} directory={state.directory} tx={tx} />
+            <p className="phone-kicker">{tx("Ziyaretçi")}</p>
             <input className="phone-field" placeholder={tx("Ad soyad")} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
             <input className="phone-field" placeholder={tx("Kurum")} value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
             <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" />
@@ -719,13 +728,32 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
                     </div>
                   ))}
                 </div>
+              ) : meetCompany && !meetCompany.days.length ? (
+                <p className="phone-muted">{tx("Bu firmanın takvimi kapalı. Katılım günleri seçilmeden toplantı talep edilemez.")}</p>
               ) : (
                 <>
-                  <input className="phone-field" type="date" value={meet.preferredDate} onChange={(e) => setMeet({ ...meet, preferredDate: e.target.value })} />
+                  {meetCompany?.days.length ? (
+                    <select className="phone-field" value={meet.preferredDate} onChange={(e) => setMeet({ ...meet, preferredDate: e.target.value })}>
+                      <option value="">{tx("Katılım günlerinden birini seçin")}</option>
+                      {meetCompany.days.map((date) => (
+                        <option key={date} value={date}>
+                          {new Date(date + "T00:00:00").toLocaleDateString(tag, { weekday: "short", day: "numeric", month: "long" })}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input className="phone-field" type="date" value={meet.preferredDate} onChange={(e) => setMeet({ ...meet, preferredDate: e.target.value })} />
+                  )}
                   <input className="phone-field" type="time" value={meet.preferredTime} onChange={(e) => setMeet({ ...meet, preferredTime: e.target.value })} />
                 </>
               )}
-              <button className="phone-btn" disabled={busy || meet.topic.trim().length < 3 || (meetSlots.length > 0 && !meet.slotId)} type="submit">{tx("Talep gönder")}</button>
+              <button
+                className="phone-btn"
+                disabled={busy || meet.topic.trim().length < 3 || (meetSlots.length > 0 && !meet.slotId) || Boolean(meetCompany && !meetCompany.days.length) || Boolean(meetCompany?.days.length && !meetSlots.length && !meet.preferredDate)}
+                type="submit"
+              >
+                {tx("Talep gönder")}
+              </button>
             </form>
             {(state?.meetings || []).map((item) => (
               <MeetingCard key={`${item.id}:${item.status}:${item.whenDate}:${item.startTime}`} item={item} token={token} tx={tx} onSaved={setState} onError={setError} />
@@ -736,31 +764,38 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
         {entered && tab === "mesaj" ? (
           <section>
-            <h2>{tx("Mesajlar")}</h2>
+            <h2>{tx("Bildirimler")}</h2>
+            <p className="phone-muted">{tx("Etiket, soru yanıtı ve görüşme haberleri burada toplanır. Bu bir sohbet kutusu değildir.")}</p>
             <div className="phone-card">
               <p>{state?.device.push ? tx("Bildirimler açık. Salon anonsu telefonunuza düşer.") : tx("Bildirimleri açın; uygulama kapalıyken de mesaj gelsin.")}</p>
               {state?.device.push ? null : (
                 <button className="phone-btn" type="button" onClick={() => void enablePush()}>{tx("Bildirimleri aç")}</button>
               )}
-              {profile.name ? (
+            </div>
+            {(state?.notes || []).map((item) => (
+              <article key={item.id} className={`phone-card ${item.read ? "" : "is-new"}`}>
+                <div className="phone-row">
+                  <span className="phone-type">{tx(noteKind(item.kind))}</span>
+                  <span className="phone-muted">{new Date(item.createdAt).toLocaleString(tag)}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+            {!state?.notes.length ? <p className="phone-muted">{tx("Henüz bildirim yok. Etiket okutunca, sorunuz yanıtlanınca veya görüşmeniz güncellenince burada görünür.")}</p> : null}
+            {profile.name ? (
+              <details className="phone-card">
+                <summary>{tx("Bilgilerim")}</summary>
                 <form onSubmit={saveProfile}>
-                  <RoleFields profile={profile} setProfile={setProfile} directory={state?.directory} tx={tx} />
+                  <p className="phone-kicker">{tx("Ziyaretçi")}</p>
                   <input className="phone-field" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
                   <input className="phone-field" placeholder={tx("Kurum")} value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
                   <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
                   <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
                   <button className="phone-btn is-quiet" disabled={busy} type="submit">{tx("Bilgilerimi güncelle")}</button>
                 </form>
-              ) : null}
-            </div>
-            {(state?.notes || []).map((item) => (
-              <article key={item.id} className={`phone-card ${item.read ? "" : "is-new"}`}>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <p className="phone-muted">{new Date(item.createdAt).toLocaleString(tag)}</p>
-              </article>
-            ))}
-            {!state?.notes.length ? <p className="phone-muted">{tx("Henüz mesaj yok. Bir etiketi okutun.")}</p> : null}
+              </details>
+            ) : null}
           </section>
         ) : null}
       </div>
@@ -773,7 +808,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             ["katil", "Katıl"],
             ["soru", "Soru"],
             ["gorus", "Görüş"],
-            ["mesaj", "Mesaj"],
+            ["mesaj", "Bildirim"],
           ] as [Tab, string][]
         ).map(([id, label]) => (
           <button key={id} type="button" className={tab === id ? "is-on" : ""} onClick={() => setTab(id)}>
@@ -818,7 +853,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             {flash.location ? <p className="phone-muted">{flash.location}</p> : null}
             {flash.already ? <p className="phone-muted">{tx("Bu etiketi daha önce okuttunuz.")}</p> : null}
             <button className="phone-btn" type="button" onClick={() => { setFlash(null); setTab("mesaj"); }}>
-              {tx("Mesaj kutusuna geç")}
+              {tx("Bildirimlere geç")}
             </button>
           </div>
         </div>
@@ -827,73 +862,19 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   );
 }
 
+function noteKind(kind: string) {
+  if (kind === "tag") return "Etiket";
+  if (kind === "meeting") return "Görüşme";
+  if (kind === "question") return "Soru";
+  if (kind === "agenda") return "Gündem";
+  if (kind === "join") return "Katılım";
+  return "Duyuru";
+}
+
 function roleWord(role: string, tx: (text: string) => string) {
   if (role === "firma") return tx("Firma");
   if (role === "konusmaci") return tx("Konuşmacı");
   return tx("Ziyaretçi");
-}
-
-function RoleFields({
-  profile,
-  setProfile,
-  directory,
-  tx,
-}: {
-  profile: ProfileForm;
-  setProfile: (next: ProfileForm) => void;
-  directory?: Directory;
-  tx: (text: string) => string;
-}) {
-  return (
-    <>
-      <select
-        className="phone-field"
-        value={profile.role}
-        onChange={(e) => setProfile({ ...profile, role: e.target.value, companyId: "", personId: "" })}
-      >
-        <option value="ziyaretci">{tx("Ziyaretçi")}</option>
-        <option value="firma">{tx("Firma")}</option>
-        <option value="konusmaci">{tx("Konuşmacı")}</option>
-      </select>
-      {profile.role === "firma" ? (
-        <select
-          className="phone-field"
-          value={profile.companyId}
-          onChange={(e) => {
-            const company = directory?.companies.find((item) => item.id === e.target.value);
-            setProfile({ ...profile, companyId: e.target.value, organization: company?.name || profile.organization });
-          }}
-        >
-          <option value="">{tx("Firmanızı seçin")}</option>
-          {(directory?.companies || []).map((company) => (
-            <option key={company.id} value={company.id}>{company.name}</option>
-          ))}
-        </select>
-      ) : null}
-      {profile.role === "konusmaci" ? (
-        <select
-          className="phone-field"
-          value={profile.personId}
-          onChange={(e) => {
-            const person = directory?.speakers.find((item) => item.id === e.target.value);
-            setProfile({
-              ...profile,
-              personId: e.target.value,
-              name: profile.name || person?.name || "",
-              organization: person?.organization || profile.organization,
-            });
-          }}
-        >
-          <option value="">{tx("Konuşmacı kaydınız")}</option>
-          {(directory?.speakers || []).map((person) => (
-            <option key={person.id} value={person.id}>
-              {person.name}{person.organization ? ` · ${person.organization}` : ""}
-            </option>
-          ))}
-        </select>
-      ) : null}
-    </>
-  );
 }
 
 function TalkQuestion({

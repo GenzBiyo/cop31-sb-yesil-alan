@@ -20,7 +20,7 @@ const GATES = [
     href: "/giris/firmalar",
     src: "/gate/gate-firmalar.webp",
     kicker: "02 · Paydaş",
-    title: "Firmalar",
+    title: "Paydaşlar",
     body: "Yeşil üretim, düşük karbonlu ilaç ve pavilon katkısı. Hesap açın; onay sonrası masaya girin.",
   },
   {
@@ -91,6 +91,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
       {panel ? null : <SpeakerRail />}
       <div className="climate-scene" aria-hidden>
         <div className="climate-sky" />
+        <div className="climate-aurora" />
         <div className="climate-heat" />
         <div className="climate-lung climate-lung-l" />
         <div className="climate-lung climate-lung-r" />
@@ -100,8 +101,10 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
         <span className="climate-ring" />
         <span className="climate-ring climate-ring-2" />
         <span className="climate-ring climate-ring-3" />
+        <span className="climate-ring climate-ring-4" />
         <svg className="climate-ecg" viewBox="0 0 800 90" preserveAspectRatio="none">
           <path d="M0 52 H90 L108 52 L124 18 L142 78 L158 52 H250 L268 52 L286 8 L308 84 L328 52 H430 L448 52 L464 22 L482 74 L498 52 H800" />
+          <path className="is-echo" d="M0 52 H90 L108 52 L124 18 L142 78 L158 52 H250 L268 52 L286 8 L308 84 L328 52 H430 L448 52 L464 22 L482 74 L498 52 H800" />
         </svg>
         {MOTES.map((m, i) => (
           <span

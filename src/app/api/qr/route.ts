@@ -8,7 +8,13 @@ function isLocalHost(value: string) {
 function preferHttps(origin: string) {
   try {
     const url = new URL(origin);
-    if (url.hostname === "cop31saglikbakanligi.com" || url.hostname === "www.cop31saglikbakanligi.com") {
+    const official = new Set([
+      "cop31saglikbakanligi.com",
+      "www.cop31saglikbakanligi.com",
+      "cop31saglik.gov.tr",
+      "www.cop31saglik.gov.tr",
+    ]);
+    if (official.has(url.hostname)) {
       url.protocol = "https:";
       return url.origin;
     }

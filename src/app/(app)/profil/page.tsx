@@ -7,6 +7,8 @@ import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { PavilionRulesDialog } from "@/components/PavilionRules";
 import { accountKind } from "@/lib/account-kinds";
+import { ParticipationDays } from "@/components/ParticipationDays";
+import { DelegationEditor, SpeakerRequest, type FormHint } from "@/components/CompanyPeople";
 
 type Company = {
   id: string;
@@ -25,6 +27,8 @@ type Company = {
   logoPath: string;
   notes: string;
   status: string;
+  delegation: string;
+  formHint?: FormHint | null;
   rules: { id: string; title: string; body: string; dueDate: string; status: string }[];
   submissions: { id: string; type: string; title: string; payload: string; quantity?: string; reviewNote?: string; status: string; eventDate: string }[];
 };
@@ -64,6 +68,18 @@ export default function ProfilePage() {
         </div>
       </div>
       <ProfileEditor key={company.id} company={company} reload={reload} />
+      <section className="card p-4 space-y-3">
+        <h2 className="display text-2xl">{tx("Katılım günleri")}</h2>
+        <ParticipationDays
+          key={company.participationDates}
+          companyId={company.id}
+          participationDates={company.participationDates}
+          formDays={company.formHint?.days}
+          onSaved={reload}
+        />
+      </section>
+      <DelegationEditor key={`d-${company.delegation}`} company={company} reload={reload} />
+      <SpeakerRequest company={company} />
       {kind.firmTools ? (<>
       <section className="card p-4">
         <h2 className="display text-2xl">Size atanan kurallar</h2>
@@ -179,7 +195,6 @@ export default function ProfilePage() {
 
 const PROFILE_FIELDS: { key: keyof Company; label: string; area?: boolean; type?: string; placeholder?: string }[] = [
   { key: "topic", label: "Ana konu / tema" },
-  { key: "participationDates", label: "Katılım günleri", placeholder: "Örn. 9–12 Kasım" },
   { key: "contribution", label: "Pavilyona katkınız", area: true },
   { key: "context", label: "Kurum tanıtımı", area: true },
   { key: "website", label: "Web sitesi", type: "url", placeholder: "https://" },

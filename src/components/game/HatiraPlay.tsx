@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HATIRA_FRAME, HATIRA_NATURE, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
+import { HATIRA_H, HATIRA_W, HATIRA_WINDOW, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
 import { cutoutPerson, warmupSegmenter } from "@/lib/hatira-segment";
 import { useI18n } from "@/components/I18nProvider";
 import { ShareBar } from "@/components/game/ShareBar";
 
-const W = 900;
-const H = 1200;
-const WIN = { x: 0.135, y: 0.172, w: 0.73, h: 0.655 };
+const W = HATIRA_W;
+const H = HATIRA_H;
+const WIN = HATIRA_WINDOW;
 
 type Step = "live" | "shot" | "ready" | "sent";
 
@@ -16,7 +16,6 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
   const { tx } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const frameRef = useRef<HTMLImageElement | null>(null);
   const natureRef = useRef<HTMLImageElement | null>(null);
   const copRef = useRef<HTMLImageElement | null>(null);
   const saglikRef = useRef<HTMLImageElement | null>(null);
@@ -73,11 +72,8 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
   }, [stopCam]);
 
   useEffect(() => {
-    const frame = new Image();
-    frame.src = HATIRA_FRAME;
-    frameRef.current = frame;
     const nature = new Image();
-    nature.src = HATIRA_NATURE;
+    nature.src = marks.background;
     natureRef.current = nature;
     const cop = new Image();
     cop.src = marks.cop31;
@@ -86,7 +82,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
     saglik.src = marks.saglik;
     saglikRef.current = saglik;
     warmupSegmenter();
-  }, [marks.cop31, marks.saglik]);
+  }, [marks.background, marks.cop31, marks.saglik]);
 
   useEffect(() => {
     if (step !== "live") {
@@ -133,8 +129,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
     try {
       const face = await loadImg(shot);
       const person = await cutoutPerson(face, slug);
-      const frame = frameRef.current && frameRef.current.complete ? frameRef.current : await loadImg(HATIRA_FRAME);
-      const nature = natureRef.current && natureRef.current.complete ? natureRef.current : await loadImg(HATIRA_NATURE);
+      const nature = natureRef.current && natureRef.current.complete ? natureRef.current : await loadImg(marks.background);
       const cop = copRef.current && copRef.current.complete ? copRef.current : await loadImg(marks.cop31);
       const saglik = saglikRef.current && saglikRef.current.complete ? saglikRef.current : await loadImg(marks.saglik);
       const c = document.createElement("canvas");
@@ -142,22 +137,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
       c.height = H;
       const ctx = c.getContext("2d");
       if (!ctx) return;
-      ctx.drawImage(frame, 0, 0, W, H);
-      const rx = WIN.x * W;
-      const ry = WIN.y * H;
-      const rw = WIN.w * W;
-      const rh = WIN.h * H;
-      ctx.save();
-      roundRect(ctx, rx, ry, rw, rh, 18);
-      ctx.clip();
-      cover(ctx, nature, rx, ry, rw, rh);
-      stand(ctx, person, rx, ry, rw, rh);
-      ctx.restore();
-      paintBanner(ctx, cop, saglik);
-      ctx.strokeStyle = "rgba(43, 168, 196, 0.85)";
-      ctx.lineWidth = 8;
-      roundRect(ctx, rx, ry, rw, rh, 18);
-      ctx.stroke();
+      paintCard(ctx, nature, person, cop, saglik);
       setComposed(c.toDataURL("image/jpeg", 0.9));
       setStep("ready");
       setMsg("");
@@ -211,7 +191,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
             <img src={shot} alt="Selfie" className="hatira-cam" />
           )}
           {step === "live" && !live ? (
-            <div className="hatira-cam-empty">
+            <div className="hatira-cam-empty" style={{ backgroundImage: `linear-gradient(180deg, rgba(7,22,40,0.28), rgba(0,119,194,0.42)), url("${marks.background}")` }}>
               <p>{tx("Ön kamerayı açın")}</p>
               <span>{tx("Karekod HTTP üzerindenyse tarayıcı canlı kamerayı kilitleyebilir. Telefonun kendi ön kamerasını kullanın.")}</span>
             </div>
@@ -372,20 +352,159 @@ function stand(ctx: CanvasRenderingContext2D, img: CanvasImageSource, x: number,
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-function paintBanner(ctx: CanvasRenderingContext2D, cop: HTMLImageElement, saglik: HTMLImageElement) {
-  const y = H * 0.835;
-  const band = H * 0.145;
-  ctx.fillStyle = "rgba(10, 42, 92, 0.92)";
-  ctx.fillRect(W * 0.13, y, W * 0.74, band);
-  drawLogo(ctx, cop, W * 0.145, y + 10, 210, 72, false);
-  drawLogo(ctx, saglik, W * 0.72, y + 6, 86, 86, true);
+const NAVY = "#071628";
+const CREAM = "#F6F3EA";
+const RED = "#C8102E";
+const TEAL = "#00A3E0";
+const INK = "#0B1C33";
+
+function paintCard(
+  ctx: CanvasRenderingContext2D,
+  nature: CanvasImageSource,
+  person: CanvasImageSource,
+  cop: HTMLImageElement,
+  saglik: HTMLImageElement,
+) {
+  ctx.fillStyle = NAVY;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#D4B483";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(18, 18, W - 36, H - 36);
+  ctx.strokeStyle = TEAL;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(28, 28, W - 56, H - 56);
+
+  plate(ctx, 48, 48, W - 96, 228);
+  logoTile(ctx, saglik, 68, 72, 168, 168, true);
+  logoTile(ctx, cop, W - 68 - 300, 96, 300, 132, false);
   ctx.textAlign = "center";
-  ctx.fillStyle = "#EEF8FD";
-  ctx.font = "600 22px Georgia, serif";
-  ctx.fillText("COP31 Türkiye Sağlık Bakanlığı Hatırası", W / 2, y + 108);
-  ctx.font = "500 15px sans-serif";
-  ctx.fillStyle = "#b8e4ef";
-  ctx.fillText("COP31 Türkiye Ministry of Health Souvenir  ·  Antalya 2026", W / 2, y + 132);
+  ctx.fillStyle = RED;
+  ctx.font = "700 15px Segoe UI, sans-serif";
+  ctx.fillText("TÜRKİYE CUMHURİYETİ", 500, 108);
+  ctx.fillStyle = INK;
+  ctx.font = "700 26px Segoe UI, sans-serif";
+  ctx.fillText("SAĞLIK BAKANLIĞI", 500, 144);
+  ctx.fillStyle = "#0077C2";
+  ctx.font = "700 16px Segoe UI, sans-serif";
+  ctx.fillText("COP31  ·  ANTALYA", 500, 176);
+  ctx.fillStyle = "#5C6B76";
+  ctx.font = "500 14px Segoe UI, sans-serif";
+  ctx.fillText("Sağlıklı insan, sağlıklı gezegen", 500, 204);
+
+  stripe(ctx, WIN.y - 22);
+  const { x: rx, y: ry, w: rw, h: rh } = WIN;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rx, ry, rw, rh);
+  ctx.clip();
+  cover(ctx, nature, rx, ry, rw, rh);
+  const shade = ctx.createLinearGradient(0, ry + rh * 0.62, 0, ry + rh);
+  shade.addColorStop(0, "rgba(7,22,40,0)");
+  shade.addColorStop(1, "rgba(7,22,40,0.35)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(rx, ry, rw, rh);
+  stand(ctx, person, rx, ry, rw, rh);
+  ctx.restore();
+  ctx.strokeStyle = CREAM;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(rx, ry, rw, rh);
+  ctx.strokeStyle = "#D4B483";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(rx - 10, ry - 10, rw + 20, rh + 20);
+  corners(ctx, rx, ry, rw, rh);
+
+  seal(ctx, saglik, 54, ry + rh / 2, 88);
+  chip(ctx, cop, rx + rw - 72, ry + rh / 2 - 34, 156, 68);
+
+  stripe(ctx, ry + rh + 16);
+  plate(ctx, 48, ry + rh + 32, W - 96, H - (ry + rh + 32) - 40);
+  const foot = ry + rh + 48;
+  logoTile(ctx, cop, 68, foot + 18, 250, 108, false);
+  logoTile(ctx, saglik, W - 68 - 132, foot + 8, 132, 132, true);
+  ctx.textAlign = "center";
+  ctx.fillStyle = INK;
+  ctx.font = "700 28px Georgia, serif";
+  ctx.fillText("COP31 Türkiye", 530, foot + 52);
+  ctx.font = "600 18px Segoe UI, sans-serif";
+  ctx.fillText("Sağlık Pavilionu Hatırası", 530, foot + 82);
+  ctx.fillStyle = "#0077C2";
+  ctx.font = "600 15px Segoe UI, sans-serif";
+  ctx.fillText("Antalya  ·  9–20 Kasım 2026", 530, foot + 112);
+}
+
+function plate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.fillStyle = CREAM;
+  ctx.fillRect(x, y, w, h);
+}
+
+function stripe(ctx: CanvasRenderingContext2D, y: number) {
+  ctx.fillStyle = RED;
+  ctx.fillRect(48, y, W - 96, 8);
+  ctx.fillStyle = TEAL;
+  ctx.fillRect(48, y + 8, W - 96, 4);
+}
+
+function corners(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  const n = 36;
+  ctx.strokeStyle = "#F6F3EA";
+  ctx.lineWidth = 3;
+  const marks: [number, number, number, number][] = [
+    [x + 16, y + 16, 1, 1],
+    [x + w - 16, y + 16, -1, 1],
+    [x + 16, y + h - 16, 1, -1],
+    [x + w - 16, y + h - 16, -1, -1],
+  ];
+  for (const [cx, cy, dx, dy] of marks) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + dy * n);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(cx + dx * n, cy);
+    ctx.stroke();
+  }
+}
+
+function logoTile(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  maxW: number,
+  maxH: number,
+  punchBlack: boolean,
+) {
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(x - 6, y - 6, maxW + 12, maxH + 12);
+  drawLogo(ctx, img, x, y, maxW, maxH, punchBlack);
+}
+
+function seal(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cx: number, cy: number, size: number) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 2 + 8, 0, Math.PI * 2);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = RED;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+  ctx.clip();
+  drawLogo(ctx, img, cx - size / 2, cy - size / 2, size, size, true);
+  ctx.restore();
+}
+
+function chip(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  ctx.save();
+  roundRect(ctx, x, y, w, h, 8);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#0077C2";
+  ctx.stroke();
+  roundRect(ctx, x + 6, y + 6, w - 12, h - 12, 4);
+  ctx.clip();
+  drawLogo(ctx, img, x + 8, y + 8, w - 16, h - 16, false);
+  ctx.restore();
 }
 
 function drawLogo(
@@ -400,8 +519,10 @@ function drawLogo(
   const scale = Math.min(maxW / img.width, maxH / img.height);
   const dw = img.width * scale;
   const dh = img.height * scale;
+  const dx = x + (maxW - dw) / 2;
+  const dy = y + (maxH - dh) / 2;
   if (!punchBlack) {
-    ctx.drawImage(img, x, y, dw, dh);
+    ctx.drawImage(img, dx, dy, dw, dh);
     return;
   }
   const tmp = document.createElement("canvas");
@@ -412,10 +533,10 @@ function drawLogo(
   t.drawImage(img, 0, 0);
   const data = t.getImageData(0, 0, tmp.width, tmp.height);
   for (let i = 0; i < data.data.length; i += 4) {
-    if (data.data[i] < 40 && data.data[i + 1] < 40 && data.data[i + 2] < 40) data.data[i + 3] = 0;
+    if (data.data[i] < 24 && data.data[i + 1] < 24 && data.data[i + 2] < 24) data.data[i + 3] = 0;
   }
   t.putImageData(data, 0, 0);
-  ctx.drawImage(tmp, x, y, dw, dh);
+  ctx.drawImage(tmp, dx, dy, dw, dh);
 }
 
 async function fileToJpeg(file: File) {
