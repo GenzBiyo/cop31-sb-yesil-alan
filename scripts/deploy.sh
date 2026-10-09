@@ -5,7 +5,26 @@ cd "$APP"
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+
+python3 - <<'PY'
+from pathlib import Path
+path = Path(".env")
+text = path.read_text(encoding="utf-8") if path.exists() else ""
+lines = []
+seen = set()
+for line in text.splitlines():
+    key = line.split("=", 1)[0]
+    if key in ("PUBLIC_APP_URL", "NEXT_PUBLIC_APP_URL"):
+        lines.append(f"{key}=https://cop31saglik.com")
+        seen.add(key)
+    else:
+        lines.append(line)
+for key in ("PUBLIC_APP_URL", "NEXT_PUBLIC_APP_URL"):
+    if key not in seen:
+        lines.append(f"{key}=https://cop31saglik.com")
+path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
 
 npm install
 npx prisma generate
@@ -38,5 +57,10 @@ EOF
 fi
 
 bash "$APP/scripts/point-domain.sh"
+
+if [ ! -f "$APP/.pavilion-program-applied" ]; then
+  npx tsx scripts/apply-pavilion-program.ts
+  touch "$APP/.pavilion-program-applied"
+fi
 
 echo DEPLOY_OK

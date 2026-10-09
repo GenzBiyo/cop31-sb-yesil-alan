@@ -1,16 +1,16 @@
 export const THEME_TR: Record<string, string> = {
-  "2026-11-09": "Gıda, Tarım ve Sağlık",
-  "2026-11-10": "Enerji ve Ulaşım",
-  "2026-11-11": "Sıfır Atık – Liderler Zirvesi 1. Gün",
-  "2026-11-12": "Dirençli Şehirler ve Yapılı Çevre – Liderler Zirvesi 2. Gün",
-  "2026-11-13": "Finans ve Ticaret",
-  "2026-11-14": "Çocuk, Gençlik, Eğitim ve Beceriler",
-  "2026-11-15": "Antalya'da Bir Nefes (sosyal-kültürel program)",
-  "2026-11-16": "Bilim, Sanayi ve Teknoloji",
-  "2026-11-17": "Okyanus, Deniz, Doğa ve Arazi – Rio Sinerjisi",
-  "2026-11-18": "İnsani ve Sosyal Kalkınma",
-  "2026-11-19": "İmece: Uygulamanın Güçlendirilmesi",
-  "2026-11-20": "Nihai Müzakereler",
+  "2026-11-09": "Gıda, tarım ve sağlık",
+  "2026-11-10": "Enerji ve ulaştırma",
+  "2026-11-11": "Sıfır Atık",
+  "2026-11-12": "Dayanıklı şehirler ve yapılı çevre",
+  "2026-11-13": "Finans ve ticaret",
+  "2026-11-14": "Çocuklar, gençlik, eğitim ve beceriler",
+  "2026-11-15": "Antalya'da bir nefes",
+  "2026-11-16": "Bilim, sanayi ve teknoloji",
+  "2026-11-17": "Okyanus, denizler, doğa ve arazi kullanımı — Rio Sinerjisi",
+  "2026-11-18": "İnsani ve sosyal kalkınma",
+  "2026-11-19": "İmece: uygulamanın güçlendirilmesi",
+  "2026-11-20": "Nihai müzakereler",
 };
 
 export const SHEET_TODOS = "1hmBcT-7ZsZXS0pTfviN8DcqdkICLUcqD";

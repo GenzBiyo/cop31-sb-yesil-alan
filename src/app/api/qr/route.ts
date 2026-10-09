@@ -11,6 +11,8 @@ function preferHttps(origin: string) {
     const official = new Set([
       "cop31saglikbakanligi.com",
       "www.cop31saglikbakanligi.com",
+      "cop31saglik.com",
+      "www.cop31saglik.com",
       "cop31saglik.gov.tr",
       "www.cop31saglik.gov.tr",
     ]);
