@@ -37,4 +37,6 @@ EOF
   fi
 fi
 
+bash "$APP/scripts/point-domain.sh"
+
 echo DEPLOY_OK
