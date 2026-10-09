@@ -869,6 +869,8 @@ export const EN: Record<string, string> = {
   "Tarih": "Date",
   "Katkı": "Contribution",
   "Stant": "Booth",
+  "Stand takvimi": "Booth calendar",
+  "Gündeme dön": "Back to the agenda",
   "Durum": "Status",
   "Kurallar": "Rules",
   "Mesaj kutusu / Anonslar": "Inbox / Announcements",

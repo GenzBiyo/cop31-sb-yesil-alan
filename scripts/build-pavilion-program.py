@@ -192,7 +192,7 @@ def main():
 
     stands = []
     sheet = wb["Stantlar"]
-    blocks = [("10:00", "11:00"), ("14:00", "15:00"), ("16:00", "17:00")]
+    blocks = [("09:00", "12:00"), ("12:00", "15:00"), ("15:00", "18:00")]
     for row in list(sheet.iter_rows(values_only=True))[5:]:
         raw = row[0]
         if isinstance(raw, datetime):
@@ -201,8 +201,10 @@ def main():
             continue
         for offset, label in ((2, "Stant 1"), (3, "Stant 2"), (4, "Stant 3")):
             name = str(row[offset] or "").strip()
-            if name:
-                stands.append({"date": day, "stand": label, "name": name, "start": "10:00", "end": "18:00"})
+            if not name:
+                continue
+            for start, end in blocks:
+                stands.append({"date": day, "stand": label, "name": name, "start": start, "end": end})
         firm_cols = [(5, "Stant 4"), (8, "Stant 5"), (11, "Stant 6")]
         for start_col, label in firm_cols:
             for block, (start, end) in enumerate(blocks):

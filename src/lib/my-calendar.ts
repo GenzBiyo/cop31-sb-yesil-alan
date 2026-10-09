@@ -191,6 +191,7 @@ export async function companyCalendar(companyId: string) {
   }
 
   for (const item of agenda) {
+    if (/stant/i.test(item.type)) continue;
     out.push({
       id: `agenda-${item.id}`,
       date: item.day.date,

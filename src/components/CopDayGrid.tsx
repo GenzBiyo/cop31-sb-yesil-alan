@@ -25,6 +25,7 @@ export function planMatchesFilter(kind: PlanKind, filter: ProgramFilter) {
 }
 
 export function agendaMatchesFilter(type: string, filter: ProgramFilter) {
+  if (/stant/i.test(type)) return false;
   if (filter === "all") return true;
   if (filter === "panel") return /panel/i.test(type);
   if (filter === "sunum") return /sunum|seminer|quick talk|konuşma/i.test(type);

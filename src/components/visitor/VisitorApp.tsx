@@ -556,6 +556,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         {entered && tab === "gundem" ? (
           <section>
             <h2>{tx("COP31 Sağlık Bakanlığı gündemi")}</h2>
+            <a className="phone-btn is-quiet block mb-3" href="/stant-takvimi">{tx("Stand takvimi")}</a>
             <div className="phone-days">
               {(state?.days || []).map((item) => (
                 <button key={item.id} type="button" className={item.id === day?.id ? "is-on" : ""} onClick={() => setDayId(item.id)}>

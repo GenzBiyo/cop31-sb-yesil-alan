@@ -51,11 +51,12 @@ export default function PublicProgramPage() {
   return (
     <main className="min-h-screen bg-[#EEF8FD]">
       <AgendaAlerts publicMode />
-      <header className="px-5 py-8 text-[#EEF8FD]" style={{ background: "#0088C8" }}>
+      <header className="on-dark px-5 py-8 text-[#EEF8FD]" style={{ background: "#0088C8" }}>
         <p className="text-xs tracking-[0.22em] uppercase opacity-80">{tx("COP31 Türkiye · Sağlık Pavilionu")}</p>
         <h1 className="display text-4xl mt-2">{tx("Açık program")}</h1>
         <p className="text-[#C8EEFA] mt-1">{tx("9–20 Kasım 2026 · Antalya EXPO Center · Blue Zone")}</p>
         <a href="/oyun" className="inline-block mt-3 text-sm underline text-[#C8EEFA]">{tx("Etkileşim alanı / oyunlar →")}</a>
+        <a href="/stant-takvimi" className="btn secondary ml-3 mt-3">{tx("Stand takvimi")}</a>
       </header>
       <div className="max-w-3xl mx-auto p-5 space-y-6">
         <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />

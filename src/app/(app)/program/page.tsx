@@ -144,6 +144,7 @@ export default function ProgramPage() {
           <a className="btn" href="/api/pdf/program">Program PDF</a>
           <a className="btn secondary" href="/api/calendar">ICS indir</a>
           <a className="btn ghost" href="/p" target="_blank">Açık program</a>
+          <a className="btn secondary" href="/stant-takvimi">Stand takvimi</a>
           <button className="btn ghost" onClick={copySubscribe}>{copied ? "URL kopyalandı" : "Google’a abone URL"}</button>
         </div>
       </div>

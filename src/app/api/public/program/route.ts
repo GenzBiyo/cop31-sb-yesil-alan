@@ -24,7 +24,10 @@ export async function GET() {
     }),
   ]);
   const body = {
-    days,
+    days: days.map((day) => ({
+      ...day,
+      agenda: day.agenda.filter((item) => !/stant/i.test(item.type)),
+    })),
     events: events.map((e) => ({
       id: e.id,
       slug: e.slug,

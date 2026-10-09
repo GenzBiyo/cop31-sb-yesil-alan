@@ -20,7 +20,7 @@ async function programEvents(): Promise<CalendarEvent[]> {
       });
       continue;
     }
-    for (const item of day.agenda) {
+    for (const item of day.agenda.filter((row) => !/stant/i.test(row.type))) {
       events.push({
         id: item.id,
         title: item.title,

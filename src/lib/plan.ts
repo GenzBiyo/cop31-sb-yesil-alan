@@ -76,7 +76,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
 
   for (const day of days) {
     for (const item of day.agenda) {
-      if (item.panelId) continue;
+      if (item.panelId || /stant/i.test(item.type)) continue;
       const list = byDate.get(day.date) || [];
       list.push({
         id: `agenda-${item.id}`,

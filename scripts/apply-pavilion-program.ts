@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { OFFICIAL_PANELS } from "../src/lib/official-panels";
-import { PAVILION_CLOSED, PAVILION_SESSIONS, PAVILION_STANDS, PAVILION_THEMES } from "../src/lib/pavilion-program";
+import { PAVILION_CLOSED, PAVILION_SESSIONS, PAVILION_THEMES } from "../src/lib/pavilion-program";
 
 const prisma = new PrismaClient();
 
@@ -143,26 +143,8 @@ async function main() {
     });
   }
 
-  for (const [index, stand] of PAVILION_STANDS.entries()) {
-    const owner = dayId.get(stand.date);
-    if (!owner) continue;
-    await prisma.agendaItem.create({
-      data: {
-        dayId: owner,
-        startTime: stand.start,
-        endTime: stand.end,
-        title: stand.name,
-        description: stand.stand,
-        type: "Stant",
-        location: stand.stand,
-        status: "Planlandı",
-        sortOrder: 100 + index,
-        slotKey: `pav:stand:${stand.date}:${stand.stand}:${stand.start}`,
-      },
-    });
-  }
-
-  console.log(`PROGRAM_APPLIED sessions=${PAVILION_SESSIONS.length} stands=${PAVILION_STANDS.length}`);
+  const cleared = await prisma.agendaItem.deleteMany({ where: { type: "Stant" } });
+  console.log(`PROGRAM_APPLIED sessions=${PAVILION_SESSIONS.length} stands_removed=${cleared.count}`);
 }
 
 main()

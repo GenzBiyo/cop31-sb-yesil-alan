@@ -73,7 +73,7 @@ export async function pdfProgram(): Promise<Buffer> {
     if (!day.agenda.length && !dayTalks.length && !dayEvents.length) {
       doc.fillColor("#888").fontSize(9).text("Bu güne henüz oturum eklenmedi.");
     }
-    for (const item of day.agenda) {
+    for (const item of day.agenda.filter((row) => !/stant/i.test(row.type))) {
       room(doc);
       doc.fillColor("#1a1a1a").fontSize(10).text(`${item.startTime}–${item.endTime}  ${item.title}`);
       doc.fillColor("#555").fontSize(8).text(`${item.type} · ${item.location}`);
