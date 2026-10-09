@@ -31,7 +31,7 @@ export const metadata: Metadata = {
       { url: "/icons/saglik-48.png", type: "image/png", sizes: "48x48" },
       { url: "/icons/saglik-192.png", type: "image/png", sizes: "192x192" },
     ],
-    apple: "/icons/saglik-apple.png",
+    apple: [{ url: "/icons/saglik-apple.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

@@ -15,6 +15,7 @@ import {
   Gift,
   LayoutDashboard,
   LogOut,
+  Menu,
   Map,
   MessageSquare,
   Mic2,
@@ -26,6 +27,7 @@ import {
   Handshake,
   UserRound,
   Users,
+  X,
   Trophy,
   BadgeCheck,
   Smartphone,
@@ -93,6 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { tx, t } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const pathRef = useRef(pathname);
   pathRef.current = pathname;
@@ -109,6 +112,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (me && me.role === "FIRMA" && MINISTRY_ONLY.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
@@ -134,8 +141,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const roleLabel = me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">
-      <aside className="bg-white text-[#0B1C33] px-3 py-5 border-r border-[#D4ECF6]">
+    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">
+      {menuOpen ? <button type="button" className="desk-backdrop" aria-label={tx("Kapat")} onClick={() => setMenuOpen(false)} /> : null}
+      <aside className={`desk-aside bg-white text-[#0B1C33] px-3 py-5 border-r border-[#D4ECF6]${menuOpen ? " is-open" : ""}`}>
         <Link href="/dashboard" className="block px-2">
           <img src="/brand/cop31-turkiye.png" alt="COP31 Türkiye Antalya" className="w-[168px] h-auto" />
         </Link>
@@ -184,10 +192,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <AgendaAlerts />
       <div className="min-w-0">
-        <header className="no-print flex items-center justify-between px-6 py-3 border-b border-[#D4ECF6] bg-white pr-28 md:pr-[12rem]">
-          <div>
-            <div className="text-xs tracking-[0.18em] uppercase text-[#00A3E0]">{tx("Sağlık Pavilionu · Yeşil Alan")}</div>
-            <div className="text-sm text-[#3E6A88]">{tx("Sağlıklı İnsan, Sağlıklı Gezegen")}</div>
+        <header className="no-print flex items-center justify-between gap-3 px-4 py-3 border-b border-[#D4ECF6] bg-white max-lg:mt-12 max-lg:pr-4 lg:px-6 lg:pr-48">
+          <button type="button" className="desk-menu" aria-expanded={menuOpen} aria-label={tx("Menü")} onClick={() => setMenuOpen((open) => !open)}>
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <div className="min-w-0">
+            <div className="text-xs tracking-[0.18em] uppercase text-[#00A3E0] truncate">{tx("Sağlık Pavilionu · Yeşil Alan")}</div>
+            <div className="text-sm text-[#3E6A88] truncate">{tx("Sağlıklı İnsan, Sağlıklı Gezegen")}</div>
           </div>
           <Link href={me?.role === "SAGLIK" ? "/mesajlar" : "/anonslar"} className="relative">
             <Bell size={18} />
@@ -196,7 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : null}
           </Link>
         </header>
-        <main className="p-6 lg:p-8">{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

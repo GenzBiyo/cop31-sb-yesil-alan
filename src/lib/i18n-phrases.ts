@@ -1014,6 +1014,7 @@ export const EN: Record<string, string> = {
   "Etkinlik sponsorları": "Event sponsors",
   "Paydaşlar": "Stakeholders",
   "Kapat": "Close",
+  "Menü": "Menu",
   "Tüm konuşmacılar ve özgeçmişler →": "All speakers and bios →",
   "Moderatör": "Moderator",
   "Şimdi sahnede · Panel": "Now on stage · Panel",

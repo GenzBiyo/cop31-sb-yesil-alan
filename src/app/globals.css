@@ -37,6 +37,8 @@ html, body {
   background: var(--paper);
   color: var(--ink);
   min-height: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -47,8 +49,8 @@ a { color: inherit; text-decoration: none; }
 
 .lang-switch {
   position: fixed;
-  top: 0.7rem;
-  right: 0.7rem;
+  top: max(0.7rem, env(safe-area-inset-top));
+  right: max(0.7rem, env(safe-area-inset-right));
   z-index: 80;
   display: flex;
   gap: 0;
@@ -75,8 +77,8 @@ a { color: inherit; text-decoration: none; }
 
 .page-nav {
   position: fixed;
-  top: 0.7rem;
-  right: 6.6rem;
+  top: max(0.7rem, env(safe-area-inset-top));
+  right: max(6.6rem, calc(env(safe-area-inset-right) + 5.9rem));
   z-index: 80;
   display: flex;
   border: 1px solid #FFFFFF;
@@ -99,6 +101,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 button, input, select, textarea { font: inherit; }
+@media (max-width: 1023px) {
+  input, select, textarea { font-size: 16px; }
+}
 
 .display {
   font-family: var(--font-display), Georgia, serif;
@@ -235,6 +240,47 @@ table.data td {
   color: #0077C2;
   border-left-color: #00A3E0;
   font-weight: 650;
+}
+
+.desk-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid #B5DFF2;
+  background: #fff;
+  color: #0077C2;
+}
+.desk-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 84;
+  border: 0;
+  background: rgba(11, 28, 51, 0.45);
+}
+@media (max-width: 1023px) {
+  .desk-menu { display: inline-flex; }
+  .desk-aside { display: none; }
+  .desk-aside.is-open {
+    display: block;
+    position: fixed;
+    z-index: 85;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(88vw, 320px);
+    overflow: auto;
+    padding-top: max(0.8rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    box-shadow: 8px 0 30px rgba(0, 40, 80, 0.18);
+  }
+  .card { max-width: 100%; overflow-x: auto; }
+  .sidebar-link { padding: 0.7rem 0.75rem; }
+}
+@media (min-width: 1024px) {
+  .desk-backdrop { display: none; }
 }
 
 @media print {
@@ -868,7 +914,13 @@ table.data td {
 }
 
 @media (max-width: 980px) {
-  .gate-root { height: auto; min-height: 100dvh; }
+  .gate-root, .climate-root {
+    height: auto;
+    min-height: 100dvh;
+    min-height: 100svh;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
   .gates {
     flex-direction: column;
     height: auto;
@@ -1263,9 +1315,12 @@ table.data td {
 }
 
 @media (max-width: 980px) {
-  .climate-root { height: auto; min-height: 100dvh; }
-  .climate-scene { position: relative; height: 52vh; }
+  .climate-root { height: auto; min-height: 100dvh; min-height: 100svh; }
+  .climate-scene { position: relative; height: 42vh; }
+  .climate-mote, .climate-lung, .climate-heat, .climate-ecg { display: none; }
   .climate-earth { top: 48%; width: min(62vw, 280px); }
+  .climate-lockup { width: min(640px, calc(100% - 1.2rem)); }
+  .speaker-rail { padding-right: 0.9rem; }
   .climate-cta { margin: 0.8rem auto 0.4rem; }
   .climate-gates {
     position: relative;
@@ -1283,9 +1338,12 @@ table.data td {
 @media (max-width: 640px) {
   .climate-scene { position: absolute; inset: 0; height: auto; }
   .climate-earth, .climate-ring, .climate-ecg { display: none; }
-  .climate-root.is-open .climate-hero { padding-top: 3.6rem; }
+  .climate-root.is-open .climate-hero { padding-top: max(3.6rem, calc(env(safe-area-inset-top) + 2.8rem)); }
   .climate-lockup { width: min(100% - 1rem, 420px); padding: 0.7rem 0.9rem 0.95rem; }
   .climate-lockup .gate-kicker { font-size: 0.58rem; letter-spacing: 0.08em; }
+  .climate-lockup .gate-slogan { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+  .gate { min-height: 148px; }
+  .sponsor-kicker { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2629,6 +2687,7 @@ body:has(.phone-app) {
   background: #c7e4f3;
 }
 .phone-app {
+  height: 100vh;
   height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
@@ -2643,8 +2702,8 @@ body:has(.phone-app) {
   justify-content: space-between;
   align-items: flex-end;
   gap: 12px;
-  padding: 18px 16px 12px;
-  padding-right: 92px;
+  padding: max(18px, calc(env(safe-area-inset-top) + 10px)) 16px 12px;
+  padding-right: 7.2rem;
   background: #0077c2;
   color: #fff;
 }
