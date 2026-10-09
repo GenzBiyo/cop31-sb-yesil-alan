@@ -5,11 +5,16 @@ import type { PlanDay, PlanItem, PlanKind } from "./plan-types";
 export type { PlanDay, PlanItem, PlanKind } from "./plan-types";
 
 const SUNUM_TYPES = /sunum|seminer|quick talk|konuşma/i;
+const EVENT_TYPES = /etkinlik|deneyim|oyun/i;
+
+export function isShownAgendaType(type: string) {
+  return /panel/i.test(type) || SUNUM_TYPES.test(type) || EVENT_TYPES.test(type);
+}
 
 function kindFromAgenda(type: string): PlanKind {
   if (/panel/i.test(type)) return "panel";
   if (SUNUM_TYPES.test(type)) return "sunum";
-  if (/etkinlik|deneyim|oyun/i.test(type)) return "event";
+  if (EVENT_TYPES.test(type)) return "event";
   return "program";
 }
 
@@ -76,7 +81,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
 
   for (const day of days) {
     for (const item of day.agenda) {
-      if (item.panelId || /stant/i.test(item.type)) continue;
+      if (item.panelId || !isShownAgendaType(item.type)) continue;
       const list = byDate.get(day.date) || [];
       list.push({
         id: `agenda-${item.id}`,

@@ -232,7 +232,7 @@ async function buildCatalog() {
       id: day.id,
       date: day.date,
       theme: day.themeTr,
-      agenda: day.agenda.filter((item) => !/stant/i.test(item.type)).map((item) => {
+      agenda: day.agenda.filter((item) => /panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(item.type)).map((item) => {
         const panel = item.panelId ? panelsById.get(item.panelId) : undefined;
         return {
           id: item.id,

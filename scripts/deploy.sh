@@ -5,7 +5,7 @@ cd "$APP"
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 python3 - <<'PY'
 from pathlib import Path
@@ -66,6 +66,11 @@ fi
 if [ ! -f "$APP/.stands-off-agenda" ]; then
   npx tsx scripts/clear-stand-agenda.ts
   touch "$APP/.stands-off-agenda"
+fi
+
+if [ ! -f "$APP/.session-calendar-only" ]; then
+  npx tsx scripts/clear-stand-agenda.ts
+  touch "$APP/.session-calendar-only"
 fi
 
 echo DEPLOY_OK

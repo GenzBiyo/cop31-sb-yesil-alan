@@ -26,7 +26,7 @@ export async function GET() {
   const body = {
     days: days.map((day) => ({
       ...day,
-      agenda: day.agenda.filter((item) => !/stant/i.test(item.type)),
+      agenda: day.agenda.filter((item) => /panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(item.type)),
     })),
     events: events.map((e) => ({
       id: e.id,
