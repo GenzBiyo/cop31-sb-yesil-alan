@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { daysLeft } from "./api";
 import fs from "fs";
 import path from "path";
+import { pavilionPlanFile } from "./pavilion-plan";
 
 function fontPath() {
   const candidates = [
@@ -147,7 +148,7 @@ export async function pdfSpace(): Promise<Buffer> {
   header(doc, "Alan Planı");
   doc.fontSize(10).fillColor("#333").text("T.C. Sağlık Bakanlığı pavilyonu. 50 m². Üstte perspektif, altta ön görünüş.");
   doc.moveDown(0.4);
-  const image = path.join(process.cwd(), "public", "brand", "sb-pavilyon.png");
+  const image = pavilionPlanFile();
   if (fs.existsSync(image)) {
     doc.image(image, 48, doc.y, { fit: [500, 640], align: "center" });
   }

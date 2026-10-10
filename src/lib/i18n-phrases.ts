@@ -74,6 +74,8 @@ export const EN: Record<string, string> = {
   "T.C. Sağlık Bakanlığı pavilyonu. 50 m². Üstte perspektif, altta ön görünüş.":
     "Ministry of Health pavilion. 50 m². Perspective above, front elevation below.",
   "Alan planı PDF": "Floor plan PDF",
+  "Görseli değiştir": "Replace the image",
+  "Pavilyon görseli güncellendi.": "Pavilion image updated.",
   "Gerekçe": "Reason",
   "kayıt onay bekliyor": "items awaiting clearance",
   "Henüz başvuru yok.": "No submissions yet.",
