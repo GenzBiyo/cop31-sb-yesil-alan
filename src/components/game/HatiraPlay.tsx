@@ -270,7 +270,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
   );
 }
 
-export function HatiraWallView({ hatira }: { hatira: HatiraPublic | null }) {
+export function HatiraWallView({ hatira, background }: { hatira: HatiraPublic | null; background?: string }) {
   const { tx } = useI18n();
   const shots = hatira?.shots || [];
   const [i, setI] = useState(0);
@@ -284,7 +284,8 @@ export function HatiraWallView({ hatira }: { hatira: HatiraPublic | null }) {
   if (!current) {
     return (
       <div className="hatira-wall is-empty">
-        <p className="text-xs tracking-[0.2em] uppercase opacity-70">COP31 Türkiye</p>
+        {background ? <img src={background} alt="" /> : null}
+        <p className="text-xs tracking-[0.2em] uppercase opacity-70 mt-4">COP31 Türkiye</p>
         <h2 className="display text-5xl mt-2">{tx("Hatıra")}</h2>
         <p className="mt-3 text-[#C8EEFA]">{tx("Karekodu okutun, selfie çekin. Admin onaylayınca burada görünürsünüz.")}</p>
       </div>

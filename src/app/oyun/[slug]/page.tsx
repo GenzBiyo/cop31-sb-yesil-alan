@@ -16,7 +16,7 @@ import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay
 import { ShareBar } from "@/components/game/ShareBar";
 import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
 import { EventCreditStrip } from "@/components/game/EventCreditStrip";
-import type { HatiraPublic } from "@/lib/hatira";
+import type { HatiraLogos, HatiraPublic } from "@/lib/hatira";
 import { useI18n } from "@/components/I18nProvider";
 
 type Person = { id: string; nickname: string; teamName: string };
@@ -52,6 +52,7 @@ type Wall = {
   match?: { mode: string; meters: { clean: number; health: number; joy: number }; bloom: boolean; solved: string[]; totalPairs: number } | null;
   kilo?: KiloPublic | null;
   hatira?: HatiraPublic | null;
+  logos?: HatiraLogos | null;
   plak?: { tracks: PlakTrack[]; spinning: boolean; startedAt: string | null; index: number } | null;
   sponsor?: EventSponsorInfo | null;
 };
@@ -146,7 +147,7 @@ function Wall({ slug }: { slug: string }) {
           </div>
         ) : isHatira ? (
           <div className="mt-6 flex-1">
-            <HatiraWallView hatira={wall.hatira || null} />
+            <HatiraWallView hatira={wall.hatira || null} background={wall.logos?.background} />
           </div>
         ) : isKilo ? (
           <div className="mt-6 flex-1">
