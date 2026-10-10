@@ -5,6 +5,8 @@ import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { notifyScheduleChange } from "@/lib/agenda";
 import { memoClear } from "@/lib/memo";
+import { venueBookingError } from "@/lib/venue-booking";
+import { canonicalVenue, sessionKind } from "@/lib/venues";
 
 const ALLOWED = [
   "startTime",
@@ -33,7 +35,37 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   for (const key of ALLOWED) {
     if (body[key] !== undefined) data[key] = body[key];
   }
+  if (data.location != null) data.location = canonicalVenue(String(data.location)) || String(data.location);
+  const day = data.dayId && data.dayId !== before.dayId
+    ? await prisma.thematicDay.findUnique({ where: { id: String(data.dayId) } })
+    : before.day;
+  if (!day) return jsonError("Gün seçin");
+  const type = String(data.type ?? before.type);
+  const kind = sessionKind(type);
+  if (kind && ["startTime", "endTime", "location", "type", "dayId"].some((key) => data[key] !== undefined)) {
+    const clash = await venueBookingError({
+      location: String(data.location ?? before.location),
+      date: day.date,
+      startTime: String(data.startTime ?? before.startTime),
+      endTime: String(data.endTime ?? before.endTime),
+      kind,
+      panelId: before.panelId || undefined,
+      agendaId: id,
+    });
+    if (clash) return jsonError(clash);
+  }
   const item = await prisma.agendaItem.update({ where: { id }, data });
+  if (before.panelId && kind) {
+    await prisma.panel.update({
+      where: { id: before.panelId },
+      data: {
+        date: day.date,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        location: item.location,
+      },
+    });
+  }
   await notifyScheduleChange(
     {
       title: before.title,

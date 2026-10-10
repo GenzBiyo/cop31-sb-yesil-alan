@@ -10,6 +10,8 @@ import { CopDayGrid, PlanChip, type ProgramFilter, agendaMatchesFilter, planMatc
 import type { PlanDay } from "@/lib/plan-types";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
+import { VenueFields } from "@/components/VenueFields";
+import { sessionKind } from "@/lib/venues";
 
 type Agenda = AgendaRow;
 type Day = {
@@ -96,7 +98,8 @@ export default function ProgramPage() {
   const canEdit = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const [open, setOpen] = useState<string | null>(null);
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
-  const [item, setItem] = useState({ startTime: "10:00", endTime: "11:00", title: "", type: "Panel", location: "Sağlık Pavilionu — Ana Sahne" });
+  const [item, setItem] = useState({ startTime: "10:00", endTime: "11:00", title: "", type: "Panel", location: "SB Pavilyon" });
+  const [addError, setAddError] = useState("");
   const [copied, setCopied] = useState(false);
   const publicOrigin = usePublicOrigin();
 
@@ -210,8 +213,23 @@ export default function ProgramPage() {
           </ul>
           {canEdit ? (
             <div className="grid md:grid-cols-6 gap-2 items-end">
-              <input className="field" type="time" value={item.startTime} onChange={(e) => setItem({ ...item, startTime: e.target.value })} />
-              <input className="field" type="time" value={item.endTime} onChange={(e) => setItem({ ...item, endTime: e.target.value })} />
+              {sessionKind(item.type) ? (
+                <div className="md:col-span-6 grid md:grid-cols-4 gap-2">
+                  <VenueFields
+                    showDate={false}
+                    location={item.location}
+                    date={day.date}
+                    startTime={item.startTime}
+                    endTime={item.endTime}
+                    onChange={(next) => setItem({ ...item, location: next.location, startTime: next.startTime, endTime: next.endTime })}
+                  />
+                </div>
+              ) : (
+                <>
+                  <input className="field" type="time" value={item.startTime} onChange={(e) => setItem({ ...item, startTime: e.target.value })} />
+                  <input className="field" type="time" value={item.endTime} onChange={(e) => setItem({ ...item, endTime: e.target.value })} />
+                </>
+              )}
               <input className="field md:col-span-2" placeholder="Oturum başlığı" value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
               <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
                 <option>Panel</option>
@@ -225,14 +243,20 @@ export default function ProgramPage() {
                 className="btn"
                 onClick={async () => {
                   if (!item.title) return;
-                  await api("/api/agenda", { method: "POST", body: JSON.stringify({ dayId: day.id, ...item }) });
-                  setItem({ ...item, title: "" });
-                  await reload();
-                  await reloadPlan();
+                  setAddError("");
+                  try {
+                    await api("/api/agenda", { method: "POST", body: JSON.stringify({ dayId: day.id, ...item, date: day.date }) });
+                    setItem({ ...item, title: "" });
+                    await reload();
+                    await reloadPlan();
+                  } catch (err) {
+                    setAddError(err instanceof Error ? err.message : "Kayıt alınamadı");
+                  }
                 }}
               >
                 Oturum ekle
               </button>
+              {addError ? <p className="text-sm text-[#E31C23] md:col-span-6">{addError}</p> : null}
             </div>
           ) : null}
         </div>

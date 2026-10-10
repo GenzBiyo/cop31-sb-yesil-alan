@@ -1,5 +1,5 @@
 export const DAY_START_MIN = 8 * 60;
-export const DAY_END_MIN = 19 * 60;
+export const DAY_END_MIN = 22 * 60;
 export const TIME_SNAP = 15;
 
 export const PAVILION_SLOTS = [

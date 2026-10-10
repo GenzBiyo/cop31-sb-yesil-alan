@@ -4,6 +4,7 @@ import { QrImage } from "@/components/QrImage";
 import { api } from "@/lib/client";
 import { DAY_END_MIN, DAY_START_MIN, fromMinutes, toMinutes } from "@/lib/agenda-time";
 import { useI18n } from "@/components/I18nProvider";
+import { VENUES, sessionKind } from "@/lib/venues";
 import { useRef, useState } from "react";
 
 export type AgendaRow = {
@@ -52,6 +53,7 @@ export function AgendaDayBoard({
   const [draft, setDraft] = useState<Partial<AgendaRow>>({});
   const [msg, setMsg] = useState({ title: "COP31 hatırlatma", body: "", audience: "hepsi" });
   const [sent, setSent] = useState("");
+  const [boardError, setBoardError] = useState("");
   const [signups, setSignups] = useState<Signup[]>([]);
   const drag = useRef<{ id: string; startY: number; startMin: number; dur: number; moved: boolean } | null>(null);
   const span = DAY_END_MIN - DAY_START_MIN;
@@ -63,7 +65,12 @@ export function AgendaDayBoard({
 
   async function saveTimes(id: string, startTime: string, endTime: string) {
     if (!canEdit) return;
-    await api(`/api/agenda/${id}`, { method: "PATCH", body: JSON.stringify({ startTime, endTime }) });
+    setBoardError("");
+    try {
+      await api(`/api/agenda/${id}`, { method: "PATCH", body: JSON.stringify({ startTime, endTime }) });
+    } catch (err) {
+      setBoardError(err instanceof Error ? err.message : tx("Bu saat dolu"));
+    }
     await onChanged();
   }
 
@@ -136,8 +143,18 @@ export function AgendaDayBoard({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[#3E6A88]">
-        {tx("Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur.")}
+        {tx("Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur. Aynı yerde paneller ve konuşmalar üst üste gelemez.")}
       </p>
+      {boardError ? <p className="text-sm text-[#E31C23]">{boardError}</p> : null}
+      {items.some((a) => !a.startTime || !a.endTime) ? (
+        <div className="space-y-1">
+          {items.filter((a) => !a.startTime || !a.endTime).map((a) => (
+            <button key={a.id} type="button" className="text-left text-sm text-[#0077C2]" onClick={() => { setOpen(a.id); setDraft(a); }}>
+              {tx(a.title)} · {tx("Saat belli değil")} · {a.location}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div className="agenda-track">
         <div className="agenda-hours">
           {hours.map((h) => (
@@ -147,7 +164,7 @@ export function AgendaDayBoard({
           ))}
         </div>
         <div className="agenda-canvas" style={{ height: span * PX }}>
-          {items.map((a) => {
+          {items.filter((a) => a.startTime && a.endTime).map((a) => {
             const top = (toMinutes(a.startTime) - DAY_START_MIN) * PX;
             const height = Math.max(28, (toMinutes(a.endTime) - toMinutes(a.startTime)) * PX);
             const color = COLORS[a.type] || "#0077C2";
@@ -229,12 +246,25 @@ export function AgendaDayBoard({
               </div>
               <label className="text-sm">
                 {tx("Yer")}
-                <input
-                  className="field mt-1"
-                  value={draft.location || ""}
-                  disabled={!canEdit}
-                  onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
-                />
+                {sessionKind(String(draft.type || current.type)) ? (
+                  <select
+                    className="field mt-1"
+                    value={draft.location || current.location}
+                    disabled={!canEdit}
+                    onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+                  >
+                    {VENUES.map((venue) => (
+                      <option key={venue.id} value={venue.label}>{venue.label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="field mt-1"
+                    value={draft.location || ""}
+                    disabled={!canEdit}
+                    onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+                  />
+                )}
               </label>
               {canEdit ? (
                 <button

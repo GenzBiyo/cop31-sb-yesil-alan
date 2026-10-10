@@ -6,6 +6,8 @@ import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
 import { saveFirmTalks, setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
+import { venueBookingError } from "@/lib/venue-booking";
+import { canonicalVenue } from "@/lib/venues";
 import { APPROVED, notifyCompanyDecision, notifySbProposal, PENDING, REJECTED } from "@/lib/proposals";
 import { SPEAKER_PENDING } from "@/lib/speakers";
 
@@ -23,6 +25,17 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     const ok = decision === APPROVED || decision === "approve";
     const no = decision === REJECTED || decision === "reject";
     if (!ok && !no) return jsonError("Geçersiz karar");
+    if (ok) {
+      const clash = await venueBookingError({
+        location: existing.location,
+        date: existing.date,
+        startTime: existing.startTime,
+        endTime: existing.endTime,
+        kind: existing.kind,
+        panelId: id,
+      });
+      if (clash) return jsonError(clash);
+    }
     const panel = await prisma.panel.update({
       where: { id },
       data: { status: ok ? "Planlama" : REJECTED },
@@ -55,7 +68,19 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.topic != null) data.topic = body.topic;
   if (body.summary != null) data.summary = String(body.summary);
   if (body.concept != null) data.concept = typeof body.concept === "string" ? body.concept : JSON.stringify(body.concept);
-  if (body.location != null) data.location = body.location;
+  if (body.location != null) data.location = canonicalVenue(String(body.location)) || String(body.location);
+  const scheduling = ["date", "startTime", "endTime", "location", "kind"].some((key) => body[key] != null);
+  if (scheduling) {
+    const clash = await venueBookingError({
+      location: String(data.location ?? existing.location),
+      date: String(data.date ?? existing.date),
+      startTime: String(data.startTime ?? existing.startTime),
+      endTime: String(data.endTime ?? existing.endTime),
+      kind: String(data.kind ?? existing.kind),
+      panelId: id,
+    });
+    if (clash) return jsonError(clash);
+  }
   if (body.partners != null) data.partners = body.partners;
   if (body.status != null && canManage(user.role) && body.status !== PENDING) data.status = body.status;
   if (body.notes != null) data.notes = body.notes;

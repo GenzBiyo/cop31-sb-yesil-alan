@@ -5,6 +5,8 @@ import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
 import { THEME_TR } from "@/lib/constants";
+import { venueBookingError } from "@/lib/venue-booking";
+import { canonicalVenue, SB_PAVILYON } from "@/lib/venues";
 import { notifySbProposal, PENDING } from "@/lib/proposals";
 import { companyPanelWhere, isOwnParticipant } from "@/lib/company-panels";
 
@@ -91,6 +93,11 @@ export async function POST(req: NextRequest) {
   if (!String(body.title || "").trim()) return jsonError("Başlık gerekli");
   if (!body.date) return jsonError("Gün seçin");
   const kind = body.kind === "sunum" ? "sunum" : "panel";
+  const location = canonicalVenue(String(body.location || "")) || SB_PAVILYON;
+  const startTime = String(body.startTime || "");
+  const endTime = String(body.endTime || "");
+  const clash = await venueBookingError({ location, date: body.date, startTime, endTime, kind });
+  if (clash) return jsonError(clash);
   const fromFirma = user.role === "FIRMA";
   const company =
     fromFirma && user.companyId ? await prisma.company.findUnique({ where: { id: user.companyId } }) : null;
@@ -99,11 +106,11 @@ export async function POST(req: NextRequest) {
       title: String(body.title).trim(),
       kind,
       date: body.date,
-      startTime: body.startTime || "10:00",
-      endTime: body.endTime || "11:30",
+      startTime,
+      endTime,
       theme: body.theme || THEME_TR[body.date] || "",
       topic: body.topic || "",
-      location: body.location || "Sağlık Pavilionu — Ana Sahne",
+      location,
       partners: body.partners || company?.name || "",
       status: fromFirma ? PENDING : body.status || "Planlama",
       notes: body.notes || "",

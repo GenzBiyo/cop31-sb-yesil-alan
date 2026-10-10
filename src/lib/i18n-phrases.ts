@@ -1005,6 +1005,15 @@ export const EN: Record<string, string> = {
   "Başlangıç": "Start",
   "Bitiş": "End",
   "Yer": "Venue",
+  "Saat belli değil": "Time not set yet",
+  "En fazla 3 panel. 9 ve 10 Kasım saatleri henüz belli değil.":
+    "At most 3 panels. Times on 9 and 10 November are not set yet.",
+  "Yalnızca pazartesi (9 ve 16 Kasım), 12:00–22:00.": "Mondays only (9 and 16 November), 12:00–22:00.",
+  "9–20 Kasım. Sınır yok. Aynı yerde saatler üst üste gelemez.":
+    "9–20 November. No cap. Sessions in the same room cannot overlap.",
+  "Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur. Aynı yerde paneller ve konuşmalar üst üste gelemez.":
+    "Approved sessions are here. Drag a block to move the time; it snaps to 15 minutes. Panels and talks in the same room cannot overlap.",
+  "Bu saat dolu": "This time is taken",
   "SB'ye öner": "Send to MoH",
   "Firma önerileri": "Company proposals",
   "Onaylanınca ana programa ve gündeme işlenir.": "Once approved it is written into the main programme.",

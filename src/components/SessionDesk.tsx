@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Eye, Plus, Printer, Trash2, X } from "lucide-react";
 import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
+import { VenueFields } from "@/components/VenueFields";
+import { SB_PAVILYON, canonicalVenue, clockLabel } from "@/lib/venues";
 import { useI18n } from "@/components/I18nProvider";
 import { ConceptEditor } from "@/components/ConceptEditor";
 import { SessionBrief } from "@/components/SessionBrief";
@@ -330,7 +332,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
     date: "2026-11-09",
     startTime: talk ? "10:15" : "10:00",
     endTime: talk ? "11:00" : "11:30",
-    location: "Sağlık Pavilionu — Ana Sahne",
+    location: SB_PAVILYON,
     topic: "",
     partners: "",
     summary: "",
@@ -429,14 +431,15 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
       {showForm ? (
       <form className="card p-4 grid md:grid-cols-4 gap-2" onSubmit={createSession}>
         <input className="field md:col-span-2" required placeholder={talk ? "Konuşma başlığı" : "Panel başlığı"} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <select className="field md:col-span-2" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })}>
-          {COP_DAY_OPTIONS.map((d) => (
-            <option key={d.date} value={d.date}>{d.label}</option>
-          ))}
-        </select>
-        <input className="field" type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
-        <input className="field" type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
-        <input className="field md:col-span-2" placeholder="Yer" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        <div className="md:col-span-4 grid md:grid-cols-4 gap-2">
+          <VenueFields
+            location={form.location}
+            date={form.date}
+            startTime={form.startTime}
+            endTime={form.endTime}
+            onChange={(next) => setForm({ ...form, ...next })}
+          />
+        </div>
         <input className="field md:col-span-2" placeholder="Konu" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
         <input className="field md:col-span-2" placeholder="Paydaşlar" value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
         <div className="md:col-span-4">
@@ -496,7 +499,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               <div key={p.id} className="border border-[#DCE8F0] p-3 space-y-2">
                 <div className="flex flex-wrap justify-between gap-2">
                   <div>
-                    <div className="text-xs text-[#0077C2]">{formatDate(p.date)} · {p.startTime}–{p.endTime} · {p.location}</div>
+                    <div className="text-xs text-[#0077C2]">{formatDate(p.date)} · {tx(clockLabel(p.startTime, p.endTime))} · {p.location}</div>
                     <div className="font-semibold">{p.title}</div>
                     <div className="text-sm text-[#57534e]">
                       {own.length
@@ -528,7 +531,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
             <div key={p.id} className="border border-[#B5DFF2] p-3 space-y-2">
               <div className="flex justify-between gap-2 flex-wrap">
                 <div>
-                  <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {formatDate(p.date)} · {p.startTime}–{p.endTime}</div>
+                  <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {formatDate(p.date)} · {tx(clockLabel(p.startTime, p.endTime))}</div>
                   <div className="font-semibold">{p.title}</div>
                   <div className="text-sm text-[#57534e]">{p.companyName || p.partners} · {p.topic}</div>
                 </div>
@@ -587,7 +590,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                           setOpenId((id) => (id === p.id ? null : p.id));
                         }}
                       >
-                        <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {p.startTime}–{p.endTime}</div>
+                        <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {tx(clockLabel(p.startTime, p.endTime))} · {p.location}</div>
                         <div className="display text-2xl">{p.title}</div>
                         <div className="text-sm text-[#57534e]">
                           {mod ? `Moderatör: ${mod.name} · ` : ""}
@@ -648,7 +651,7 @@ function SessionEditor({
   const [date, setDate] = useState(session.date);
   const [startTime, setStartTime] = useState(session.startTime);
   const [endTime, setEndTime] = useState(session.endTime);
-  const [location, setLocation] = useState(session.location);
+  const [location, setLocation] = useState(() => canonicalVenue(session.location) || SB_PAVILYON);
   const [topic, setTopic] = useState(session.topic);
   const [partners, setPartners] = useState(session.partners);
   const [guests, setGuests] = useState<Guest[]>(() => {
@@ -708,16 +711,20 @@ function SessionEditor({
       </div>
       <div className="grid md:grid-cols-2 gap-2">
         <label className="text-sm md:col-span-2">Başlık<input className="field mt-1" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-        <label className="text-sm">Tarih
-          <select className="field mt-1" value={date} onChange={(e) => setDate(e.target.value)}>
-            {COP_DAY_OPTIONS.map((d) => (
-              <option key={d.date} value={d.date}>{d.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm">Yer<input className="field mt-1" value={location} onChange={(e) => setLocation(e.target.value)} /></label>
-        <label className="text-sm">Başlangıç<input className="field mt-1" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} /></label>
-        <label className="text-sm">Bitiş<input className="field mt-1" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></label>
+        <div className="md:col-span-2 grid md:grid-cols-2 gap-2">
+          <VenueFields
+            location={location}
+            date={date}
+            startTime={startTime}
+            endTime={endTime}
+            onChange={(next) => {
+              setLocation(next.location);
+              setDate(next.date);
+              setStartTime(next.startTime);
+              setEndTime(next.endTime);
+            }}
+          />
+        </div>
         <label className="text-sm md:col-span-2">Konu<input className="field mt-1" value={topic} onChange={(e) => setTopic(e.target.value)} /></label>
         <label className="text-sm md:col-span-2">Paydaşlar<input className="field mt-1" value={partners} onChange={(e) => setPartners(e.target.value)} /></label>
       </div>
