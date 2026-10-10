@@ -96,7 +96,6 @@ export default function ProgramPage() {
   const canEdit = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const [open, setOpen] = useState<string | null>(null);
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
-  const [draft, setDraft] = useState<Partial<Day>>({});
   const [item, setItem] = useState({ startTime: "10:00", endTime: "11:00", title: "", type: "Panel", location: "Sağlık Pavilionu — Ana Sahne" });
   const [copied, setCopied] = useState(false);
   const publicOrigin = usePublicOrigin();
@@ -114,14 +113,6 @@ export default function ProgramPage() {
     if (typeof window === "undefined") return "/api/calendar";
     return `${window.location.origin}/api/calendar`;
   }, []);
-
-  async function saveDay() {
-    if (!day) return;
-    await api("/api/days", { method: "PATCH", body: JSON.stringify({ ...day, ...draft, id: day.id }) });
-    setDraft({});
-    await reload();
-    await reloadPlan();
-  }
 
   async function copySubscribe() {
     await navigator.clipboard.writeText(subscribeUrl);
@@ -169,7 +160,6 @@ export default function ProgramPage() {
           const found = (data || []).find((d) => d.date === date);
           if (!found) return;
           setOpen(found.id);
-          setDraft(found);
         }}
       />
       {day && !canEdit ? (
@@ -181,19 +171,14 @@ export default function ProgramPage() {
       ) : null}
       {day && canEdit ? (
         <div className="card p-5 space-y-4">
-          <div className="flex justify-between">
-            <h2 className="display text-3xl">{formatDay(day.date)}</h2>
+          <div className="flex justify-between gap-3">
+            <div>
+              <h2 className="display text-3xl">{formatDay(day.date)}</h2>
+              <p className="text-sm text-[#57534e] mt-1">{tx(day.themeTr)}</p>
+            </div>
             <button className="btn ghost" onClick={() => setOpen(null)}>Kapat</button>
           </div>
-          <div className="grid md:grid-cols-2 gap-3">
-            <label className="text-sm">Tema (TR)<input className="field mt-1" defaultValue={day.themeTr} onChange={(e) => setDraft((d) => ({ ...d, themeTr: e.target.value }))} /></label>
-            <label className="text-sm">Tema (EN)<input className="field mt-1" defaultValue={day.themeEn} onChange={(e) => setDraft((d) => ({ ...d, themeEn: e.target.value }))} /></label>
-            <label className="text-sm md:col-span-2">Konu 1<input className="field mt-1" defaultValue={day.topic1} onChange={(e) => setDraft((d) => ({ ...d, topic1: e.target.value }))} /></label>
-            <label className="text-sm md:col-span-2">Konu 2<input className="field mt-1" defaultValue={day.topic2} onChange={(e) => setDraft((d) => ({ ...d, topic2: e.target.value }))} /></label>
-            <label className="text-sm md:col-span-2">Notlar<textarea className="field mt-1" defaultValue={day.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} /></label>
-          </div>
-          <button className="btn" onClick={saveDay}>Gündemi kaydet</button>
-          <h3 className="display text-2xl pt-2">{tx("Günün oturumları")}</h3>
+          <h3 className="display text-2xl">{tx("Günün oturumları")}</h3>
           <AgendaDayBoard
             date={day.date}
             items={visibleAgenda}
