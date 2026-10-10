@@ -49,10 +49,7 @@ deploy_key.pub
 *.tsbuildinfo
 next-env.d.ts
 
-# uploaded game media
-/public/uploads/games/*
-!/public/uploads/games/.gitkeep
-/public/uploads/hatira/*
-!/public/uploads/hatira/.gitkeep
-/public/uploads/sponsors/*
-!/public/uploads/sponsors/.gitkeep
+# uploaded media and documents stay on the server
+/public/uploads/**
+!/public/uploads/**/
+!/public/uploads/**/.gitkeep

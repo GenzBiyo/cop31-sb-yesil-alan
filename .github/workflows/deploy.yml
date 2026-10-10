@@ -21,7 +21,11 @@ jobs:
           script: |
             set -e
             cd /var/www/cop31
+            if [ -f scripts/keep-data.sh ]; then
+              bash scripts/keep-data.sh save
+            fi
             git fetch origin master
             git reset --hard origin/master
-            chmod +x scripts/deploy.sh
+            chmod +x scripts/deploy.sh scripts/keep-data.sh
+            bash scripts/keep-data.sh restore
             bash scripts/deploy.sh
