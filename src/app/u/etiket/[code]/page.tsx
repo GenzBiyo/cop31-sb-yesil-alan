@@ -1,6 +1,5 @@
-import { VisitorApp } from "@/components/visitor/VisitorApp";
+import { redirect } from "next/navigation";
 
-export default async function TagPage({ params }: { params: Promise<{ code: string }> }) {
-  const { code } = await params;
-  return <VisitorApp initialCode={code} />;
+export default function TagPage() {
+  redirect("/u");
 }

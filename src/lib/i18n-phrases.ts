@@ -1156,6 +1156,8 @@ export const EN: Record<string, string> = {
   "Bildirimleri aç": "Turn on notifications",
   "Bilgilerimi güncelle": "Update my details",
   "Henüz mesaj yok. Bir etiketi okutun.": "No messages yet. Scan a tag.",
+  "Henüz bildirim yok. Sorunuz yanıtlanınca veya görüşmeniz güncellenince burada görünür.":
+    "No notifications yet. They show up when a question is answered or a meeting is updated.",
   "Gündem": "Agenda",
   "Okut": "Scan",
   "Soru": "Question",

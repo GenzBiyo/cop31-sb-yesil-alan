@@ -114,12 +114,10 @@ type AppState = {
   meetings: Meeting[];
 };
 
-type Flash = { title: string; message: string; location: string; already: boolean };
-type Tab = "gundem" | "okut" | "katil" | "soru" | "gorus" | "mesaj";
+type Tab = "gundem" | "katil" | "soru" | "gorus" | "mesaj";
 
 const TOKEN_KEY = "cop31-device";
 const PROFILE_KEY = "cop31-profile";
-const GUEST_KEY = "cop31-guest";
 
 function cookieToken() {
   const match = document.cookie.match(/(?:^|;\s*)cop31_device=([^;]+)/);
@@ -178,20 +176,18 @@ function urlBase64ToUint8Array(value: string) {
   return out;
 }
 
-export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
+export function VisitorApp() {
   const { tx, tag } = useI18n();
   const router = useRouter();
   const [token, setToken] = useState("");
   const [state, setState] = useState<AppState | null>(null);
-  const [tab, setTab] = useState<Tab>(initialCode ? "okut" : "gundem");
+  const [tab, setTab] = useState<Tab>("gundem");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [flash, setFlash] = useState<Flash | null>(null);
   const [dayId, setDayId] = useState("");
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
   const [sessionId, setSessionId] = useState("");
   const [question, setQuestion] = useState("");
-  const [manual, setManual] = useState(initialCode);
   const [profile, setProfile] = useState<ProfileForm>({ name: "", email: "", phone: "", organization: "", role: "ziyaretci", companyId: "", personId: "" });
   const [meet, setMeet] = useState({ kind: "ikili", target: "bakanlik", topic: "", message: "", preferredDate: "", preferredTime: "", slotId: "" });
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
@@ -201,15 +197,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const [copied, setCopied] = useState(false);
   const [phone, setPhone] = useState(false);
   const [useBrowser, setUseBrowser] = useState(true);
-  const [cameraOn, setCameraOn] = useState(false);
-  const [cameraNote, setCameraNote] = useState("");
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const stopCamera = useRef<(() => void) | null>(null);
-  const scanned = useRef("");
   const restoreOnce = useRef(false);
   const profileReady = useRef(false);
   const [heldName, setHeldName] = useState(false);
-  const [guest, setGuest] = useState(false);
 
   const load = useCallback(async (current: string) => {
     const next = await call<AppState>(current, "/api/app");
@@ -265,7 +255,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
   useEffect(() => {
     if (savedProfile()) setHeldName(true);
-    if (localStorage.getItem(GUEST_KEY) === "1") setGuest(true);
+    localStorage.removeItem("cop31-guest");
   }, []);
 
   useEffect(() => {
@@ -312,44 +302,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setSessionId(preferred.id);
   }, [sessionId, sessions]);
 
-  const scan = useCallback(
-    async (raw: string) => {
-      if (!token || !raw.trim()) return;
-      setBusy(true);
-      setError("");
-      try {
-        const result = await call<Flash & { state: AppState }>(token, "/api/app/scan", {
-          method: "POST",
-          body: JSON.stringify({ code: raw }),
-        });
-        setState(result.state);
-        setFlash({ title: result.title, message: result.message, location: result.location, already: result.already });
-        setTab("okut");
-        navigator.vibrate?.(40);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Etiket okunamadı");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [token]
-  );
-
-  useEffect(() => {
-    if (!token || !initialCode || scanned.current === initialCode) return;
-    scanned.current = initialCode;
-    void scan(initialCode);
-  }, [token, initialCode, scan]);
-
-  useEffect(() => {
-    return () => stopCamera.current?.();
-  }, []);
-
-  useEffect(() => {
-    const onScan = (guest && !(state?.device.name || heldName)) || tab === "okut";
-    if (!onScan) stopCamera.current?.();
-  }, [guest, heldName, state?.device.name, tab]);
-
   async function saveProfile(event: React.FormEvent) {
     event.preventDefault();
     if (!token) return;
@@ -359,8 +311,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
       const guestProfile = { ...profile, role: "ziyaretci", companyId: "", personId: "" };
       const next = await call<AppState>(token, "/api/app", { method: "POST", body: JSON.stringify(guestProfile) });
       localStorage.setItem(PROFILE_KEY, JSON.stringify(guestProfile));
-      localStorage.removeItem(GUEST_KEY);
-      setGuest(false);
       setProfile(guestProfile);
       setState(next);
     } catch (err) {
@@ -430,56 +380,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     }
   }
 
-  async function openCamera() {
-    setCameraNote("");
-    const video = videoRef.current;
-    if (!video || !navigator.mediaDevices?.getUserMedia) {
-      setCameraNote(tx("Bu tarayıcı kameradan okuyamıyor. Telefonun kendi kamerasıyla karekodu okutun ya da kodu yazın."));
-      return;
-    }
-    setCameraOn(true);
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-    } catch {
-      setCameraOn(false);
-      setCameraNote(tx("Kameraya izin verilmedi. Kodu yazabilir veya telefon kamerasıyla karekodu okutabilirsiniz."));
-      return;
-    }
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    video.srcObject = stream;
-    try {
-      await video.play();
-    } catch {
-      /* sessiz video; okuyucu yeniden dener */
-    }
-    try {
-      const { BrowserMultiFormatReader } = await import("@zxing/browser");
-      const reader = new BrowserMultiFormatReader();
-      let handled = false;
-      let controls: { stop: () => void } | null = null;
-      controls = await reader.decodeFromStream(stream, video, (result) => {
-        if (!result || handled) return;
-        handled = true;
-        const raw = result.getText();
-        controls?.stop();
-        stopCamera.current = null;
-        setCameraOn(false);
-        void scan(raw);
-      });
-      stopCamera.current = () => {
-        handled = true;
-        controls?.stop();
-        setCameraOn(false);
-      };
-    } catch {
-      stream.getTracks().forEach((track) => track.stop());
-      video.srcObject = null;
-      setCameraOn(false);
-      setCameraNote(tx("Bu tarayıcı kameradan okuyamıyor. Telefonun kendi kamerasıyla karekodu okutun ya da kodu yazın."));
-    }
-  }
-
   async function install() {
     if (!installEvent) return;
     await installEvent.prompt();
@@ -510,33 +410,9 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setUseBrowser(true);
   }
 
-  function continueAsGuest() {
-    localStorage.setItem(GUEST_KEY, "1");
-    setGuest(true);
-    setTab("okut");
-  }
-
-  function leaveGuest() {
-    localStorage.removeItem(GUEST_KEY);
-    setGuest(false);
-  }
-
   const registered = Boolean(state?.device.name) || heldName;
-  const guestScan = guest && !registered;
 
   function goBack() {
-    if (flash) {
-      setFlash(null);
-      return;
-    }
-    if (cameraOn) {
-      stopCamera.current?.();
-      return;
-    }
-    if (guestScan) {
-      leaveGuest();
-      return;
-    }
     const here = window.location.pathname;
     if (window.history.length > 1) {
       window.history.back();
@@ -615,7 +491,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </div>
         ) : null}
 
-        {state && !registered && !guest ? (
+        {state && !registered ? (
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
             <p>{tx("Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.")}</p>
@@ -625,7 +501,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" />
             <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} inputMode="tel" />
             <button className="phone-btn" disabled={busy} type="submit">{tx("Kaydet ve devam et")}</button>
-            <button className="phone-btn is-quiet" type="button" onClick={continueAsGuest}>{tx("Üye olmadan karekod okut")}</button>
           </form>
         ) : null}
 
@@ -667,34 +542,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             })}
             {!day?.agenda.filter((item) => agendaMatchesFilter(item.type, programFilter)).length ? (
               <p className="phone-muted">{tx(programFilter === "all" ? "Bu gün için oturum yok." : "Bu filtrede kayıt yok.")}</p>
-            ) : null}
-          </section>
-        ) : null}
-
-        {guestScan || (registered && tab === "okut") ? (
-          <section>
-            <h2>{tx("Etiket okut")}</h2>
-            <p className="phone-muted">{tx("Stanttaki, kapıdaki veya koltuktaki karekodu okutun. Mesaj telefonunuza düşer.")}</p>
-            {guestScan ? <p className="phone-muted">{tx("Kayıt olmadan yalnızca karekod okutulur. Gündem, soru ve görüşme için önce bilgilerinizi yazın.")}</p> : null}
-            <video ref={videoRef} className={`phone-camera ${cameraOn ? "is-on" : ""}`} playsInline muted autoPlay />
-            {cameraOn ? (
-              <button className="phone-btn is-quiet" type="button" onClick={() => stopCamera.current?.()}>{tx("Kamerayı kapat")}</button>
-            ) : (
-              <button className="phone-btn" type="button" onClick={() => void openCamera()}>{tx("Kamerayı aç")}</button>
-            )}
-            {cameraNote ? <p className="phone-muted">{cameraNote}</p> : null}
-            <form
-              className="phone-card"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void scan(manual);
-              }}
-            >
-              <input className="phone-field" placeholder={tx("Etiket kodu")} value={manual} onChange={(e) => setManual(e.target.value.toUpperCase())} />
-              <button className="phone-btn" disabled={busy || !manual.trim()} type="submit">{tx("Kodu gönder")}</button>
-            </form>
-            {guestScan ? (
-              <button className="phone-btn" type="button" onClick={leaveGuest}>{tx("Bilgilerimi doldur")}</button>
             ) : null}
           </section>
         ) : null}
@@ -863,7 +710,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
                 <p>{item.body}</p>
               </article>
             ))}
-            {!state?.notes.length ? <p className="phone-muted">{tx("Henüz bildirim yok. Etiket okutunca, sorunuz yanıtlanınca veya görüşmeniz güncellenince burada görünür.")}</p> : null}
+            {!state?.notes.length ? <p className="phone-muted">{tx("Henüz bildirim yok. Sorunuz yanıtlanınca veya görüşmeniz güncellenince burada görünür.")}</p> : null}
             {profile.name ? (
               <details className="phone-card">
                 <summary>{tx("Bilgilerim")}</summary>
@@ -885,7 +732,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         {(
           [
             ["gundem", "Gündem"],
-            ["okut", "Okut"],
             ["katil", "Katıl"],
             ["soru", "Soru"],
             ["gorus", "Görüş"],
@@ -900,7 +746,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         ))}
       </nav> : null}
 
-      {phone && !standalone && !useBrowser && !initialCode && !flash ? (
+      {phone && !standalone && !useBrowser ? (
         <div className="phone-setup" role="dialog">
           <img src="/icons/saglik-192.png" alt="" width={72} height={72} />
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>
@@ -934,20 +780,6 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         </div>
       ) : null}
 
-      {flash ? (
-        <div className="phone-flash" role="dialog">
-          <div>
-            <p>{tx("Mesajınız geldi")}</p>
-            <h2>{flash.title}</h2>
-            <p>{flash.message}</p>
-            {flash.location ? <p className="phone-muted">{flash.location}</p> : null}
-            {flash.already ? <p className="phone-muted">{tx("Bu etiketi daha önce okuttunuz.")}</p> : null}
-            <button className="phone-btn" type="button" onClick={() => { setFlash(null); if (registered) setTab("mesaj"); }}>
-              {registered ? tx("Bildirimlere geç") : tx("Kapat")}
-            </button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
