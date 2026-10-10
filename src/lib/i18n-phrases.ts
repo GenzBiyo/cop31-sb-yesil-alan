@@ -52,11 +52,11 @@ export const EN: Record<string, string> = {
   "Bağlantı": "Link",
   "Resim, PDF veya bağlantı ekleyin.": "Add an image, a PDF, or a link.",
   "Eşantiyon dağıtımı": "Giveaway distribution",
-  "bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve stand dışına ürün konmaz.":
-    "is from the information counter (12) and the reception desk (2). Only cleared items leave these points. Nothing is placed in aisles or outside the stand.",
+  "resepsiyon masasından ve soldaki bilgilendirme ekranından yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve pavilyon dışına ürün konmaz.":
+    "is from the reception desk and the information screen on the left. Only cleared items leave these points. Nothing is placed in aisles or outside the pavilion.",
   "Eşantiyon kayıtları": "Giveaway records",
-  "Dağıtım, alan planındaki bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.":
-    "Distribution is from the information counter (12) and the reception desk (2) on the floor plan. No giveaway or catering leaves these points without a cleared decision.",
+  "Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranından yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.":
+    "Distribution is from the reception desk and the information screen on the left of the floor plan. No giveaway or catering leaves these points without a cleared decision.",
   "Dağıtılacak eşantiyon veya ikram": "Giveaway or catering to serve",
   "Tanım": "Description",
   "Adet": "Quantity",
@@ -68,11 +68,11 @@ export const EN: Record<string, string> = {
   "Pavilyon kullanım kuralları": "Pavilion use rules",
   "Paydaş katılım, stant, ekran, eşantiyon, ikram ve marka kuralları.":
     "Stakeholder participation, stand, screen, giveaway, catering and brand rules.",
-  "Fuar standı ön görünüşü, planı ve yan görünüşleri.": "Stand front view, plan and side elevations.",
+  "Sağlık Bakanlığı pavilyonu: perspektif ve ön görünüş. 50 m².": "Ministry of Health pavilion: perspective and front elevation. 50 m².",
   "12 günlük takvim, etkinlikler ve konuşmalar.": "12-day calendar, events and talks.",
   "Program, kurallar, alan planı ve firma hazırlık paketi.": "Programme, rules, floor plan and company prep pack.",
-  "T.C. Sağlık Bakanlığı fuar standı. 16.000 mm × 5.000 mm, yükseklik 3.200 mm. Üstte ön görünüş, altta plan ve yan görünüşler.":
-    "Ministry of Health exhibition stand. 16,000 mm × 5,000 mm, height 3,200 mm. Front view above, plan and side elevations below.",
+  "T.C. Sağlık Bakanlığı pavilyonu. 50 m². Üstte perspektif, altta ön görünüş.":
+    "Ministry of Health pavilion. 50 m². Perspective above, front elevation below.",
   "Alan planı PDF": "Floor plan PDF",
   "Gerekçe": "Reason",
   "kayıt onay bekliyor": "items awaiting clearance",

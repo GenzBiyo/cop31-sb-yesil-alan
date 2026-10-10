@@ -8,7 +8,7 @@ const DOCS = [
   { slug: "program", title: "Pavilion programı", text: "12 günlük takvim, etkinlikler ve konuşmalar." },
   { slug: "etkinlikler", title: "Etkinlikler ve paneller", text: "Panel başlıkları, paydaşlar, panelist ve moderatör listesi." },
   { slug: "pavilion-kurallar", title: "Pavilyon kullanım kuralları", text: "Paydaş katılım, stant, ekran, eşantiyon, ikram ve marka kuralları." },
-  { slug: "alan-plani", title: "Alan planı", text: "Fuar standı ön görünüşü, planı ve yan görünüşleri." },
+  { slug: "alan-plani", title: "Alan planı", text: "Sağlık Bakanlığı pavilyonu: perspektif ve ön görünüş. 50 m²." },
   { slug: "firma-dokuman", title: "Firma hazırlık dökümanı", text: "Akreditasyon, kurallar, teslim tarihleri ve teknik ihtiyaçlar." },
 ];
 

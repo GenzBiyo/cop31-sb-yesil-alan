@@ -43,7 +43,7 @@ export default function GiveawayPage() {
       <div>
         <h1 className="display text-4xl">{tx("Eşantiyon ve İkram")}</h1>
         <p className="text-[#57534e]">
-          {tx("Dağıtım, alan planındaki bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.")}
+          {tx("Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranından yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.")}
         </p>
       </div>
       {error ? <p className="text-sm text-[#E31C23]">{tx(error)}</p> : null}

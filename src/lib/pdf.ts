@@ -145,9 +145,9 @@ export async function pdfSpace(): Promise<Buffer> {
   doc.on("data", (c) => chunks.push(c as Buffer));
   const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
   header(doc, "Alan Planı");
-  doc.fontSize(10).fillColor("#333").text("T.C. Sağlık Bakanlığı fuar standı. Ölçü 16.000 mm × 5.000 mm, yükseklik 3.200 mm. Üstte ön görünüş, altta plan ve yan görünüşler.");
+  doc.fontSize(10).fillColor("#333").text("T.C. Sağlık Bakanlığı pavilyonu. 50 m². Üstte perspektif, altta ön görünüş.");
   doc.moveDown(0.4);
-  const image = path.join(process.cwd(), "public", "brand", "fuar-standi.jpg");
+  const image = path.join(process.cwd(), "public", "brand", "sb-pavilyon.png");
   if (fs.existsSync(image)) {
     doc.image(image, 48, doc.y, { fit: [500, 640], align: "center" });
   }

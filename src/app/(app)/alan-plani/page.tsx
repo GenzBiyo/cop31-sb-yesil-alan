@@ -12,22 +12,22 @@ export default function SpacePage() {
         <div>
           <h1 className="display text-4xl">{tx("Alan planı")}</h1>
           <p className="text-[#57534e]">
-            {tx("T.C. Sağlık Bakanlığı fuar standı. 16.000 mm × 5.000 mm, yükseklik 3.200 mm. Üstte ön görünüş, altta plan ve yan görünüşler.")}
+            {tx("T.C. Sağlık Bakanlığı pavilyonu. 50 m². Üstte perspektif, altta ön görünüş.")}
           </p>
         </div>
         <a className="btn" href="/api/pdf/alan-plani">{tx("Alan planı PDF")}</a>
       </div>
       <div className="card p-3 overflow-auto bg-white">
         <img
-          src="/brand/fuar-standi.jpg"
-          alt="T.C. Sağlık Bakanlığı fuar standı tasarımı, ön görünüş ve plan"
-          className="w-full h-auto min-w-[720px]"
+          src="/brand/sb-pavilyon.png"
+          alt="T.C. Sağlık Bakanlığı pavilyonu, perspektif ve ön görünüş, 50 metrekare"
+          className="w-full h-auto"
         />
       </div>
       <div className="card p-4 text-sm text-[#1c1917] space-y-2">
         <p>
           <strong>{tx("Eşantiyon dağıtımı")}</strong>{" "}
-          {tx("bilgilendirme standından (12) ve resepsiyon masasından (2) yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve stand dışına ürün konmaz.")}
+          {tx("resepsiyon masasından ve soldaki bilgilendirme ekranından yapılır. Yalnızca Uygun kararı alan ürünler bu noktalardan çıkar. Geçiş alanına ve pavilyon dışına ürün konmaz.")}
         </p>
         {me && me.role !== "SAGLIK" ? (
           <p>
