@@ -146,7 +146,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
             {qrSrc ? <img src={qrSrc} alt={tx("Uygulamayı telefona indir")} width={112} height={112} /> : null}
             <span>
               <strong>{tx("Uygulamayı telefona indir")}</strong>
-              <em>{tx("Karekodu okutun, ana ekrana ekleyin.")}</em>
+              <em>{tx("Karekodu okutun. Android’de Chrome, iPhone’da Safari.")}</em>
             </span>
           </a>
 

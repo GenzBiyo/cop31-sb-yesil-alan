@@ -195,6 +195,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [standalone, setStandalone] = useState(false);
   const [ios, setIos] = useState(false);
+  const [iosChrome, setIosChrome] = useState(false);
   const [phone, setPhone] = useState(false);
   const [useBrowser, setUseBrowser] = useState(true);
   const [cameraOn, setCameraOn] = useState(false);
@@ -227,6 +228,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setStandalone(standaloneMode);
     const apple = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     setIos(apple);
+    setIosChrome(apple && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(navigator.userAgent));
     setPhone(apple || /Android/i.test(navigator.userAgent));
     setUseBrowser(standaloneMode || localStorage.getItem("cop31-use-browser") === "1");
     const onPrompt = (event: Event) => {
@@ -464,9 +466,16 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   async function install() {
     if (!installEvent) return;
     await installEvent.prompt();
+    const choice = await installEvent.userChoice;
     setInstallEvent(null);
+    if (choice.outcome === "accepted") await enablePush();
     localStorage.setItem("cop31-use-browser", "1");
     setUseBrowser(true);
+  }
+
+  function openInSafari() {
+    const href = window.location.href.replace(/^https:\/\//, "x-safari-https://");
+    window.location.href = href;
   }
 
   function continueInBrowser() {
@@ -538,6 +547,12 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
       <div className="phone-scroll">
         {error ? <p className="phone-error">{tx(error) === error ? error : tx(error)}</p> : null}
+        {standalone && entered && state && !state.device.push ? (
+          <div className="phone-card">
+            <p>{tx("Bildirimleri açın; salon anonsu simgeden gelsin.")}</p>
+            <button className="phone-btn" type="button" onClick={() => void enablePush()}>{tx("Bildirimleri aç")}</button>
+          </div>
+        ) : null}
 
         {state && !entered ? (
           <form className="phone-card" onSubmit={saveProfile}>
@@ -820,24 +835,30 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         ))}
       </nav> : null}
 
-      {entered && phone && !standalone && !useBrowser && !initialCode && !flash ? (
+      {phone && !standalone && !useBrowser && !initialCode && !flash ? (
         <div className="phone-setup" role="dialog">
           <img src="/icons/saglik-192.png" alt="" width={72} height={72} />
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>
-          <h2>COP31</h2>
+          <h2>COP31 Sağlık</h2>
           <p>{tx("Ana ekrana ekleyin. Simge uygulama gibi durur, bildirimler o zaman gelir.")}</p>
           {installEvent ? (
             <button className="phone-btn" type="button" onClick={() => void install()}>{tx("Telefona ekle")}</button>
+          ) : iosChrome ? (
+            <>
+              <p>{tx("iPhone’da Chrome ana ekrana ekleyemez. Aynı adresi Safari ile açın.")}</p>
+              <button className="phone-btn" type="button" onClick={openInSafari}>{tx("Safari’de aç")}</button>
+            </>
           ) : ios ? (
             <ol>
+              <li>{tx("Bu sayfa Safari’de açık olmalı.")}</li>
               <li>{tx("Alttaki Paylaş karesine basın.")}</li>
               <li>{tx("Ana Ekrana Ekle’yi seçin.")}</li>
               <li>{tx("Ekle’ye basın, sonra simgeden açın.")}</li>
             </ol>
           ) : (
             <ol>
-              <li>{tx("Tarayıcı menüsünü açın.")}</li>
-              <li>{tx("Ana ekrana ekle veya Uygulamayı yükle’yi seçin.")}</li>
+              <li>{tx("Chrome menüsünü açın.")}</li>
+              <li>{tx("Uygulamayı yükle veya Ana ekrana ekle’yi seçin.")}</li>
               <li>{tx("Simgeden açınca bildirim izni sorun.")}</li>
             </ol>
           )}
@@ -998,4 +1019,5 @@ type BarcodeDetectorCtor = new (opts: { formats: string[] }) => {
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };

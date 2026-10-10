@@ -113,8 +113,8 @@ export default function VisitorAdminPage() {
       <section className="grid lg:grid-cols-[220px_1fr] gap-4">
         <div className="card p-4 text-center">
           <img src="/api/qr?path=/u" alt="Uygulama karekodu" className="mx-auto w-40 h-40" />
-          <p className="text-sm mt-2">Telefon bu kodu okutunca uygulama açılır.</p>
-          <a className="text-sm text-[#0077C2] underline" href="/u">/u</a>
+          <p className="text-sm mt-2">Telefon bu kodu okutunca uygulama açılır. Android’de Chrome, iPhone’da Safari kullanılsın.</p>
+          <a className="text-sm text-[#0077C2] underline" href="/u">cop31saglik.com/u</a>
         </div>
         <div className="grid sm:grid-cols-4 gap-2">
           {[
