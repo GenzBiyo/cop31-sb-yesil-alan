@@ -1082,6 +1082,10 @@ export const EN: Record<string, string> = {
     "Add it to your home screen. The icon behaves like an app, and notifications start then.",
   "iPhone’da Chrome ana ekrana ekleyemez. Aynı adresi Safari ile açın.":
     "On iPhone, Chrome cannot add this to the home screen. Open the same address in Safari.",
+  "iPhone’da Chrome ana ekrana ekleyemez. Adresi kopyalayıp Safari’de açın.":
+    "On iPhone, Chrome cannot add this to the home screen. Copy the address and open it in Safari.",
+  "Adresi kopyala": "Copy the address",
+  "Kopyalandı. Safari’yi açıp yapıştırın.": "Copied. Open Safari and paste it.",
   "Safari’de aç": "Open in Safari",
   "Bu sayfa Safari’de açık olmalı.": "This page must be open in Safari.",
   "Chrome menüsünü açın.": "Open the Chrome menu.",

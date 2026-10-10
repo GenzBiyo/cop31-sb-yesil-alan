@@ -2742,16 +2742,22 @@ body:has(.phone-app) {
   color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 28px 20px 32px;
+  justify-content: center;
+  gap: 10px;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  overflow-y: auto;
 }
 .phone-setup img { border-radius: 16px; }
 .phone-setup h2 {
   margin: 0;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 56px;
-  line-height: 0.85;
+  font-size: 40px;
+  line-height: 0.95;
+}
+.phone-setup .phone-link {
+  margin: 0;
+  font-weight: 700;
+  word-break: break-all;
 }
 .phone-setup p { margin: 0; }
 .phone-setup ol { margin: 8px 0 12px; padding-left: 18px; }

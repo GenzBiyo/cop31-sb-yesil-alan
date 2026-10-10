@@ -196,6 +196,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const [standalone, setStandalone] = useState(false);
   const [ios, setIos] = useState(false);
   const [iosChrome, setIosChrome] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [phone, setPhone] = useState(false);
   const [useBrowser, setUseBrowser] = useState(true);
   const [cameraOn, setCameraOn] = useState(false);
@@ -473,9 +474,19 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     setUseBrowser(true);
   }
 
-  function openInSafari() {
-    const href = window.location.href.replace(/^https:\/\//, "x-safari-https://");
-    window.location.href = href;
+  async function copyAppLink() {
+    const url = "https://cop31saglik.com/u";
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const input = document.createElement("input");
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    setCopied(true);
   }
 
   function continueInBrowser() {
@@ -845,8 +856,11 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             <button className="phone-btn" type="button" onClick={() => void install()}>{tx("Telefona ekle")}</button>
           ) : iosChrome ? (
             <>
-              <p>{tx("iPhone’da Chrome ana ekrana ekleyemez. Aynı adresi Safari ile açın.")}</p>
-              <button className="phone-btn" type="button" onClick={openInSafari}>{tx("Safari’de aç")}</button>
+              <p>{tx("iPhone’da Chrome ana ekrana ekleyemez. Adresi kopyalayıp Safari’de açın.")}</p>
+              <p className="phone-link">cop31saglik.com/u</p>
+              <button className="phone-btn" type="button" onClick={() => void copyAppLink()}>
+                {copied ? tx("Kopyalandı. Safari’yi açıp yapıştırın.") : tx("Adresi kopyala")}
+              </button>
             </>
           ) : ios ? (
             <ol>
