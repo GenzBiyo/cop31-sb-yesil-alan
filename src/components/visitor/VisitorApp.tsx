@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/I18nProvider";
 import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 import { SessionBrief } from "@/components/SessionBrief";
@@ -179,6 +180,7 @@ function urlBase64ToUint8Array(value: string) {
 
 export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   const { tx, tag } = useI18n();
+  const router = useRouter();
   const [token, setToken] = useState("");
   const [state, setState] = useState<AppState | null>(null);
   const [tab, setTab] = useState<Tab>(initialCode ? "okut" : "gundem");
@@ -343,6 +345,11 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
     return () => stopCamera.current?.();
   }, []);
 
+  useEffect(() => {
+    const onScan = (guest && !(state?.device.name || heldName)) || tab === "okut";
+    if (!onScan) stopCamera.current?.();
+  }, [guest, heldName, state?.device.name, tab]);
+
   async function saveProfile(event: React.FormEvent) {
     event.preventDefault();
     if (!token) return;
@@ -352,6 +359,8 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
       const guestProfile = { ...profile, role: "ziyaretci", companyId: "", personId: "" };
       const next = await call<AppState>(token, "/api/app", { method: "POST", body: JSON.stringify(guestProfile) });
       localStorage.setItem(PROFILE_KEY, JSON.stringify(guestProfile));
+      localStorage.removeItem(GUEST_KEY);
+      setGuest(false);
       setProfile(guestProfile);
       setState(next);
     } catch (err) {
@@ -423,44 +432,51 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
   async function openCamera() {
     setCameraNote("");
-    const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
-    if (!Detector || !navigator.mediaDevices?.getUserMedia) {
+    const video = videoRef.current;
+    if (!video || !navigator.mediaDevices?.getUserMedia) {
       setCameraNote(tx("Bu tarayıcı kameradan okuyamıyor. Telefonun kendi kamerasıyla karekodu okutun ya da kodu yazın."));
       return;
     }
+    setCameraOn(true);
+    let stream: MediaStream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      const video = videoRef.current;
-      if (!video) return;
-      video.srcObject = stream;
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+    } catch {
+      setCameraOn(false);
+      setCameraNote(tx("Kameraya izin verilmedi. Kodu yazabilir veya telefon kamerasıyla karekodu okutabilirsiniz."));
+      return;
+    }
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    video.srcObject = stream;
+    try {
       await video.play();
-      const detector = new Detector({ formats: ["qr_code"] });
-      let stopped = false;
+    } catch {
+      /* sessiz video; okuyucu yeniden dener */
+    }
+    try {
+      const { BrowserMultiFormatReader } = await import("@zxing/browser");
+      const reader = new BrowserMultiFormatReader();
+      let handled = false;
+      let controls: { stop: () => void } | null = null;
+      controls = await reader.decodeFromStream(stream, video, (result) => {
+        if (!result || handled) return;
+        handled = true;
+        const raw = result.getText();
+        controls?.stop();
+        stopCamera.current = null;
+        setCameraOn(false);
+        void scan(raw);
+      });
       stopCamera.current = () => {
-        stopped = true;
-        stream.getTracks().forEach((track) => track.stop());
-        if (video.srcObject) video.srcObject = null;
+        handled = true;
+        controls?.stop();
         setCameraOn(false);
       };
-      setCameraOn(true);
-      const tick = async () => {
-        if (stopped) return;
-        try {
-          const found = await detector.detect(video);
-          const raw = found[0]?.rawValue;
-          if (raw) {
-            stopCamera.current?.();
-            void scan(raw);
-            return;
-          }
-        } catch {
-          /* kare henüz hazır değil */
-        }
-        if (!stopped) window.setTimeout(() => void tick(), 280);
-      };
-      void tick();
     } catch {
-      setCameraNote(tx("Kameraya izin verilmedi. Kodu yazabilir veya telefon kamerasıyla karekodu okutabilirsiniz."));
+      stream.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+      setCameraOn(false);
+      setCameraNote(tx("Bu tarayıcı kameradan okuyamıyor. Telefonun kendi kamerasıyla karekodu okutun ya da kodu yazın."));
     }
   }
 
@@ -497,9 +513,40 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   function continueAsGuest() {
     localStorage.setItem(GUEST_KEY, "1");
     setGuest(true);
+    setTab("okut");
   }
 
-  const entered = Boolean(state?.device.name) || guest || heldName;
+  function leaveGuest() {
+    localStorage.removeItem(GUEST_KEY);
+    setGuest(false);
+  }
+
+  const registered = Boolean(state?.device.name) || heldName;
+  const guestScan = guest && !registered;
+
+  function goBack() {
+    if (flash) {
+      setFlash(null);
+      return;
+    }
+    if (cameraOn) {
+      stopCamera.current?.();
+      return;
+    }
+    if (guestScan) {
+      leaveGuest();
+      return;
+    }
+    const here = window.location.pathname;
+    if (window.history.length > 1) {
+      window.history.back();
+      window.setTimeout(() => {
+        if (window.location.pathname === here) router.push("/");
+      }, 350);
+    } else {
+      router.push("/");
+    }
+  }
 
   const joined = new Set((state?.joins || []).map((item) => `${item.kind}:${item.refId}`));
   const day = state?.days.find((item) => item.id === dayId) || state?.days[0];
@@ -543,11 +590,14 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
   return (
     <div className="phone-app">
       <header className="phone-top">
-        <div>
-          <p>{tx("T.C. Sağlık Bakanlığı")}</p>
-          <h1>COP31</h1>
+        <button className="phone-back" type="button" onClick={goBack}>{tx("Geri")}</button>
+        <div className="phone-top-copy">
+          <div>
+            <p>{tx("T.C. Sağlık Bakanlığı")}</p>
+            <h1>COP31</h1>
+          </div>
+          <span>{tx("Antalya · 9–20 Kasım 2026")}</span>
         </div>
-        <span>{tx("Antalya · 9–20 Kasım 2026")}</span>
       </header>
 
       {phone && !standalone && useBrowser ? (
@@ -558,14 +608,14 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
 
       <div className="phone-scroll">
         {error ? <p className="phone-error">{tx(error) === error ? error : tx(error)}</p> : null}
-        {standalone && entered && state && !state.device.push ? (
+        {standalone && registered && state && !state.device.push ? (
           <div className="phone-card">
             <p>{tx("Bildirimleri açın; salon anonsu simgeden gelsin.")}</p>
             <button className="phone-btn" type="button" onClick={() => void enablePush()}>{tx("Bildirimleri aç")}</button>
           </div>
         ) : null}
 
-        {state && !entered ? (
+        {state && !registered && !guest ? (
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
             <p>{tx("Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.")}</p>
@@ -575,11 +625,11 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" />
             <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} inputMode="tel" />
             <button className="phone-btn" disabled={busy} type="submit">{tx("Kaydet ve devam et")}</button>
-            <button className="phone-btn is-quiet" type="button" onClick={continueAsGuest}>{tx("Kayıt olmadan devam et")}</button>
+            <button className="phone-btn is-quiet" type="button" onClick={continueAsGuest}>{tx("Üye olmadan karekod okut")}</button>
           </form>
         ) : null}
 
-        {entered && tab === "gundem" ? (
+        {registered && tab === "gundem" ? (
           <section>
             <h2>{tx("COP31 Sağlık Bakanlığı gündemi")}</h2>
             <a className="phone-btn is-quiet block mb-3" href="/stant-takvimi">{tx("Stand takvimi")}</a>
@@ -621,11 +671,12 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {entered && tab === "okut" ? (
+        {guestScan || (registered && tab === "okut") ? (
           <section>
             <h2>{tx("Etiket okut")}</h2>
             <p className="phone-muted">{tx("Stanttaki, kapıdaki veya koltuktaki karekodu okutun. Mesaj telefonunuza düşer.")}</p>
-            <video ref={videoRef} className={`phone-camera ${cameraOn ? "is-on" : ""}`} playsInline muted />
+            {guestScan ? <p className="phone-muted">{tx("Kayıt olmadan yalnızca karekod okutulur. Gündem, soru ve görüşme için önce bilgilerinizi yazın.")}</p> : null}
+            <video ref={videoRef} className={`phone-camera ${cameraOn ? "is-on" : ""}`} playsInline muted autoPlay />
             {cameraOn ? (
               <button className="phone-btn is-quiet" type="button" onClick={() => stopCamera.current?.()}>{tx("Kamerayı kapat")}</button>
             ) : (
@@ -642,10 +693,13 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
               <input className="phone-field" placeholder={tx("Etiket kodu")} value={manual} onChange={(e) => setManual(e.target.value.toUpperCase())} />
               <button className="phone-btn" disabled={busy || !manual.trim()} type="submit">{tx("Kodu gönder")}</button>
             </form>
+            {guestScan ? (
+              <button className="phone-btn" type="button" onClick={leaveGuest}>{tx("Bilgilerimi doldur")}</button>
+            ) : null}
           </section>
         ) : null}
 
-        {entered && tab === "katil" ? (
+        {registered && tab === "katil" ? (
           <section>
             <h2>{tx("Etkinliklere katıl")}</h2>
             {(state?.joins || []).length ? (
@@ -678,7 +732,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {entered && tab === "soru" ? (
+        {registered && tab === "soru" ? (
           <section>
             <h2>{tx("Sunumda soru sor")}</h2>
             <p className="phone-muted">{tx("Konuşmacı ve firma, kendi oturumuna gelen soruyu burada yanıtlar.")}</p>
@@ -702,7 +756,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {entered && tab === "gorus" ? (
+        {registered && tab === "gorus" ? (
           <section>
             <h2>{tx("İkili görüşme ve toplantı")}</h2>
             <p className="phone-muted">{tx("Talep bakanlığa, bir firmaya veya konuşmacıya gider. Kabul edilince saat ve yer düzenlenir.")}</p>
@@ -789,7 +843,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
           </section>
         ) : null}
 
-        {entered && tab === "mesaj" ? (
+        {registered && tab === "mesaj" ? (
           <section>
             <h2>{tx("Bildirimler")}</h2>
             <p className="phone-muted">{tx("Etiket, soru yanıtı ve görüşme haberleri burada toplanır. Bu bir sohbet kutusu değildir.")}</p>
@@ -827,7 +881,7 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
         ) : null}
       </div>
 
-      {entered ? <nav className="phone-nav">
+      {registered ? <nav className="phone-nav">
         {(
           [
             ["gundem", "Gündem"],
@@ -888,8 +942,8 @@ export function VisitorApp({ initialCode = "" }: { initialCode?: string }) {
             <p>{flash.message}</p>
             {flash.location ? <p className="phone-muted">{flash.location}</p> : null}
             {flash.already ? <p className="phone-muted">{tx("Bu etiketi daha önce okuttunuz.")}</p> : null}
-            <button className="phone-btn" type="button" onClick={() => { setFlash(null); setTab("mesaj"); }}>
-              {tx("Bildirimlere geç")}
+            <button className="phone-btn" type="button" onClick={() => { setFlash(null); if (registered) setTab("mesaj"); }}>
+              {registered ? tx("Bildirimlere geç") : tx("Kapat")}
             </button>
           </div>
         </div>
@@ -1026,10 +1080,6 @@ function MeetingCard({
     </article>
   );
 }
-
-type BarcodeDetectorCtor = new (opts: { formats: string[] }) => {
-  detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]>;
-};
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;

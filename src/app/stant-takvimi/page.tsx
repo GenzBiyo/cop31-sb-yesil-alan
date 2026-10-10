@@ -12,6 +12,7 @@ export default function StandCalendarPage() {
         <h1 className="display text-4xl mt-2">{tx("Stand takvimi")}</h1>
         <p className="text-[#C8EEFA] mt-1">{tx("9–20 Kasım 2026 · Antalya EXPO Center · Blue Zone")}</p>
         <p className="text-[#C8EEFA] mt-1">09:00–12:00 · 12:00–15:00 · 15:00–18:00</p>
+        <a href="/u" className="inline-block mt-3 mr-4 text-sm underline text-[#C8EEFA]">{tx("Uygulamaya dön")}</a>
         <a href="/p" className="inline-block mt-3 text-sm underline text-[#C8EEFA]">{tx("Gündeme dön")}</a>
       </header>
       <div className="max-w-5xl mx-auto p-4 sm:p-5">

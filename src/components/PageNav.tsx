@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, Home } from "lucide-react";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -25,13 +25,26 @@ function hidden(pathname: string) {
 
 export function PageNav() {
   const pathname = usePathname() || "/";
+  const router = useRouter();
   const { tx } = useI18n();
   if (hidden(pathname)) return null;
+  const parent = parentOf(pathname);
+  function goBack() {
+    const here = window.location.pathname;
+    if (window.history.length > 1) {
+      window.history.back();
+      window.setTimeout(() => {
+        if (window.location.pathname === here) router.push(parent);
+      }, 350);
+    } else {
+      router.push(parent);
+    }
+  }
   return (
     <nav className="page-nav no-print" aria-label={tx("Sayfa gezintisi")}>
-      <Link href={parentOf(pathname)} aria-label={tx("Geri")} title={tx("Geri")}>
+      <button type="button" onClick={goBack} aria-label={tx("Geri")} title={tx("Bir önceki sayfaya dön")}>
         <ArrowLeft size={17} />
-      </Link>
+      </button>
       <Link href="/" aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
         <Home size={17} />
       </Link>

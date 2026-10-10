@@ -1120,6 +1120,12 @@ export const EN: Record<string, string> = {
     "Your name shows on questions and the attendance list. If you add an email, programme news goes there too.",
   "Kaydet ve devam et": "Save and continue",
   "Kayıt olmadan devam et": "Continue without registering",
+  "Üye olmadan karekod okut": "Scan a QR code without joining",
+  "Bilgilerimi doldur": "Fill in my details",
+  "Kayıt olmadan yalnızca karekod okutulur. Gündem, soru ve görüşme için önce bilgilerinizi yazın.":
+    "Without an account you can only scan QR codes. Fill in your details first for the agenda, questions and meetings.",
+  "Bir önceki sayfaya dön": "Back to the previous page",
+  "Uygulamaya dön": "Back to the app",
   "Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.":
     "Register first. The agenda, questions and messages open after that.",
   "COP31 Sağlık Bakanlığı gündemi": "COP31 Ministry of Health agenda",
