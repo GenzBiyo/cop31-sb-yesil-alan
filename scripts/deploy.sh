@@ -7,7 +7,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -80,6 +80,11 @@ fi
 if [ ! -f "$APP/.hatira-shots-cleared" ]; then
   npx tsx scripts/clear-hatira-shots.ts
   touch "$APP/.hatira-shots-cleared"
+fi
+
+if [ ! -f "$APP/.mail-cop31-tr" ]; then
+  npx tsx scripts/mail-cop31-tr.ts
+  touch "$APP/.mail-cop31-tr"
 fi
 
 echo DEPLOY_OK

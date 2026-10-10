@@ -25,7 +25,7 @@ function slugify(name: string) {
 }
 
 function emailFromSlug(slug: string) {
-  return `${slug}@firma.cop31.tr`;
+  return `${slug}@cop31.tr`;
 }
 
 const STANDARD_RULES = [
@@ -144,7 +144,7 @@ async function main() {
         context: unepTr.context,
         contribution: unepTr.contribution,
         status: "Onaylandı",
-        contactEmail: "unep@firma.cop31.tr",
+        contactEmail: "unep@cop31.tr",
       },
     });
     companies.push(created);

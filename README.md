@@ -24,7 +24,7 @@ Demo şifre: `Cop31!2026`
 | --- | --- |
 | Admin | admin@cop31.saglik.gov.tr |
 | Sağlık Bakanlığı | sggm@cop31.saglik.gov.tr |
-| Firma | atabay-ilac@firma.cop31.tr, sanofi@firma.cop31.tr, … |
+| Firma | atabay-ilac@cop31.tr, sanofi@cop31.tr, … |
 
 ## Excel bağlantısı
 

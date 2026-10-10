@@ -5,7 +5,7 @@ import { DEMO_PASSWORD } from "./constants";
 function emailFor(slug: string, contactEmail: string) {
   const contact = contactEmail.trim().toLowerCase();
   if (contact.includes("@")) return contact;
-  return `${slug}@firma.cop31.tr`;
+  return `${slug}@cop31.tr`;
 }
 
 export async function ensureCompanyAccounts() {
@@ -20,7 +20,7 @@ export async function ensureCompanyAccounts() {
     let email = emailFor(company.slug, company.contactEmail);
     const taken = await prisma.user.findUnique({ where: { email } });
     if (taken && taken.companyId !== company.id) {
-      email = `${company.slug}@firma.cop31.tr`;
+      email = `${company.slug}@cop31.tr`;
       const again = await prisma.user.findUnique({ where: { email } });
       if (again) continue;
     } else if (taken) {
