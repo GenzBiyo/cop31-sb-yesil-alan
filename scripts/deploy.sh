@@ -3,6 +3,35 @@ set -euo pipefail
 APP=/var/www/cop31
 cd "$APP"
 
+start_app() {
+  if pm2 describe cop31 >/dev/null 2>&1; then
+    pm2 restart cop31
+  else
+    pm2 start node --name cop31 --cwd "$APP" -- ./node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
+  fi
+}
+
+revive_if_down() {
+  if [ -f /tmp/cop31-deploying ]; then
+    return 0
+  fi
+  if ! command -v pm2 >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! pm2 describe cop31 >/dev/null 2>&1; then
+    if [ -d "$APP/.next" ]; then
+      pm2 start node --name cop31 --cwd "$APP" -- ./node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000 || true
+    fi
+    return 0
+  fi
+  pid="$(pm2 pid cop31 2>/dev/null | tr -d '[:space:]' || true)"
+  if [ -z "$pid" ] || [ "$pid" = "0" ]; then
+    pm2 restart cop31 >/dev/null 2>&1 || true
+  fi
+}
+
+trap revive_if_down EXIT
+
 bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
@@ -33,14 +62,50 @@ PY
 npm install
 npx prisma generate
 npx prisma db push
-NODE_OPTIONS=--max-old-space-size=3072 npx next build
+revive_if_down
 
+rm -rf .next-staging
+NEXT_DIST_DIR=.next-staging NODE_OPTIONS=--max-old-space-size=3072 npx next build
+
+touch /tmp/cop31-deploying
 if pm2 describe cop31 >/dev/null 2>&1; then
-  pm2 restart cop31
-else
-  pm2 start node --name cop31 --cwd "$APP" -- ./node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
+  pm2 stop cop31 || true
+fi
+rm -rf .next-old
+if [ -d .next ]; then
+  mv .next .next-old
+fi
+if ! mv .next-staging .next; then
+  if [ -d .next-old ]; then
+    mv .next-old .next
+  fi
+  start_app || true
+  rm -f /tmp/cop31-deploying
+  exit 1
+fi
+if ! start_app; then
+  rm -rf .next
+  if [ -d .next-old ]; then
+    mv .next-old .next
+  fi
+  start_app || true
+  rm -f /tmp/cop31-deploying
+  exit 1
 fi
 pm2 save
+rm -f /tmp/cop31-deploying
+
+if ! systemctl is-enabled pm2-root.service >/dev/null 2>&1; then
+  pm2 startup systemd -u root --hp /root >/dev/null 2>&1 || true
+  pm2 save || true
+fi
+
+CURL="$(command -v curl || true)"
+PM2="$(command -v pm2 || true)"
+if [ -n "$CURL" ] && [ -n "$PM2" ]; then
+  line="*/2 * * * * test -f /tmp/cop31-deploying && exit 0; $CURL -fsS --max-time 20 http://127.0.0.1:3000/ >/dev/null || $PM2 restart cop31 >/dev/null 2>&1 # cop31-stay-up"
+  (crontab -l 2>/dev/null | grep -v 'cop31-stay-up' || true; echo "$line") | crontab -
+fi
 
 if sudo -n true >/dev/null 2>&1; then
   if ! sudo nginx -T 2>/dev/null | grep -q "gzip on;"; then

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Copy the live database, uploads, and env aside so a code update can restore them.
+# The running site is left in place. SQLite is snapshotted online.
 set -euo pipefail
 
 APP=/var/www/cop31
@@ -7,20 +8,24 @@ KEEP=/var/www/cop31-keep
 cd "$APP"
 
 save() {
-  if command -v pm2 >/dev/null 2>&1 && pm2 describe cop31 >/dev/null 2>&1; then
-    pm2 stop cop31 || true
-  fi
   mkdir -p "$KEEP/prisma" "$KEEP/markers"
   if [ -d public/uploads ] && [ -n "$(ls -A public/uploads 2>/dev/null || true)" ]; then
     rm -rf "$KEEP/uploads"
     mkdir -p "$KEEP/uploads"
     cp -a public/uploads/. "$KEEP/uploads/"
   fi
-  for name in dev.db dev.db-journal dev.db-wal dev.db-shm; do
-    if [ -f "prisma/$name" ]; then
-      cp -a "prisma/$name" "$KEEP/prisma/$name"
+  if [ -f prisma/dev.db ]; then
+    if command -v sqlite3 >/dev/null 2>&1; then
+      sqlite3 prisma/dev.db ".backup '$KEEP/prisma/dev.db'"
+    else
+      cp -a prisma/dev.db "$KEEP/prisma/dev.db"
+      for name in dev.db-journal dev.db-wal dev.db-shm; do
+        if [ -f "prisma/$name" ]; then
+          cp -a "prisma/$name" "$KEEP/prisma/$name"
+        fi
+      done
     fi
-  done
+  fi
   if [ -f .env ]; then
     cp -a .env "$KEEP/.env"
   fi
@@ -37,15 +42,13 @@ restore() {
     mkdir -p public/uploads
     cp -a "$KEEP/uploads/." public/uploads/
   fi
-  if [ -d "$KEEP/prisma" ]; then
+  # Leave a live database alone. Replacing it under the running app corrupts SQLite.
+  if [ ! -f prisma/dev.db ] && [ -f "$KEEP/prisma/dev.db" ]; then
     mkdir -p prisma
-    for name in dev.db dev.db-journal dev.db-wal dev.db-shm; do
-      if [ -f "$KEEP/prisma/$name" ]; then
-        cp -a "$KEEP/prisma/$name" "prisma/$name"
-      fi
-    done
+    cp -a "$KEEP/prisma/dev.db" prisma/dev.db
+    rm -f prisma/dev.db-journal prisma/dev.db-wal prisma/dev.db-shm
   fi
-  if [ -f "$KEEP/.env" ]; then
+  if [ ! -f .env ] && [ -f "$KEEP/.env" ]; then
     cp -a "$KEEP/.env" .env
   fi
   if [ -d "$KEEP/markers" ]; then
