@@ -1380,8 +1380,30 @@ table.data td {
   .climate-earth, .climate-ring, .climate-ecg { display: none; }
   .climate-root.is-open .climate-hero { padding-top: max(3.6rem, calc(env(safe-area-inset-top) + 2.8rem)); }
   .climate-lockup { width: min(100% - 1rem, 420px); padding: 0.7rem 0.9rem 0.95rem; }
-  .climate-lockup .gate-kicker { font-size: 0.58rem; letter-spacing: 0.08em; }
-  .climate-lockup .gate-slogan { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+  .climate-lockup {
+    background: rgba(6, 32, 58, 0.78);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  .climate-lockup .gate-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: #FFFFFF;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .climate-lockup .gate-slogan,
+  .climate-lockup .gate-slogan em {
+    color: #FFFFFF;
+    background: none;
+    -webkit-text-fill-color: #FFFFFF;
+    text-shadow: none;
+    font-size: clamp(1.85rem, 8vw, 2.5rem);
+  }
+  .gate-shade {
+    background: linear-gradient(to top, rgba(6, 24, 48, 0.9) 0%, rgba(6, 24, 48, 0.42) 72%, rgba(6, 24, 48, 0.2) 100%);
+  }
+  .gate-copy h2, .gate-copy p { color: #FFFFFF; }
   .gate { min-height: 148px; }
   .sponsor-kicker { display: none; }
 }
@@ -2777,47 +2799,51 @@ body:has(.phone-app) {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding: max(18px, calc(env(safe-area-inset-top) + 10px)) 16px 12px;
-  padding-right: 7.2rem;
-  background: #0077c2;
-  color: #fff;
+  gap: 6px;
+  padding: max(52px, calc(env(safe-area-inset-top) + 46px)) 16px 14px;
+  background: #0A4E86;
+  color: #FFFFFF;
 }
 .phone-back {
   align-self: flex-start;
   width: auto;
   margin: 0;
-  padding: 2px 0 4px;
+  padding: 0 0 2px;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: #FFFFFF;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
 }
 .phone-top-copy {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 .phone-top p {
   margin: 0;
-  font-size: 13px;
-  letter-spacing: 0.04em;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 .phone-top h1 {
   margin: 0;
+  color: #FFFFFF;
   font-family: var(--font-sans), "Segoe UI", sans-serif;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 800;
 }
 .phone-top span {
-  font-size: 13px;
-  line-height: 1.3;
-  opacity: 1;
-  text-align: right;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: left;
 }
 .phone-install-link {
   border: 0;
@@ -2851,12 +2877,16 @@ body:has(.phone-app) {
 }
 .phone-setup p,
 .phone-setup li {
-  font-size: 17px;
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 650;
   line-height: 1.5;
 }
 .phone-setup .phone-link {
   margin: 0;
-  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 800;
   word-break: break-all;
 }
 .phone-setup p { margin: 0; }
@@ -2945,7 +2975,7 @@ body:has(.phone-app) {
 .phone-card summary { cursor: pointer; font-weight: 700; font-size: 17px; }
 .phone-card p, .phone-card li { font-size: 17px; line-height: 1.55; }
 .phone-card ul { margin: 8px 0 0; padding-left: 18px; }
-.phone-row { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 1.4; color: #1a4560; }
+.phone-row { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; line-height: 1.4; color: #0B1C33; font-weight: 650; }
 .concept-sheet { display: grid; gap: 14px; }
 .concept-kicker {
   margin: 0 0 8px;
@@ -2970,8 +3000,8 @@ body:has(.phone-app) {
 .concept-sheet.is-phone .concept-copy li { font-size: 17px; line-height: 1.55; }
 .concept-sheet.is-phone .concept-kicker,
 .concept-sheet.is-phone .concept-block h3 { font-size: 14px; letter-spacing: 0.04em; }
-.phone-kicker { color: #0077c2; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-.phone-muted { color: #1a4560; font-size: 15px; line-height: 1.5; }
+.phone-kicker { color: #0A4E86; font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.phone-muted { color: #0B1C33; font-size: 16px; line-height: 1.5; }
 .phone-error { background: #fff; color: #e31c23; border: 1px solid #e31c23; padding: 8px 10px; margin-bottom: 10px; font-size: 16px; }
 .phone-answer { background: #eef8fd; padding: 8px; margin-top: 6px; }
 .phone-field {
@@ -2983,6 +3013,7 @@ body:has(.phone-app) {
   margin-top: 8px;
   font-size: 16px;
 }
+.phone-field::placeholder { color: #3E5870; opacity: 1; }
 .phone-slots { margin: 10px 0; }
 .phone-slot-day { font-size: 15px; font-weight: 700; color: #0077c2; margin: 8px 0 4px; text-transform: capitalize; }
 .phone-slot-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -3037,10 +3068,10 @@ body:has(.phone-app) {
   border: 0;
   background: transparent;
   padding: 10px 2px 12px;
-  font-size: 12px;
-  line-height: 1.15;
-  font-weight: 700;
-  color: #1a4560;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #0B1C33;
 }
 .phone-nav button.is-on { color: #0077c2; }
 .phone-nav i {

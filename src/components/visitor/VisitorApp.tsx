@@ -468,10 +468,8 @@ export function VisitorApp() {
       <header className="phone-top">
         <button className="phone-back" type="button" onClick={goBack}>{tx("Geri")}</button>
         <div className="phone-top-copy">
-          <div>
-            <p>{tx("T.C. Sağlık Bakanlığı")}</p>
-            <h1>COP31</h1>
-          </div>
+          <p>{tx("T.C. Sağlık Bakanlığı")}</p>
+          <h1>COP31 Sağlık</h1>
           <span>{tx("Antalya · 9–20 Kasım 2026")}</span>
         </div>
       </header>
