@@ -336,7 +336,7 @@ export default function EventsAdminPage() {
           .filter((ev) => ev.approvalStatus !== "Onay bekliyor")
           .map((ev) => (
           <div key={ev.id} data-event={ev.id} className="space-y-2">
-            <div className={`card session-row on-dark is-event p-4 ${openId === ev.id ? "ring-2 ring-white" : ""}`}>
+            <div className={`card session-row is-event p-4 ${openId === ev.id ? "ring-2 ring-[#C5D5E4]" : ""}`}>
               <div className="flex justify-between gap-2 items-start">
                 <button
                   className="text-left flex-1 min-w-0"

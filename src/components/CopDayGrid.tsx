@@ -5,10 +5,10 @@ import type { PlanDay, PlanItem, PlanKind } from "@/lib/plan-types";
 import { useI18n } from "@/components/I18nProvider";
 
 const KIND: Record<PlanKind, { label: string; color: string; bg: string }> = {
-  panel: { label: "Panel", color: "#FFFFFF", bg: "#7A2E3A" },
-  sunum: { label: "Sunum", color: "#FFFFFF", bg: "#1A4E86" },
-  event: { label: "Etkinlik", color: "#FFFFFF", bg: "#1A6844" },
-  program: { label: "Program", color: "#FFFFFF", bg: "#3E6A88" },
+  panel: { label: "Panel", color: "#6E3A44", bg: "#F3E6E8" },
+  sunum: { label: "Sunum", color: "#2C5278", bg: "#E6F0F8" },
+  event: { label: "Etkinlik", color: "#245C42", bg: "#E5F2EB" },
+  program: { label: "Program", color: "#3E5568", bg: "#E8EEF2" },
 };
 
 export type ProgramFilter = "all" | "panel" | "sunum" | "event";

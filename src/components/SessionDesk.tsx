@@ -599,7 +599,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               const others = lineup.filter((x) => x.role !== "moderator").map((x) => x.name);
               return (
                 <div key={p.id} data-session={p.id} className="space-y-2">
-                  <div className={`card session-row on-dark p-4 ${talk ? "is-talk" : "is-panel"} ${openId === p.id ? "ring-2 ring-white" : ""}`}>
+                  <div className={`card session-row p-4 ${talk ? "is-talk" : "is-panel"} ${openId === p.id ? "ring-2 ring-[#C5D5E4]" : ""}`}>
                     <div className="flex justify-between gap-2 items-start">
                       <button
                         className="text-left flex-1 min-w-0"
