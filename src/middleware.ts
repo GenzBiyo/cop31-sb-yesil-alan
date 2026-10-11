@@ -9,6 +9,7 @@ const PUBLIC = [
   "/elci",
   "/giris",
   "/kesfet",
+  "/konusmacilar",
   "/ekran",
   "/paydas-formu",
   "/COP31saglikbakanligi",
