@@ -12,16 +12,23 @@ jobs:
     steps:
       - name: Update VPS
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          SPEAKER_SHEET_B64: ${{ secrets.SPEAKER_SHEET_B64 }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
           command_timeout: 25m
+          envs: SPEAKER_SHEET_B64
           script: |
             set -e
             cd /var/www/cop31
             git fetch origin master
             git reset --hard origin/master
+            if [ -n "${SPEAKER_SHEET_B64:-}" ]; then
+              printf '%s' "$SPEAKER_SHEET_B64" | base64 -d > /var/www/cop31/speaker-sheet.json
+              chmod 600 /var/www/cop31/speaker-sheet.json
+            fi
             chmod +x scripts/deploy.sh scripts/keep-data.sh
             bash scripts/deploy.sh

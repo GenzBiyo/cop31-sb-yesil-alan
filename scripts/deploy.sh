@@ -36,7 +36,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e speaker-sheet.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -150,6 +150,20 @@ fi
 if [ ! -f "$APP/.mail-cop31-tr" ]; then
   npx tsx scripts/mail-cop31-tr.ts
   touch "$APP/.mail-cop31-tr"
+fi
+
+if [ -f "$APP/speaker-sheet.json" ] && [ ! -f "$APP/.speaker-sheet-applied" ]; then
+  set +e
+  npx tsx scripts/apply-speaker-sheet.ts "$APP/speaker-sheet.json"
+  sheet_status=$?
+  set -e
+  rm -f "$APP/speaker-sheet.json"
+  if [ "$sheet_status" -ne 0 ]; then
+    exit "$sheet_status"
+  fi
+  touch "$APP/.speaker-sheet-applied"
+else
+  rm -f "$APP/speaker-sheet.json"
 fi
 
 echo DEPLOY_OK

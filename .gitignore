@@ -43,6 +43,8 @@ yarn-error.log*
 # deploy keys (never commit)
 deploy_key
 deploy_key.pub
+/speaker-sheet.json
+/scripts/_speakers_preview.json
 
 # vercel
 .vercel
