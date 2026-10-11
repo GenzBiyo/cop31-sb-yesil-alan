@@ -36,7 +36,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e speaker-sheet.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -164,6 +164,20 @@ if [ -f "$APP/speaker-sheet.json" ] && [ ! -f "$APP/.speaker-sheet-applied" ]; t
   touch "$APP/.speaker-sheet-applied"
 else
   rm -f "$APP/speaker-sheet.json"
+fi
+
+if [ -f "$APP/login-fix.json" ] && [ ! -f "$APP/.login-fix-applied" ]; then
+  set +e
+  npx tsx scripts/fix-login.ts "$APP/login-fix.json"
+  fix_status=$?
+  set -e
+  rm -f "$APP/login-fix.json"
+  if [ "$fix_status" -ne 0 ]; then
+    exit "$fix_status"
+  fi
+  touch "$APP/.login-fix-applied"
+else
+  rm -f "$APP/login-fix.json"
 fi
 
 echo DEPLOY_OK

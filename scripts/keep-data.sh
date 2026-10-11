@@ -29,7 +29,7 @@ save() {
   if [ -f .env ]; then
     cp -a .env "$KEEP/.env"
   fi
-  for name in .pavilion-program-applied .stands-off-agenda .session-calendar-only .hatira-shots-cleared .mail-cop31-tr .speaker-sheet-applied; do
+  for name in .pavilion-program-applied .stands-off-agenda .session-calendar-only .hatira-shots-cleared .mail-cop31-tr .speaker-sheet-applied .login-fix-applied; do
     if [ -f "$name" ]; then
       cp -a "$name" "$KEEP/markers/$name"
     fi
