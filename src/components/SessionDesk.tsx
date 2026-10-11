@@ -581,7 +581,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               const others = lineup.filter((x) => x.role !== "moderator").map((x) => x.name);
               return (
                 <div key={p.id} className="space-y-2">
-                  <div className={`card p-4 ${openId === p.id ? "ring-2 ring-[#00A3E0]" : ""}`}>
+                  <div className={`card session-row on-dark p-4 ${talk ? "is-talk" : "is-panel"} ${openId === p.id ? "ring-2 ring-white" : ""}`}>
                     <div className="flex justify-between gap-2 items-start">
                       <button
                         className="text-left flex-1 min-w-0"
@@ -590,9 +590,9 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                           setOpenId((id) => (id === p.id ? null : p.id));
                         }}
                       >
-                        <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {tx(clockLabel(p.startTime, p.endTime))} · {p.location}</div>
+                        <div className="session-kicker text-xs">{talk ? "Sunum" : "Panel"} · {tx(clockLabel(p.startTime, p.endTime))} · {p.location}</div>
                         <div className="display text-2xl">{p.title}</div>
-                        <div className="text-sm text-[#57534e]">
+                        <div className="session-meta text-sm">
                           {mod ? `Moderatör: ${mod.name} · ` : ""}
                           {others.join(", ") || p.topic || `${p.participants.length} kişi`}
                         </div>
@@ -605,7 +605,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                         {canEdit(p) ? (
                           <span className="flex gap-1">
                             <button className="btn ghost" onClick={() => setOpenId(p.id)}>{tx("Düzenle")}</button>
-                            <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
+                            <button className="btn ghost" onClick={() => void removeSession(p.id)}>{tx("Sil")}</button>
                           </span>
                         ) : null}
                       </div>
@@ -704,7 +704,7 @@ function SessionEditor({
   );
 
   return (
-    <div className="card p-5 space-y-4 md:ml-4 border-[#00A3E0]">
+    <div className="card session-edit p-5 space-y-4 md:ml-4">
       <div className="flex justify-between gap-2">
         <h2 className="display text-3xl">{title}</h2>
         <button className="btn ghost" onClick={onClose}>Kapat</button>

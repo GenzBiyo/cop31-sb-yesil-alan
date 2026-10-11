@@ -20,11 +20,11 @@ export type AgendaRow = {
   _count?: { signups: number };
 };
 
-const COLORS: Record<string, string> = {
-  Etkinlik: "#E31C23",
-  Sunum: "#00A3E0",
-  Panel: "#32C45A",
-};
+function blockTone(type: string) {
+  if (/panel/i.test(type)) return "is-panel";
+  if (/sunum|seminer|quick talk|konuşma/i.test(type)) return "is-talk";
+  return "";
+}
 
 const PX = 1.7;
 
@@ -167,14 +167,14 @@ export function AgendaDayBoard({
           {items.filter((a) => a.startTime && a.endTime).map((a) => {
             const top = (toMinutes(a.startTime) - DAY_START_MIN) * PX;
             const height = Math.max(28, (toMinutes(a.endTime) - toMinutes(a.startTime)) * PX);
-            const color = COLORS[a.type] || "#0077C2";
+            const tone = blockTone(a.type);
             return (
               <button
                 key={a.id}
                 type="button"
                 data-agenda-block={a.id}
-                className="agenda-block"
-                style={{ top, height, borderLeftColor: color }}
+                className={`agenda-block ${tone}`}
+                style={{ top, height }}
                 onPointerDown={(e) => onPointerDown(e, a)}
                 onPointerMove={onPointerMove}
                 onPointerUp={(e) => void onPointerUp(e)}
@@ -186,15 +186,15 @@ export function AgendaDayBoard({
                   void loadSignups(a.id);
                 }}
               >
-                <div className="text-[10px] uppercase tracking-wide" style={{ color }}>
+                <div className="agenda-kind text-[10px] uppercase tracking-wide">
                   {tx(a.type)}
                   {a.slotKey ? " · slot" : ""}
                 </div>
                 <div className="font-semibold text-sm leading-tight">{tx(a.title)}</div>
-                <div className="text-xs text-[#3E6A88]" data-time-label>
+                <div className="agenda-meta text-xs" data-time-label>
                   {a.startTime}–{a.endTime}
                 </div>
-                <div className="text-[11px] text-[#3E6A88]">
+                <div className="agenda-meta text-[11px]">
                   {a._count?.signups || 0} {tx("kayıt")}
                 </div>
               </button>
@@ -204,7 +204,7 @@ export function AgendaDayBoard({
       </div>
 
       {current ? (
-        <div className="card p-4 space-y-3">
+        <div className="card session-edit p-4 space-y-3">
           <div className="flex justify-between gap-3 flex-wrap">
             <h3 className="display text-2xl">{tx(current.title)}</h3>
             <button className="btn ghost" onClick={() => setOpen(null)}>

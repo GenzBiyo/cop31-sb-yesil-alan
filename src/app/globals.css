@@ -121,6 +121,23 @@ button, input, select, textarea { font: inherit; }
   background: #FFFFFF;
   border: 1px solid var(--line);
 }
+.session-row.is-panel {
+  background: #E31C23;
+  border-color: #C4161C;
+  color: #FFFFFF;
+}
+.session-row.is-talk {
+  background: #0077C2;
+  border-color: #0066A8;
+  color: #FFFFFF;
+}
+.session-row .session-kicker,
+.session-row .session-meta { color: rgba(255, 255, 255, 0.9); }
+.session-edit {
+  background: #FFFFFF;
+  color: #0B1C33;
+  border: 1px solid #DCE8F0;
+}
 
 .brand-bar {
   height: 3px;
@@ -2609,7 +2626,22 @@ button.q-opt:disabled { cursor: default; }
   touch-action: none;
   overflow: hidden;
   box-shadow: 0 6px 16px rgba(0, 119, 194, 0.08);
+  color: #0B1C33;
 }
+.agenda-block.is-panel {
+  background: #E31C23;
+  border-color: #C4161C;
+  color: #FFFFFF;
+}
+.agenda-block.is-talk {
+  background: #0077C2;
+  border-color: #0066A8;
+  color: #FFFFFF;
+}
+.agenda-block.is-panel .agenda-kind,
+.agenda-block.is-panel .agenda-meta,
+.agenda-block.is-talk .agenda-kind,
+.agenda-block.is-talk .agenda-meta { color: rgba(255, 255, 255, 0.92); }
 .agenda-block:active { cursor: grabbing; }
 .agenda-alert {
   position: fixed;
