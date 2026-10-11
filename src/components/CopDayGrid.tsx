@@ -7,7 +7,7 @@ import { useI18n } from "@/components/I18nProvider";
 const KIND: Record<PlanKind, { label: string; color: string; bg: string }> = {
   panel: { label: "Panel", color: "#FFFFFF", bg: "#7A2E3A" },
   sunum: { label: "Sunum", color: "#FFFFFF", bg: "#1A4E86" },
-  event: { label: "Etkinlik", color: "#FFFFFF", bg: "#1E8A4C" },
+  event: { label: "Etkinlik", color: "#FFFFFF", bg: "#1A6844" },
   program: { label: "Program", color: "#FFFFFF", bg: "#3E6A88" },
 };
 

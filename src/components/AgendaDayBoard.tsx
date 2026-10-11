@@ -23,6 +23,7 @@ export type AgendaRow = {
 function blockTone(type: string) {
   if (/panel/i.test(type)) return "is-panel";
   if (/sunum|seminer|quick talk|konuşma/i.test(type)) return "is-talk";
+  if (/etkinlik|deneyim|oyun/i.test(type)) return "is-event";
   return "";
 }
 

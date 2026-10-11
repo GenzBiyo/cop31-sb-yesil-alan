@@ -336,7 +336,7 @@ export default function EventsAdminPage() {
           .filter((ev) => ev.approvalStatus !== "Onay bekliyor")
           .map((ev) => (
           <div key={ev.id} data-event={ev.id} className="space-y-2">
-            <div className={`card p-4 ${openId === ev.id ? "ring-2 ring-[#00A3E0]" : ""}`}>
+            <div className={`card session-row on-dark is-event p-4 ${openId === ev.id ? "ring-2 ring-white" : ""}`}>
               <div className="flex justify-between gap-2 items-start">
                 <button
                   className="text-left flex-1 min-w-0"
@@ -345,9 +345,9 @@ export default function EventsAdminPage() {
                     setOpenId((id) => (id === ev.id ? null : ev.id));
                   }}
                 >
-                  <div className="text-xs text-[#0077C2]">{tx(TYPE_LABEL[ev.type] || ev.type)} · {formatDate(ev.date)} · {ev.startTime}–{ev.endTime}{isYouthType(ev.type) || slotByStart(ev.startTime)?.kind === "youth" ? ` · ${tx("Gençlik saati")}` : ""}</div>
+                  <div className="session-kicker text-xs">{tx(TYPE_LABEL[ev.type] || ev.type)} · {formatDate(ev.date)} · {ev.startTime}–{ev.endTime}{isYouthType(ev.type) || slotByStart(ev.startTime)?.kind === "youth" ? ` · ${tx("Gençlik saati")}` : ""}</div>
                   <div className="display text-2xl">{ev.title}</div>
-                  <div className="text-sm text-[#57534e]">{ev.companyName} · {ev.location} · {ev._count?.signups || 0} kayıt</div>
+                  <div className="session-meta text-sm">{ev.companyName} · {ev.location} · {ev._count?.signups || 0} kayıt</div>
                 </button>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <span className={`badge ${ev.published ? "ok" : "muted"}`}>
