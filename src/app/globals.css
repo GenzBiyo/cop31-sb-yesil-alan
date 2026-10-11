@@ -122,13 +122,13 @@ button, input, select, textarea { font: inherit; }
   border: 1px solid var(--line);
 }
 .session-row.is-panel {
-  background: #E31C23;
-  border-color: #C4161C;
+  background: #0C6670;
+  border-color: #0A5560;
   color: #FFFFFF;
 }
 .session-row.is-talk {
-  background: #0077C2;
-  border-color: #0066A8;
+  background: #1A4E86;
+  border-color: #143E6C;
   color: #FFFFFF;
 }
 .session-row .session-kicker,
@@ -2629,13 +2629,13 @@ button.q-opt:disabled { cursor: default; }
   color: #0B1C33;
 }
 .agenda-block.is-panel {
-  background: #E31C23;
-  border-color: #C4161C;
+  background: #0C6670;
+  border-color: #0A5560;
   color: #FFFFFF;
 }
 .agenda-block.is-talk {
-  background: #0077C2;
-  border-color: #0066A8;
+  background: #1A4E86;
+  border-color: #143E6C;
   color: #FFFFFF;
 }
 .agenda-block.is-panel .agenda-kind,
