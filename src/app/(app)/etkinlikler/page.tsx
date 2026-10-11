@@ -1,7 +1,7 @@
 "use client";
 
 import { QrImage, usePublicOrigin } from "@/components/QrImage";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { api, formatDate, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
@@ -52,6 +52,24 @@ export default function EventsAdminPage() {
   const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const isFirma = me?.role === "FIRMA";
   const [openId, setOpenId] = useState<string | null>(null);
+  const openedFromQuery = useRef(false);
+
+  useEffect(() => {
+    if (openedFromQuery.current || !data) return;
+    const id = new URLSearchParams(window.location.search).get("open");
+    if (!id) {
+      openedFromQuery.current = true;
+      return;
+    }
+    if (!data.some((ev) => ev.id === id)) return;
+    openedFromQuery.current = true;
+    setOpenId(id);
+  }, [data]);
+
+  useEffect(() => {
+    if (!openId) return;
+    document.querySelector(`[data-event="${openId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [openId]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -298,7 +316,7 @@ export default function EventsAdminPage() {
           {(data || [])
             .filter((ev) => ev.approvalStatus === "Onay bekliyor")
             .map((ev) => (
-              <div key={ev.id} className="border border-[#B5DFF2] p-3 space-y-2">
+              <div key={ev.id} data-event={ev.id} className="border border-[#B5DFF2] p-3 space-y-2">
                 <div className="flex justify-between gap-2 flex-wrap">
                   <div>
                     <div className="text-xs text-[#0077C2]">{tx(TYPE_LABEL[ev.type] || ev.type)} · {formatDate(ev.date)}</div>
@@ -317,7 +335,7 @@ export default function EventsAdminPage() {
         {(data || [])
           .filter((ev) => ev.approvalStatus !== "Onay bekliyor")
           .map((ev) => (
-          <div key={ev.id} className="space-y-2">
+          <div key={ev.id} data-event={ev.id} className="space-y-2">
             <div className={`card p-4 ${openId === ev.id ? "ring-2 ring-[#00A3E0]" : ""}`}>
               <div className="flex justify-between gap-2 items-start">
                 <button

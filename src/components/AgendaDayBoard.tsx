@@ -5,7 +5,7 @@ import { api } from "@/lib/client";
 import { DAY_END_MIN, DAY_START_MIN, fromMinutes, toMinutes } from "@/lib/agenda-time";
 import { useI18n } from "@/components/I18nProvider";
 import { VENUES, sessionKind } from "@/lib/venues";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type AgendaRow = {
   id: string;
@@ -42,14 +42,18 @@ export function AgendaDayBoard({
   items,
   canEdit,
   onChanged,
+  focusId,
+  editorOnly,
 }: {
   date: string;
   items: AgendaRow[];
   canEdit: boolean;
   onChanged: () => Promise<void>;
+  focusId?: string | null;
+  editorOnly?: boolean;
 }) {
   const { tx } = useI18n();
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(focusId || null);
   const [draft, setDraft] = useState<Partial<AgendaRow>>({});
   const [msg, setMsg] = useState({ title: "COP31 hatırlatma", body: "", audience: "hepsi" });
   const [sent, setSent] = useState("");
@@ -97,6 +101,16 @@ export function AgendaDayBoard({
     }
   }
 
+  useEffect(() => {
+    if (!focusId) return;
+    const row = items.find((a) => a.id === focusId);
+    setOpen(focusId);
+    if (row) setDraft(row);
+    void loadSignups(focusId);
+    // Open the row the admin clicked on the day list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId]);
+
   function onPointerDown(e: React.PointerEvent, item: AgendaRow) {
     if (!canEdit) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -142,11 +156,13 @@ export function AgendaDayBoard({
 
   return (
     <div className="space-y-4">
+      {editorOnly ? null : (
       <p className="text-sm text-[#3E6A88]">
         {tx("Onaylanan oturumlar burada. Kutuları sürükleyerek saati kaydırın; 15 dakikaya oturur. Aynı yerde paneller ve konuşmalar üst üste gelemez.")}
       </p>
+      )}
       {boardError ? <p className="text-sm text-[#E31C23]">{boardError}</p> : null}
-      {items.some((a) => !a.startTime || !a.endTime) ? (
+      {!editorOnly && items.some((a) => !a.startTime || !a.endTime) ? (
         <div className="space-y-1">
           {items.filter((a) => !a.startTime || !a.endTime).map((a) => (
             <button key={a.id} type="button" className="text-left text-sm text-[#0077C2]" onClick={() => { setOpen(a.id); setDraft(a); }}>
@@ -155,6 +171,7 @@ export function AgendaDayBoard({
           ))}
         </div>
       ) : null}
+      {editorOnly ? null : (
       <div className="agenda-track">
         <div className="agenda-hours">
           {hours.map((h) => (
@@ -202,6 +219,7 @@ export function AgendaDayBoard({
           })}
         </div>
       </div>
+      )}
 
       {current ? (
         <div className="card session-edit p-4 space-y-3">

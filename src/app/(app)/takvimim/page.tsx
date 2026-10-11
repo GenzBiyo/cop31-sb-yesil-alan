@@ -24,7 +24,7 @@ const KINDS: Record<CalendarKind, { label: string; color: string }> = {
   toplanti: { label: "Toplantı", color: "#22A34A" },
   talep: { label: "Toplantı talebi", color: "#F5A623" },
   slot: { label: "Boş toplantı saati", color: "#8FB8CF" },
-  panel: { label: "Panel", color: "#E31C23" },
+  panel: { label: "Panel", color: "#7A2E3A" },
   sunum: { label: "Konuşma", color: "#00A3E0" },
   etkinlik: { label: "Etkinlik", color: "#32C45A" },
   program: { label: "Program", color: "#0B1C33" },

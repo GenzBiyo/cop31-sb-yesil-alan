@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Eye, Plus, Printer, Trash2, X } from "lucide-react";
 import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
@@ -323,6 +323,24 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const isFirma = me?.role === "FIRMA";
   const [openId, setOpenId] = useState<string | null>(null);
+  const openedFromQuery = useRef(false);
+
+  useEffect(() => {
+    if (openedFromQuery.current || !data) return;
+    const id = new URLSearchParams(window.location.search).get("open");
+    if (!id) {
+      openedFromQuery.current = true;
+      return;
+    }
+    if (!data.panels.some((p) => p.id === id)) return;
+    openedFromQuery.current = true;
+    setOpenId(id);
+  }, [data]);
+
+  useEffect(() => {
+    if (!openId) return;
+    document.querySelector(`[data-session="${openId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [openId]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -528,7 +546,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
           <h2 className="display text-2xl">{tx("Firma önerileri")}</h2>
           <p className="text-sm text-[#57534e]">{tx("Onaylanınca ana programa ve gündeme işlenir.")}</p>
           {rows.filter((p) => p.status === "Onay bekliyor").map((p) => (
-            <div key={p.id} className="border border-[#B5DFF2] p-3 space-y-2">
+            <div key={p.id} data-session={p.id} className="border border-[#B5DFF2] p-3 space-y-2">
               <div className="flex justify-between gap-2 flex-wrap">
                 <div>
                   <div className="text-xs text-[#0077C2]">{talk ? "Sunum" : "Panel"} · {formatDate(p.date)} · {tx(clockLabel(p.startTime, p.endTime))}</div>
@@ -580,7 +598,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
               const mod = lineup.find((x) => x.role === "moderator");
               const others = lineup.filter((x) => x.role !== "moderator").map((x) => x.name);
               return (
-                <div key={p.id} className="space-y-2">
+                <div key={p.id} data-session={p.id} className="space-y-2">
                   <div className={`card session-row on-dark p-4 ${talk ? "is-talk" : "is-panel"} ${openId === p.id ? "ring-2 ring-white" : ""}`}>
                     <div className="flex justify-between gap-2 items-start">
                       <button
