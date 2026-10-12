@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useApi } from "@/lib/client";
+import { useApi, useProgramLive } from "@/lib/client";
 import { MOTES } from "@/components/gate/motes";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -16,8 +16,11 @@ type Ev = {
 
 export default function KesfetPage() {
   const { tx } = useI18n();
-  const { data } = useApi<{ events: Ev[] }>("/api/public/program");
-  const events = (data?.events || []).slice(0, 8);
+  const { data, reload } = useApi<{ events: Ev[] }>("/api/public/program");
+  useProgramLive(() => {
+    void reload(true);
+  });
+  const events = data?.events || [];
 
   return (
     <main className="gate-root is-open" style={{ height: "auto", minHeight: "100dvh", overflow: "auto" }}>

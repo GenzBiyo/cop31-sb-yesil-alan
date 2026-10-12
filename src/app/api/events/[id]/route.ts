@@ -83,6 +83,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   if (body.published !== undefined && canManage(user.role)) data.published = Boolean(body.published);
   if (body.config !== undefined) data.config = typeof body.config === "string" ? body.config : JSON.stringify(body.config);
   const event = await prisma.pavilionEvent.update({ where: { id }, data });
+  broadcast({ type: "agenda" });
   return jsonOk(event);
 }
 

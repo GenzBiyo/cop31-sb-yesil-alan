@@ -126,6 +126,49 @@ export function useGameLive(reload: () => void, backupMs = 12000) {
   }, [backupMs]);
 }
 
+export function useProgramLive(reload: () => void) {
+  const reloadRef = useRef(reload);
+  reloadRef.current = reload;
+
+  useEffect(() => {
+    let es: EventSource | null = null;
+    let last = 0;
+    const kick = (force = false) => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      const now = Date.now();
+      if (!force && now - last < 800) return;
+      last = now;
+      void reloadRef.current();
+    };
+    const connect = () => {
+      if (es || document.hidden) return;
+      es = new EventSource("/api/public/program/stream");
+      es.addEventListener("agenda", () => kick(true));
+      es.addEventListener("panel", () => kick(true));
+    };
+    const disconnect = () => {
+      if (!es) return;
+      es.close();
+      es = null;
+    };
+    const onVis = () => {
+      if (document.hidden) disconnect();
+      else {
+        connect();
+        kick(true);
+      }
+    };
+    connect();
+    document.addEventListener("visibilitychange", onVis);
+    const backup = window.setInterval(() => kick(true), 15000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      disconnect();
+      window.clearInterval(backup);
+    };
+  }, []);
+}
+
 export function useRealtime(onEvent: (type: string) => void) {
   const handlerRef = useRef(onEvent);
   handlerRef.current = onEvent;

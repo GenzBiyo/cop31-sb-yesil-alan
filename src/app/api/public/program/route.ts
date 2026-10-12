@@ -4,7 +4,7 @@ import { ensureEvents } from "@/lib/events-db";
 import { memoGet, memoSet } from "@/lib/memo";
 import { ensureAgendaSlots, tickAgendaReminders } from "@/lib/agenda";
 
-const FRESH = { "Cache-Control": "public, max-age=8, stale-while-revalidate=30" };
+const FRESH = { "Cache-Control": "no-store" };
 
 export async function GET() {
   const cached = memoGet<{ days: unknown; events: unknown }>("public-program", 8000);

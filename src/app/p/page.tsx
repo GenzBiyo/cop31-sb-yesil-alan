@@ -1,6 +1,6 @@
 "use client";
 
-import { useApi, formatDate } from "@/lib/client";
+import { useApi, useProgramLive, formatDate } from "@/lib/client";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts } from "@/components/AgendaAlerts";
@@ -35,7 +35,10 @@ const TYPE_TR: Record<string, string> = {
 export default function PublicProgramPage() {
   const { tx } = useI18n();
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
-  const { data } = useApi<{ days: Day[]; events: Ev[] }>("/api/public/program");
+  const { data, reload } = useApi<{ days: Day[]; events: Ev[] }>("/api/public/program");
+  useProgramLive(() => {
+    void reload(true);
+  });
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const grouped = useMemo(() => {
     const map = new Map<string, { day?: Day; events: Ev[] }>();
