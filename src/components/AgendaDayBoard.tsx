@@ -300,7 +300,7 @@ export function AgendaDayBoard({
               ) : null}
             </div>
             <div className="flex gap-4 items-start">
-              <QrImage path={`/g/${current.id}`} alt="Kayıt QR" size={120} />
+              <QrImage path={`/g/${current.id}`} alt={tx("Kayıt QR")} size={120} />
               <div>
                 <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{tx("Katılım QR")}</div>
                 <p className="text-sm mt-1">{tx("Telefon ve e-posta ile kayıt. Saat değişince otomatik haber gider.")}</p>

@@ -57,7 +57,7 @@ export default function SpacePage() {
       <div className="card p-3 overflow-auto bg-white">
         <img
           src={plan?.src || "/brand/sb-pavilyon.png"}
-          alt="T.C. Sağlık Bakanlığı pavilyonu, perspektif ve ön görünüş, 50 metrekare"
+          alt={tx("T.C. Sağlık Bakanlığı pavilyonu, perspektif ve ön görünüş, 50 metrekare")}
           className="w-full h-auto"
         />
       </div>

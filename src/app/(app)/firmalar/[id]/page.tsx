@@ -1,4 +1,5 @@
 "use client";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 import { use, useState } from "react";
 import { api, useApi } from "@/lib/client";
@@ -28,9 +29,10 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
 }
 
 function CompanyEditor({ id }: { id: string }) {
+  const { tx } = useI18n();
   const { data, reload } = useApi<Company>(`/api/companies/${id}`);
   const [rule, setRule] = useState({ title: "", body: "", dueDate: "" });
-  if (!data) return <p>Yükleniyor…</p>;
+  if (!data) return <p><Tx>Yükleniyor…</Tx></p>;
   return (
     <div className="space-y-5">
       <div className="flex justify-between gap-3">
@@ -38,7 +40,7 @@ function CompanyEditor({ id }: { id: string }) {
           <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">{data.scope}</p>
           <h1 className="display text-4xl">{data.name}</h1>
         </div>
-        <a className="btn" href="/api/pdf/firma-dokuman">Hazırlık PDF</a>
+        <a className="btn" href="/api/pdf/firma-dokuman"><Tx>Hazırlık PDF</Tx></a>
       </div>
       <div className="grid md:grid-cols-2 gap-3 card p-4">
         <Field label="Konu" value={data.topic} onSave={(topic) => patch(id, { topic }, reload)} />
@@ -47,8 +49,7 @@ function CompanyEditor({ id }: { id: string }) {
         <Field label="Stant" value={data.booth} onSave={(booth) => patch(id, { booth }, reload)} />
         <Field label="Durum" value={data.status} onSave={(status) => patch(id, { status }, reload)} />
         <Field label="İletişim e-posta" value={data.contactEmail} onSave={(contactEmail) => patch(id, { contactEmail }, reload)} />
-        <label className="text-sm md:col-span-2">Bağlam
-          <textarea className="field mt-1" defaultValue={data.context} onBlur={(e) => patch(id, { context: e.target.value }, reload)} />
+        <label className="text-sm md:col-span-2"><Tx>Bağlam</Tx><textarea className="field mt-1" defaultValue={data.context} onBlur={(e) => patch(id, { context: e.target.value }, reload)} />
         </label>
       </div>
       <section className="card p-4">
@@ -66,18 +67,18 @@ function CompanyEditor({ id }: { id: string }) {
           ))}
         </ul>
         <div className="grid md:grid-cols-3 gap-2 mt-4">
-          <input className="field" placeholder="Kural başlığı" value={rule.title} onChange={(e) => setRule({ ...rule, title: e.target.value })} />
+          <input className="field" placeholder={tx("Kural başlığı")} value={rule.title} onChange={(e) => setRule({ ...rule, title: e.target.value })} />
           <input className="field" type="date" value={rule.dueDate} onChange={(e) => setRule({ ...rule, dueDate: e.target.value })} />
           <button className="btn" onClick={async () => {
             await api("/api/rules", { method: "POST", body: JSON.stringify({ action: "assign", companyId: id, ...rule }) });
             setRule({ title: "", body: "", dueDate: "" });
             await reload();
           }}>Kural ata</button>
-          <textarea className="field md:col-span-3" placeholder="Açıklama" value={rule.body} onChange={(e) => setRule({ ...rule, body: e.target.value })} />
+          <textarea className="field md:col-span-3" placeholder={tx("Açıklama")} value={rule.body} onChange={(e) => setRule({ ...rule, body: e.target.value })} />
         </div>
       </section>
       <section className="card p-4">
-        <h2 className="display text-2xl">Firma kayıtları (takvim / başvuru)</h2>
+        <h2 className="display text-2xl"><Tx>Firma kayıtları (takvim / başvuru)</Tx></h2>
         <ul className="mt-3 space-y-2">
           {data.submissions.map((s) => (
             <li key={s.id} className="text-sm">
@@ -86,7 +87,7 @@ function CompanyEditor({ id }: { id: string }) {
               {s.reviewNote ? <div className="text-xs">Gerekçe: {s.reviewNote}</div> : null}
             </li>
           ))}
-          {data.submissions.length === 0 ? <li className="text-sm text-[#57534e]">Henüz kayıt yok.</li> : null}
+          {data.submissions.length === 0 ? <li className="text-sm text-[#57534e]"><Tx>Henüz kayıt yok.</Tx></li> : null}
         </ul>
       </section>
     </div>

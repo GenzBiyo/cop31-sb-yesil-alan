@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { ImageUp } from "lucide-react";
 import { api, useApi } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { PavilionRulesDialog } from "@/components/PavilionRules";
 import { accountKind } from "@/lib/account-kinds";
 import { ParticipationDays } from "@/components/ParticipationDays";
@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const [sub, setSub] = useState({ type: "calendar", title: "", payload: "", eventDate: "" });
   const [item, setItem] = useState({ type: "esantiyon", title: "", quantity: "", payload: "" });
   const [formError, setFormError] = useState("");
-  if (!company) return <p>Yükleniyor…</p>;
+  if (!company) return <p><Tx>Yükleniyor…</Tx></p>;
   const kind = accountKind(company.kind);
   const compliance = company.submissions.filter((row) => COMPLIANCE.some((kind) => kind.id === row.type));
   return (
@@ -101,7 +101,7 @@ export default function ProfilePage() {
               >
                 <option>Bekliyor</option>
                 <option>Devam Ediyor</option>
-                <option>Tamamlandı</option>
+                <option><Tx>Tamamlandı</Tx></option>
               </select>
             </li>
           ))}
@@ -116,9 +116,9 @@ export default function ProfilePage() {
           <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
             {COMPLIANCE.map((kind) => <option key={kind.id} value={kind.id}>{tx(kind.label)}</option>)}
           </select>
-          <input className="field md:col-span-2" placeholder="Tanım" value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
+          <input className="field md:col-span-2" placeholder={tx("Tanım")} value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
           <input className="field" placeholder="Adet" value={item.quantity} onChange={(e) => setItem({ ...item, quantity: e.target.value })} />
-          <textarea className="field md:col-span-4" placeholder="Ne, hangi malzeme, nasıl dağıtılacak" value={item.payload} onChange={(e) => setItem({ ...item, payload: e.target.value })} />
+          <textarea className="field md:col-span-4" placeholder={tx("Ne, hangi malzeme, nasıl dağıtılacak")} value={item.payload} onChange={(e) => setItem({ ...item, payload: e.target.value })} />
           <button className="btn" onClick={async () => {
             setFormError("");
             try {
@@ -164,21 +164,21 @@ export default function ProfilePage() {
       </section>
       <section className="card p-4">
         <h2 className="display text-2xl">Takvim ve uygulamalar</h2>
-        <p className="text-sm text-[#57534e] mb-3">Pavilion içindeki oturum, demo ve başvuru kayıtlarınızı girin.</p>
+        <p className="text-sm text-[#57534e] mb-3"><Tx>Pavilion içindeki oturum, demo ve başvuru kayıtlarınızı girin.</Tx></p>
         <div className="grid md:grid-cols-4 gap-2">
           <select className="field" value={sub.type} onChange={(e) => setSub({ ...sub, type: e.target.value })}>
-            <option value="calendar">Takvim kaydı</option>
-            <option value="application">Başvuru / uygulama</option>
-            <option value="document">Döküman notu</option>
+            <option value="calendar"><Tx>Takvim kaydı</Tx></option>
+            <option value="application"><Tx>Başvuru / uygulama</Tx></option>
+            <option value="document"><Tx>Döküman notu</Tx></option>
           </select>
-          <input className="field" placeholder="Başlık" value={sub.title} onChange={(e) => setSub({ ...sub, title: e.target.value })} />
+          <input className="field" placeholder={tx("Başlık")} value={sub.title} onChange={(e) => setSub({ ...sub, title: e.target.value })} />
           <input className="field" type="date" value={sub.eventDate} onChange={(e) => setSub({ ...sub, eventDate: e.target.value })} />
           <button className="btn" onClick={async () => {
             await api("/api/submissions", { method: "POST", body: JSON.stringify(sub) });
             setSub({ ...sub, title: "", payload: "" });
             await reload();
           }}>Kaydet</button>
-          <textarea className="field md:col-span-4" placeholder="Ayrıntı" value={sub.payload} onChange={(e) => setSub({ ...sub, payload: e.target.value })} />
+          <textarea className="field md:col-span-4" placeholder={tx("Ayrıntı")} value={sub.payload} onChange={(e) => setSub({ ...sub, payload: e.target.value })} />
         </div>
         <ul className="mt-4 space-y-2">
           {company.submissions.filter((s) => !COMPLIANCE.some((kind) => kind.id === s.type)).map((s) => (

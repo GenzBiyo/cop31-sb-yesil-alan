@@ -4,7 +4,7 @@ import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { api, formatDate, useApi } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
 import {
   availableSlots,
@@ -194,7 +194,7 @@ export default function EventsAdminPage() {
           <button className="btn ghost" onClick={() => setOpenId(null)}>Kapat</button>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
-          <label className="text-sm">Başlık<input className="field mt-1" defaultValue={ev.title} onBlur={(e) => patch(ev.id, { title: e.target.value }, reload)} /></label>
+          <label className="text-sm"><Tx>Başlık</Tx><input className="field mt-1" defaultValue={ev.title} onBlur={(e) => patch(ev.id, { title: e.target.value }, reload)} /></label>
           <label className="text-sm">Firma<input className="field mt-1" defaultValue={ev.companyName} onBlur={(e) => patch(ev.id, { companyName: e.target.value }, reload)} /></label>
           <label className="text-sm">Konu<input className="field mt-1" defaultValue={ev.topic} onBlur={(e) => patch(ev.id, { topic: e.target.value }, reload)} /></label>
           <label className="text-sm">Hediye<input className="field mt-1" defaultValue={ev.gift} onBlur={(e) => patch(ev.id, { gift: e.target.value }, reload)} /></label>
@@ -226,17 +226,15 @@ export default function EventsAdminPage() {
               )}
             </select>
           </label>
-          <label className="text-sm">Tür
-            <select className="field mt-1" value={ev.type} onChange={(e) => patch(ev.id, { type: e.target.value }, reload)}>
+          <label className="text-sm"><Tx>Tür</Tx><select className="field mt-1" value={ev.type} onChange={(e) => patch(ev.id, { type: e.target.value }, reload)}>
               {typesForSlot(slotByStart(ev.startTime)?.kind || "normal").map((id) => (
                 <option key={id} value={id}>{tx(TYPE_LABEL[id] || id)}</option>
               ))}
             </select>
           </label>
           <label className="text-sm">Yer<input className="field mt-1" defaultValue={ev.location} onBlur={(e) => patch(ev.id, { location: e.target.value }, reload)} /></label>
-          <label className="text-sm md:col-span-2">Açıklama<textarea className="field mt-1" defaultValue={ev.description} onBlur={(e) => patch(ev.id, { description: e.target.value }, reload)} /></label>
-          <label className="text-sm md:col-span-2">İçerik (JSON: sorular / çark dilimleri)
-            <textarea className="field mt-1 font-mono text-xs" rows={10} defaultValue={pretty(ev.config)} onBlur={(e) => patch(ev.id, { config: e.target.value }, reload)} />
+          <label className="text-sm md:col-span-2"><Tx>Açıklama</Tx><textarea className="field mt-1" defaultValue={ev.description} onBlur={(e) => patch(ev.id, { description: e.target.value }, reload)} /></label>
+          <label className="text-sm md:col-span-2"><Tx>İçerik (JSON: sorular / çark dilimleri)</Tx><textarea className="field mt-1 font-mono text-xs" rows={10} defaultValue={pretty(ev.config)} onBlur={(e) => patch(ev.id, { config: e.target.value }, reload)} />
           </label>
         </div>
         {canReview && ev.approvalStatus === "Onay bekliyor" ? (
@@ -286,7 +284,7 @@ export default function EventsAdminPage() {
           }
         }}
       >
-        <input className="field md:col-span-2" placeholder="Başlık" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        <input className="field md:col-span-2" placeholder={tx("Başlık")} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <select className="field" value={form.type} onChange={(e) => applySlot({ type: e.target.value })}>
           {typesForSlot(slotByStart(form.startTime)?.kind || "normal").map((id) => (
             <option key={id} value={id}>{tx(TYPE_LABEL[id] || id)}</option>

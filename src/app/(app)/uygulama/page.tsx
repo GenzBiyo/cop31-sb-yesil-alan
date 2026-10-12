@@ -1,4 +1,5 @@
 "use client";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 import { useState } from "react";
 import { api, useApi, useRealtime } from "@/lib/client";
@@ -50,6 +51,7 @@ type Board = {
 };
 
 export default function VisitorAdminPage() {
+  const { tx } = useI18n();
   const board = useApi<Board>("/api/pavilion");
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
@@ -103,17 +105,15 @@ export default function VisitorAdminPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="display text-4xl">Ziyaretçi uygulaması</h1>
-        <p className="text-[#3E6A88] mt-1 max-w-3xl">
-          Ziyaretçi, firma ve konuşmacı aynı uygulamayı kullanır. Sunum sorusu buradan gelir. İkili görüşme ve toplantı talebi kabul edilince saati ve yeri düzenlenir.
-        </p>
+        <h1 className="display text-4xl"><Tx>Ziyaretçi uygulaması</Tx></h1>
+        <p className="text-[#3E6A88] mt-1 max-w-3xl"><Tx>Ziyaretçi, firma ve konuşmacı aynı uygulamayı kullanır. Sunum sorusu buradan gelir. İkili görüşme ve toplantı talebi kabul edilince saati ve yeri düzenlenir.</Tx></p>
       </div>
       {error ? <p className="text-[#E31C23]">{error}</p> : null}
 
       <section className="grid lg:grid-cols-[220px_1fr] gap-4">
         <div className="card p-4 text-center">
           <img src="/api/qr?path=/u" alt="Uygulama karekodu" className="mx-auto w-40 h-40" />
-          <p className="text-sm mt-2">Telefon bu kodu okutunca uygulama açılır. Android’de Chrome, iPhone’da Safari kullanılsın.</p>
+          <p className="text-sm mt-2"><Tx>Telefon bu kodu okutunca uygulama açılır. Android’de Chrome, iPhone’da Safari kullanılsın.</Tx></p>
           <a className="text-sm text-[#0077C2] underline" href="/u">cop31saglik.com/u</a>
         </div>
         <div className="grid sm:grid-cols-4 gap-2">
@@ -134,19 +134,19 @@ export default function VisitorAdminPage() {
       <section className="grid lg:grid-cols-2 gap-4">
         <div className="card p-4 space-y-2">
           <h2 className="display text-2xl">Yeni etiket</h2>
-          <p className="text-sm text-[#3E6A88]">Kodu yazın, mesajı kaydedin, çıkan karekodu standa veya yaka kartına basın.</p>
-          <input className="field" placeholder="Kod (ör. SAHNE)" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-          <input className="field" placeholder="Başlık" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <p className="text-sm text-[#3E6A88]"><Tx>Kodu yazın, mesajı kaydedin, çıkan karekodu standa veya yaka kartına basın.</Tx></p>
+          <input className="field" placeholder={tx("Kod (ör. SAHNE)")} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+          <input className="field" placeholder={tx("Başlık")} value={title} onChange={(e) => setTitle(e.target.value)} />
           <input className="field" placeholder="Konum" value={location} onChange={(e) => setLocation(e.target.value)} />
-          <textarea className="field" rows={4} placeholder="Telefona düşecek mesaj" value={message} onChange={(e) => setMessage(e.target.value)} />
-          <button className="btn" type="button" onClick={() => void createTag()}>Etiketi oluştur</button>
+          <textarea className="field" rows={4} placeholder={tx("Telefona düşecek mesaj")} value={message} onChange={(e) => setMessage(e.target.value)} />
+          <button className="btn" type="button" onClick={() => void createTag()}><Tx>Etiketi oluştur</Tx></button>
         </div>
         <div className="card p-4 space-y-2">
-          <h2 className="display text-2xl">Bildirim gönder</h2>
-          <p className="text-sm text-[#3E6A88]">Uygulamayı açmış her telefona mesaj kutusu notu düşer. Bildirim izni verenlere telefon bildirimi de gider.</p>
-          <input className="field" placeholder="Başlık" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
+          <h2 className="display text-2xl"><Tx>Bildirim gönder</Tx></h2>
+          <p className="text-sm text-[#3E6A88]"><Tx>Uygulamayı açmış her telefona mesaj kutusu notu düşer. Bildirim izni verenlere telefon bildirimi de gider.</Tx></p>
+          <input className="field" placeholder={tx("Başlık")} value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
           <textarea className="field" rows={4} placeholder="Metin" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} />
-          <button className="btn" type="button" onClick={() => void broadcast()}>Telefona gönder</button>
+          <button className="btn" type="button" onClick={() => void broadcast()}><Tx>Telefona gönder</Tx></button>
           {sent ? <p className="text-sm text-[#0077C2]">{sent}</p> : null}
         </div>
       </section>
@@ -190,20 +190,20 @@ export default function VisitorAdminPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="display text-3xl">İkili görüşme ve toplantı</h2>
+        <h2 className="display text-3xl"><Tx>İkili görüşme ve toplantı</Tx></h2>
         {(data?.meetings || []).map((meeting) => (
           <DeskMeeting key={`${meeting.id}:${meeting.updatedAt || meeting.status}`} meeting={meeting} onDone={() => board.reload()} />
         ))}
-        {!data?.meetings.length ? <p className="text-sm text-[#3E6A88]">Henüz talep yok.</p> : null}
+        {!data?.meetings.length ? <p className="text-sm text-[#3E6A88]"><Tx>Henüz talep yok.</Tx></p> : null}
       </section>
 
       <section className="grid lg:grid-cols-[1fr_280px] gap-4">
         <div className="space-y-2">
-          <h2 className="display text-3xl">Sunum soruları</h2>
+          <h2 className="display text-3xl"><Tx>Sunum soruları</Tx></h2>
           {(data?.questions || []).map((question) => (
             <QuestionCard key={question.id} question={question} onDone={() => board.reload()} />
           ))}
-          {!data?.questions.length ? <p className="text-sm text-[#3E6A88]">Henüz soru yok.</p> : null}
+          {!data?.questions.length ? <p className="text-sm text-[#3E6A88]"><Tx>Henüz soru yok.</Tx></p> : null}
         </div>
         <div className="card p-4">
           <h2 className="font-semibold">Son okutmalar</h2>
@@ -262,7 +262,7 @@ function DeskMeeting({ meeting, onDone }: { meeting: Meeting; onDone: () => void
           <input className="field" type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
           <input className="field" placeholder="Yer" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
           <textarea className="field sm:col-span-2" rows={2} placeholder="Not" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-          <button className="btn" type="submit">Görüşmeyi güncelle</button>
+          <button className="btn" type="submit"><Tx>Görüşmeyi güncelle</Tx></button>
         </form>
       ) : null}
     </article>
@@ -270,6 +270,7 @@ function DeskMeeting({ meeting, onDone }: { meeting: Meeting; onDone: () => void
 }
 
 function QuestionCard({ question, onDone }: { question: Question; onDone: () => void }) {
+  const { tx } = useI18n();
   const [answer, setAnswer] = useState(question.answer);
   return (
     <article className="card p-4 space-y-2">
@@ -290,11 +291,11 @@ function QuestionCard({ question, onDone }: { question: Question; onDone: () => 
               onDone();
             }}
           >
-            {status}
+            {tx(status)}
           </button>
         ))}
       </div>
-      <textarea className="field" rows={2} placeholder="Yanıt telefonuna düşsün" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+      <textarea className="field" rows={2} placeholder={tx("Yanıt telefonuna düşsün")} value={answer} onChange={(e) => setAnswer(e.target.value)} />
       <button
         className="btn"
         type="button"
@@ -305,9 +306,7 @@ function QuestionCard({ question, onDone }: { question: Question; onDone: () => 
           });
           onDone();
         }}
-      >
-        Yanıtı gönder
-      </button>
+      ><Tx>Yanıtı gönder</Tx></button>
     </article>
   );
 }

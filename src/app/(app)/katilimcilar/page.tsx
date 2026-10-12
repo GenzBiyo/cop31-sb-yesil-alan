@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatDate, useApi } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Row = {
   id: string;
@@ -34,7 +34,7 @@ export default function ParticipantsPage() {
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
           <h1 className="display text-4xl">{tx("Katılımcı defteri")}</h1>
-          <p className="text-[#57534e]">QR ve elçi kayıtları Excel benzeri listede. İletişim bilgileri isteğe bağlı açılır.</p>
+          <p className="text-[#57534e]"><Tx>QR ve elçi kayıtları Excel benzeri listede. İletişim bilgileri isteğe bağlı açılır.</Tx></p>
         </div>
         <a className="btn" href="/api/participants/export">Excel indir</a>
       </div>
@@ -54,9 +54,9 @@ export default function ParticipantsPage() {
               <th>Ad</th>
               {showContact ? <th>E-posta</th> : null}
               {showContact ? <th>Telefon</th> : null}
-              <th>Kurum / şehir</th>
+              <th><Tx>Kurum / şehir</Tx></th>
               <th>Tip</th>
-              <th>Elçi</th>
+              <th><Tx>Elçi</Tx></th>
               <th>Puan / hediye</th>
             </tr>
           </thead>

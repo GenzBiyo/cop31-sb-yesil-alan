@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { api, useApi, useRealtime } from "@/lib/client";
 import { QrImage } from "@/components/QrImage";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type GameRow = {
   id: string;
@@ -92,7 +92,7 @@ export default function GamesAdminPage() {
         </div>
         <input className="field md:col-span-2" placeholder={kind === "wheel" ? "Çark başlığı" : kind === "match" ? "Dokunmatik oyun başlığı" : kind === "kilo" ? "Kilo karbon başlığı" : kind === "hatira" ? "Hatıra başlığı" : kind === "plak" ? "Plak başlığı" : "Yeni soru-cevap başlığı"} value={title} onChange={(e) => setTitle(e.target.value)} required />
         <input className="field" placeholder={kind === "wheel" ? "Hediye özeti" : "Birinci ödülü"} value={gift} onChange={(e) => setGift(e.target.value)} />
-        <input className="field" placeholder="Kısa açıklama" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <input className="field" placeholder={tx("Kısa açıklama")} value={description} onChange={(e) => setDescription(e.target.value)} />
         <button className="btn md:col-span-2" disabled={busy}>{busy ? tx("Oluşturuluyor…") : tx(kind === "wheel" ? "Hediyeli çark oluştur" : kind === "match" ? "Hafıza oyunu oluştur" : kind === "kilo" ? "Kilo karbon oyunu oluştur" : kind === "hatira" ? "Hatıra oyunu oluştur" : kind === "plak" ? "Plak oyunu oluştur" : "Soru-cevap oyunu oluştur")}</button>
       </form>
       <div className="space-y-2">
@@ -120,8 +120,8 @@ export default function GamesAdminPage() {
                 <Link className="text-sm text-[#0077C2] underline" href={`/oyunlar/${g.id}`}>
                   {g.type === "wheel" ? "Dilimleri düzenle" : g.type === "plak" ? "Parçaları düzenle" : g.type === "match" || g.type === "kilo" || g.type === "hatira" ? "Tur ayarı" : "Soruları düzenle"}
                 </Link>
-                <a className="text-sm underline" href={`/oyun/${g.slug}`} target="_blank" rel="noreferrer">Duvar ekranı</a>
-                <Link className="text-sm underline" href={`/sunucu/${g.slug}`}>Admin yönetim</Link>
+                <a className="text-sm underline" href={`/oyun/${g.slug}`} target="_blank" rel="noreferrer"><Tx>Duvar ekranı</Tx></a>
+                <Link className="text-sm underline" href={`/sunucu/${g.slug}`}><Tx>Admin yönetim</Tx></Link>
               </div>
             </div>
           </div>

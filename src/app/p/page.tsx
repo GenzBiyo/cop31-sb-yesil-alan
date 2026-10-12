@@ -74,7 +74,7 @@ export default function PublicProgramPage() {
             {agenda.map((a) => (
               <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">
                 <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
-                {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{a.description}</div> : null}
+                {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{tx(a.description)}</div> : null}
                 <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
               </a>
             ))}
@@ -89,7 +89,7 @@ export default function PublicProgramPage() {
           </section>
           );
         })}
-        <p className="text-xs text-[#57534e] text-center">QR ile açıldı · {origin}/p</p>
+        <p className="text-xs text-[#57534e] text-center">{tx("QR ile açıldı")} · {origin}/p</p>
       </div>
     </main>
   );

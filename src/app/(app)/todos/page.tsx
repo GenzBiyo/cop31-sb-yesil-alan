@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useRef, useState } from "react";
 import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/lib/constants";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Todo = {
   id: string;
@@ -94,9 +94,9 @@ export default function TodosPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn" disabled={busy} onClick={() => sync("google")}>Excel&apos;den çek</button>
-          <button className="btn secondary" disabled={busy} onClick={() => sync("local")}>Yerel kopyadan çek</button>
+          <button className="btn secondary" disabled={busy} onClick={() => sync("local")}><Tx>Yerel kopyadan çek</Tx></button>
           <a className="btn ghost" href="/api/sheets/export">Excel indir</a>
-          <button className="btn ghost" onClick={() => fileRef.current?.click()}>Excel yükle</button>
+          <button className="btn ghost" onClick={() => fileRef.current?.click()}><Tx>Excel yükle</Tx></button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
         </div>
       </div>
@@ -114,16 +114,14 @@ export default function TodosPage() {
             await api("/api/todos", { method: "POST", body: JSON.stringify({ activity: "Yeni faaliyet", workPackage: pack === "Tümü" ? "Genel Koordinasyon" : pack }) });
             await reload();
           }}
-        >
-          Satır ekle
-        </button>
+        ><Tx>Satır ekle</Tx></button>
       </div>
       <div className="table-wrap">
         <table className="data">
           <thead>
             <tr>
               <th>No</th>
-              <th>İş paketi</th>
+              <th><Tx>İş paketi</Tx></th>
               <th>Faaliyet</th>
               <th>Tarih</th>
               <th>Sorumlu</th>
@@ -135,7 +133,7 @@ export default function TodosPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9}>Yükleniyor…</td></tr>
+              <tr><td colSpan={9}><Tx>Yükleniyor…</Tx></td></tr>
             ) : (
               rows.map((t) => (
                 <tr key={t.id}>
@@ -154,12 +152,12 @@ export default function TodosPage() {
                     <span className={`badge ${t.status === "Tamamlandı" ? "ok" : t.risk ? "high" : t.status === "Devam Ediyor" ? "warn" : "muted"}`}>
                       {t.status}
                     </span>
-                    {t.priority === "Yüksek" ? <div className="text-xs text-[#0077C2] mt-1">Yüksek</div> : null}
+                    {t.priority === "Yüksek" ? <div className="text-xs text-[#0077C2] mt-1"><Tx>Yüksek</Tx></div> : null}
                   </td>
                   <td>{t.progress}</td>
                   <td>{t.remainingDays ?? "—"}</td>
                   <td>
-                    <button className="btn ghost" onClick={() => setEdit(t)}>Düzenle</button>
+                    <button className="btn ghost" onClick={() => setEdit(t)}><Tx>Düzenle</Tx></button>
                   </td>
                 </tr>
               ))
@@ -171,19 +169,18 @@ export default function TodosPage() {
         <form className="card p-4 grid md:grid-cols-2 gap-3" onSubmit={save}>
           <h2 className="display text-2xl md:col-span-2">Faaliyet {edit.no}</h2>
           <label className="text-sm">Faaliyet<input className="field mt-1" value={edit.activity} onChange={(e) => setEdit({ ...edit, activity: e.target.value })} /></label>
-          <label className="text-sm">İş paketi<input className="field mt-1" value={edit.workPackage} onChange={(e) => setEdit({ ...edit, workPackage: e.target.value })} /></label>
-          <label className="text-sm md:col-span-2">Açıklama<textarea className="field mt-1" rows={3} value={edit.detail} onChange={(e) => setEdit({ ...edit, detail: e.target.value })} /></label>
-          <label className="text-sm">Başlangıç<input className="field mt-1" type="date" value={edit.startDate} onChange={(e) => setEdit({ ...edit, startDate: e.target.value })} /></label>
-          <label className="text-sm">Bitiş<input className="field mt-1" type="date" value={edit.dueDate} onChange={(e) => setEdit({ ...edit, dueDate: e.target.value })} /></label>
+          <label className="text-sm"><Tx>İş paketi</Tx><input className="field mt-1" value={edit.workPackage} onChange={(e) => setEdit({ ...edit, workPackage: e.target.value })} /></label>
+          <label className="text-sm md:col-span-2"><Tx>Açıklama</Tx><textarea className="field mt-1" rows={3} value={edit.detail} onChange={(e) => setEdit({ ...edit, detail: e.target.value })} /></label>
+          <label className="text-sm"><Tx>Başlangıç</Tx><input className="field mt-1" type="date" value={edit.startDate} onChange={(e) => setEdit({ ...edit, startDate: e.target.value })} /></label>
+          <label className="text-sm"><Tx>Bitiş</Tx><input className="field mt-1" type="date" value={edit.dueDate} onChange={(e) => setEdit({ ...edit, dueDate: e.target.value })} /></label>
           <label className="text-sm">Birim<input className="field mt-1" value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} /></label>
-          <label className="text-sm">Kişi<input className="field mt-1" value={edit.owner} onChange={(e) => setEdit({ ...edit, owner: e.target.value })} /></label>
+          <label className="text-sm"><Tx>Kişi</Tx><input className="field mt-1" value={edit.owner} onChange={(e) => setEdit({ ...edit, owner: e.target.value })} /></label>
           <label className="text-sm">Durum
             <select className="field mt-1" value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value })}>
               {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
             </select>
           </label>
-          <label className="text-sm">Öncelik
-            <select className="field mt-1" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: e.target.value })}>
+          <label className="text-sm"><Tx>Öncelik</Tx><select className="field mt-1" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: e.target.value })}>
               {PRIORITY_OPTIONS.map((s) => <option key={s}>{s}</option>)}
             </select>
           </label>
@@ -191,7 +188,7 @@ export default function TodosPage() {
           <label className="text-sm">Notlar<input className="field mt-1" value={edit.notes} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} /></label>
           <div className="md:col-span-2 flex gap-2">
             <button className="btn">Kaydet</button>
-            <button type="button" className="btn ghost" onClick={() => setEdit(null)}>Vazgeç</button>
+            <button type="button" className="btn ghost" onClick={() => setEdit(null)}><Tx>Vazgeç</Tx></button>
           </div>
         </form>
       ) : null}

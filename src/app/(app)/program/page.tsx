@@ -8,7 +8,7 @@ import Link from "next/link";
 import { CalendarDays, Check, Plus } from "lucide-react";
 import { CopDayGrid, PlanChip, type ProgramFilter, planMatchesFilter } from "@/components/CopDayGrid";
 import type { PlanDay, PlanItem } from "@/lib/plan-types";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
 
 type Agenda = AgendaRow;
@@ -165,11 +165,11 @@ export default function ProgramPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a className="btn" href="/api/pdf/program">Program PDF</a>
-          <a className="btn secondary" href="/api/calendar">ICS indir</a>
-          <a className="btn ghost" href="/p" target="_blank">Açık program</a>
-          <a className="btn secondary" href="/stant-takvimi">Stand takvimi</a>
-          <button className="btn ghost" onClick={copySubscribe}>{copied ? "URL kopyalandı" : "Google’a abone URL"}</button>
+          <a className="btn" href="/api/pdf/program">{tx("Program PDF")}</a>
+          <a className="btn secondary" href="/api/calendar">{tx("ICS indir")}</a>
+          <a className="btn ghost" href="/p" target="_blank"><Tx>Açık program</Tx></a>
+          <a className="btn secondary" href="/stant-takvimi">{tx("Stand takvimi")}</a>
+          <button className="btn ghost" onClick={copySubscribe}>{copied ? tx("URL kopyalandı") : tx("Google’a abone URL")}</button>
         </div>
       </div>
       <CopDayGrid
@@ -213,15 +213,12 @@ export default function ProgramPage() {
       <div className="card p-4 flex flex-wrap gap-6 items-center max-w-xl">
         <QrImage path="/p" alt="Program QR" size={140} />
         <div>
-          <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">Dışarıya açık program QR</div>
-          <p className="text-sm mt-1">Ziyaretçi okutunca gündem ve etkinlik kayıtları açılır. Baskı için bu karekodu kullanın.</p>
+          <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]"><Tx>Dışarıya açık program QR</Tx></div>
+          <p className="text-sm mt-1"><Tx>Ziyaretçi okutunca gündem ve etkinlik kayıtları açılır. Baskı için bu karekodu kullanın.</Tx></p>
           <a className="text-sm text-[#0077C2] underline" href="/p" target="_blank">{publicOrigin}/p</a>
         </div>
       </div>
-      <p className="text-sm text-[#57534e]">
-        Google Calendar: Ayarlar → Diğer takvimler ekle → URL ile ekle → <code className="text-[#0077C2]">{subscribeUrl}</code>
-        . Tek oturum için “Google’a ekle” kullanın.
-      </p>
+      <p className="text-sm text-[#57534e]"><Tx>Google Calendar: Ayarlar → Diğer takvimler ekle → URL ile ekle →</Tx><code className="text-[#0077C2]">{subscribeUrl}</code><Tx>. Tek oturum için “Google’a ekle” kullanın.</Tx></p>
     </div>
   );
 }

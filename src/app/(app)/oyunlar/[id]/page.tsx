@@ -8,7 +8,7 @@ import { PrizeWheel } from "@/components/game/PrizeWheel";
 import { Scoreboard } from "@/components/game/Board";
 import { SLICE_COLORS } from "@/lib/wheel";
 import { CONCEPTS } from "@/lib/match-cards";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { HATIRA_H, HATIRA_NATURE, HATIRA_W, HATIRA_WINDOW, type HatiraLogos } from "@/lib/hatira";
 
 type Question = {
@@ -77,10 +77,8 @@ function HatiraUpload({
       <div className="h-28 border border-[#DCE8F0] bg-[#F7F4EC] flex items-center justify-center p-2">
         {src ? <img src={src} alt={label} className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-[#9AA5AD]">Yok</span>}
       </div>
-      {custom ? <div className="text-xs text-[#0077C2]">Yüklü görsel</div> : null}
-      <label className="btn ghost text-xs w-full justify-center">
-        Yükle
-        <input
+      {custom ? <div className="text-xs text-[#0077C2]"><Tx>Yüklü görsel</Tx></div> : null}
+      <label className="btn ghost text-xs w-full justify-center"><Tx>Yükle</Tx><input
           type="file"
           accept="image/png,image/jpeg,image/webp"
           className="hidden"
@@ -91,7 +89,7 @@ function HatiraUpload({
           }}
         />
       </label>
-      {onReset ? <button type="button" className="text-xs underline" onClick={onReset}>Varsayılana dön</button> : null}
+      {onReset ? <button type="button" className="text-xs underline" onClick={onReset}><Tx>Varsayılana dön</Tx></button> : null}
     </div>
   );
 }
@@ -240,24 +238,24 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a className="btn" href={`/sunucu/${data.slug}`}>Admin yönetim</a>
-          <a className="btn ghost" href={`/oyun/${data.slug}`} target="_blank">Duvar ekranı</a>
+          <a className="btn" href={`/sunucu/${data.slug}`}><Tx>Admin yönetim</Tx></a>
+          <a className="btn ghost" href={`/oyun/${data.slug}`} target="_blank"><Tx>Duvar ekranı</Tx></a>
           {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" ? (
             <>
               <button className="btn ghost" onClick={() => void runGame("lobby")}>Lobiye al</button>
-              <button className="btn ghost" onClick={() => void runGame("restart")}>Yeniden başlat</button>
+              <button className="btn ghost" onClick={() => void runGame("restart")}><Tx>Yeniden başlat</Tx></button>
             </>
           ) : (
-            <button className="btn ghost" onClick={() => void saveMeta({ status: "lobby", phase: "lobby", currentIndex: -1 })}>Lobiyi aç</button>
+            <button className="btn ghost" onClick={() => void saveMeta({ status: "lobby", phase: "lobby", currentIndex: -1 })}><Tx>Lobiyi aç</Tx></button>
           )}
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
         <div className="card p-4 flex gap-4 items-center">
-          <QrImage path={`/oyun/${data.slug}/katil`} alt="Katıl QR" size={140} />
+          <QrImage path={`/oyun/${data.slug}/katil`} alt={tx("Katıl QR")} size={140} />
           <div>
-            <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">Telefon giriş karekodu</div>
+            <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]"><Tx>Telefon giriş karekodu</Tx></div>
             <p className="text-sm mt-1">{data.type === "kilo" ? "Karekod doğrudan hesap formunu açar. Rumuz gerekmez." : data.type === "hatira" ? "Karekod doğrudan selfie kamerasını açar. Admin onaylarsa duvarda görünür." : "Duvara yansıtılan oyunun QRsı da bunu açar. Rumuz admin onayına düşer."}</p>
             <a className="text-sm text-[#0077C2] underline" href={`/oyun/${data.slug}/katil`} target="_blank">{origin}/oyun/{data.slug}/katil</a>
             <div className="mt-2">
@@ -288,15 +286,15 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
 
       {data.type === "hatira" ? (
       <section className="card p-4 space-y-4">
-        <h2 className="display text-3xl">Hatıra kartı</h2>
+        <h2 className="display text-3xl"><Tx>Hatıra kartı</Tx></h2>
         <p className="text-sm text-[#57534e]">
           Ziyaretçi selfie çekince kişi bu arka planın önüne oturur. Çerçevede COP31 ve Sağlık Bakanlığı logoları yer alır. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
         </p>
         <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 text-sm space-y-1">
-          <div><b>Kart çıktısı:</b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>
+          <div><b><Tx>Kart çıktısı:</Tx></b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>
           <div><b>Arka plan:</b> aynı ölçü, {HATIRA_W} × {HATIRA_H} px. Fotoğraf penceresi {HATIRA_WINDOW.w} × {HATIRA_WINDOW.h} px; görsel bu alana sığdırılır, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
-          <div><b>COP31 logosu:</b> şeffaf PNG, yatay, örneğin 900 × 360 px.</div>
-          <div><b>Sağlık Bakanlığı logosu:</b> kare, örneğin 800 × 800 px. Siyah fon otomatik temizlenir.</div>
+          <div><b>COP31 logosu:</b><Tx>şeffaf PNG, yatay, örneğin 900 × 360 px.</Tx></div>
+          <div><b><Tx>Sağlık Bakanlığı logosu:</Tx></b><Tx>kare, örneğin 800 × 800 px. Siyah fon otomatik temizlenir.</Tx></div>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           <HatiraUpload
@@ -314,18 +312,15 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
       ) : data.type === "kilo" ? (
       <section className="card p-4 space-y-3">
         <h2 className="display text-3xl">Kilo karbon</h2>
-        <p className="text-sm text-[#57534e]">
-          Ziyaretçi yaş, boy ve kilo girer. Mifflin-St Jeor tabanlı enerji ihtiyacı ve karışık diyet yoğunluğuyla 2035’e kadar gıda kaynaklı CO₂e kabaca hesaplanır. Sonuç telefonda ve duvarda canlanır. Rumuz gerekmez.
-        </p>
+        <p className="text-sm text-[#57534e]"><Tx>Ziyaretçi yaş, boy ve kilo girer. Mifflin-St Jeor tabanlı enerji ihtiyacı ve karışık diyet yoğunluğuyla 2035’e kadar gıda kaynaklı CO₂e kabaca hesaplanır. Sonuç telefonda ve duvarda canlanır. Rumuz gerekmez.</Tx></p>
         <button className="btn" onClick={() => void saveMeta()}>Kaydet</button>
       </section>
       ) : data.type === "match" ? (
       <section className="card p-4 space-y-4">
         <h2 className="display text-3xl">Dokunmatik turlar</h2>
-        <label className="text-sm">Tur süresi (saniye)
-          <input className="field mt-1 max-w-[12rem]" type="number" min={30} max={180} value={seconds} onChange={(e) => setSeconds(Number(e.target.value) || 75)} />
+        <label className="text-sm"><Tx>Tur süresi (saniye)</Tx><input className="field mt-1 max-w-[12rem]" type="number" min={30} max={180} value={seconds} onChange={(e) => setSeconds(Number(e.target.value) || 75)} />
         </label>
-        <p className="text-sm text-[#57534e]">1. tur hafıza (8 çift). 2. tur dokuz konsepti açıklamasıyla eşleştirme. Her doğru +10 puan.</p>
+        <p className="text-sm text-[#57534e]"><Tx>1. tur hafıza (8 çift). 2. tur dokuz konsepti açıklamasıyla eşleştirme. Her doğru +10 puan.</Tx></p>
         <div className="grid md:grid-cols-3 gap-2">
           {CONCEPTS.filter((c) => c.n <= 9).map((c) => (
             <div key={c.id} className="p-3 border border-[#DCE8F0]" style={{ background: "#FFFFFF" }}>
@@ -340,7 +335,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
       ) : data.type === "wheel" ? (
       <section className="card p-4 space-y-4">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <h2 className="display text-3xl">Çark dilimleri</h2>
+          <h2 className="display text-3xl"><Tx>Çark dilimleri</Tx></h2>
           <button className="btn ghost" onClick={() => setSlices((s) => [...s, { ...emptySlice(), color: SLICE_COLORS[s.length % SLICE_COLORS.length] }])}>
             Dilim ekle
           </button>
@@ -350,11 +345,10 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
         </div>
         {slices.map((s, i) => (
           <div key={s.id || i} className="grid md:grid-cols-[1fr_140px_140px_auto] gap-2 items-end border border-[#DCE8F0] p-3" style={{ background: "#FFFFFF" }}>
-            <label className="text-sm">Hediye / yazı
-              <input
+            <label className="text-sm"><Tx>Hediye / yazı</Tx><input
                 className="field mt-1"
                 value={s.label}
-                placeholder="Bez çanta"
+                placeholder={tx("Bez çanta")}
                 onChange={(e) => {
                   const next = [...slices];
                   next[i] = { ...s, label: e.target.value };
@@ -362,8 +356,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                 }}
               />
             </label>
-            <label className="text-sm">Tür
-              <select
+            <label className="text-sm"><Tx>Tür</Tx><select
                 className="field mt-1"
                 value={s.kind}
                 onChange={(e) => {
@@ -373,8 +366,8 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                 }}
               >
                 <option value="prize">Hediye</option>
-                <option value="again">Tekrar çevir</option>
-                <option value="miss">Boş / teşekkür</option>
+                <option value="again"><Tx>Tekrar çevir</Tx></option>
+                <option value="miss"><Tx>Boş / teşekkür</Tx></option>
               </select>
             </label>
             <label className="text-sm">Renk
@@ -443,8 +436,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
               ))}
             </div>
             <div className="grid sm:grid-cols-3 gap-3">
-              <label className="text-sm">Süre (saniye)
-                <input
+              <label className="text-sm"><Tx>Süre (saniye)</Tx><input
                   className="field mt-1"
                   type="number"
                   min={5}
@@ -456,7 +448,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                     setQuestions(next);
                   }}
                 />
-                <span className="text-xs text-[#57534e]">Varsayılan 15</span>
+                <span className="text-xs text-[#57534e]"><Tx>Varsayılan 15</Tx></span>
               </label>
               <label className="text-sm">Puan
                 <input
@@ -471,8 +463,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                   }}
                 />
               </label>
-              <label className="text-sm">Video bağlantısı
-                <input
+              <label className="text-sm"><Tx>Video bağlantısı</Tx><input
                   className="field mt-1"
                   placeholder="YouTube / Vimeo / MP4 URL"
                   value={q.videoUrl}
@@ -485,9 +476,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
               </label>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <label className="btn ghost">
-                Video yükle
-                <input
+              <label className="btn ghost"><Tx>Video yükle</Tx><input
                   type="file"
                   accept="video/mp4,video/webm,video/quicktime"
                   hidden
@@ -515,7 +504,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                   }}
                 />
               </label>
-              {q.videoPath ? <span className="text-[#22A34A]">Yüklü video var</span> : <span className="text-[#57534e]">Dosya en fazla 40 MB · MP4/WebM</span>}
+              {q.videoPath ? <span className="text-[#22A34A]"><Tx>Yüklü video var</Tx></span> : <span className="text-[#57534e]">Dosya en fazla 40 MB · MP4/WebM</span>}
               {q.videoPath ? (
                 <button
                   className="text-xs underline"
@@ -525,9 +514,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                     next[qi] = { ...q, videoPath: "" };
                     setQuestions(next);
                   }}
-                >
-                  Videoyu kaldır
-                </button>
+                ><Tx>Videoyu kaldır</Tx></button>
               ) : null}
             </div>
             {q.videoUrl || q.videoPath ? (
@@ -535,14 +522,14 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
             ) : null}
           </div>
         ))}
-        <button className="btn" onClick={() => void saveMeta()}>Soruları kaydet</button>
+        <button className="btn" onClick={() => void saveMeta()}><Tx>Soruları kaydet</Tx></button>
       </section>
       )}
 
       <section className="card p-4 space-y-3">
         <div className="flex justify-between flex-wrap gap-2">
           <h2 className="display text-3xl">Puanlama</h2>
-          <button className="btn" onClick={() => void award()}>Sıradaki 1.ye ödül ver</button>
+          <button className="btn" onClick={() => void award()}><Tx>Sıradaki 1.ye ödül ver</Tx></button>
         </div>
         <Scoreboard players={data.board.players} teams={data.board.teams} />
         <div className="overflow-x-auto">
@@ -551,9 +538,9 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
               <tr className="text-left text-[#57534e]">
                 <th className="py-1">#</th>
                 <th>Rumuz</th>
-                <th>Takım</th>
+                <th><Tx>Takım</Tx></th>
                 <th>Puan</th>
-                <th>Düzelt</th>
+                <th><Tx>Düzelt</Tx></th>
                 <th></th>
               </tr>
             </thead>
@@ -569,7 +556,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                     <button className="btn ghost" onClick={() => void bump(p.id, -5)}>−5</button>
                   </td>
                   <td>
-                    <button className="btn ghost" onClick={() => void award(p.id)}>Ödül</button>
+                    <button className="btn ghost" onClick={() => void award(p.id)}><Tx>Ödül</Tx></button>
                   </td>
                 </tr>
               ))}
@@ -594,8 +581,8 @@ function PlakEditor({
   const [msg, setMsg] = useState("");
   return (
     <section className="card p-4 space-y-3">
-      <h2 className="display text-3xl">YouTube Music parçaları</h2>
-      <p className="text-sm text-[#57534e]">Bağlantıyı yapıştırın. Kapak ve ad YouTube’dan gelir. Oyuncu Döndür’e basınca kapaklar döner, biri kalır ve o parça çalar.</p>
+      <h2 className="display text-3xl"><Tx>YouTube Music parçaları</Tx></h2>
+      <p className="text-sm text-[#57534e]"><Tx>Bağlantıyı yapıştırın. Kapak ve ad YouTube’dan gelir. Oyuncu Döndür’e basınca kapaklar döner, biri kalır ve o parça çalar.</Tx></p>
       <div className="flex gap-2">
         <input className="field" placeholder="https://music.youtube.com/watch?v=..." value={url} onChange={(e) => setUrl(e.target.value)} />
         <button

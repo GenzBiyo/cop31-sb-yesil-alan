@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 import { SessionBrief } from "@/components/SessionBrief";
 import { conceptHasDetail, emptyConcept, type SessionConcept } from "@/lib/session-concept";
@@ -469,7 +469,7 @@ export function VisitorApp() {
         <button className="phone-back" type="button" onClick={goBack}>{tx("Geri")}</button>
         <div className="phone-top-copy">
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>
-          <h1>COP31 Sağlık</h1>
+          <h1><Tx>COP31 Sağlık</Tx></h1>
           <span>{tx("Antalya · 9–20 Kasım 2026")}</span>
         </div>
       </header>
@@ -748,7 +748,7 @@ export function VisitorApp() {
         <div className="phone-setup" role="dialog">
           <img src="/icons/saglik-192.png" alt="" width={72} height={72} />
           <p>{tx("T.C. Sağlık Bakanlığı")}</p>
-          <h2>COP31 Sağlık</h2>
+          <h2><Tx>COP31 Sağlık</Tx></h2>
           <p>{tx("Ana ekrana ekleyin. Simge uygulama gibi durur, bildirimler o zaman gelir.")}</p>
           {installEvent ? (
             <button className="phone-btn" type="button" onClick={() => void install()}>{tx("Telefona ekle")}</button>

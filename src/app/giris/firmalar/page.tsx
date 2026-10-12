@@ -13,7 +13,7 @@ export default function FirmalarGate() {
     <PortalChrome
       image="/gate/gate-firmalar.webp"
       kicker="Paydaş firmalar · yeşil üretim"
-      title="Karbonu kesen sağlık endüstrisi"
+      title={tx("Karbonu kesen sağlık endüstrisi")}
       lead="İlaç, cihaz ve hizmetin ayak izi hastanın da gezegenin de yüküdür. Pavilon katkınızı kaydedin; onay sonrası stant, panel ve hediyeli etkinliklerinizi yönetin."
     >
       <div className="flex gap-2 mb-4">
@@ -25,7 +25,7 @@ export default function FirmalarGate() {
       ) : (
         <CompanyApply
           defaultScope="Local"
-          title="Hesap başvurusu"
+          title={tx("Hesap başvurusu")}
           blurb="Firma, startup, kamu kurumu, konuşmacı, STK veya akademi hesabı açın. Başvuru admin onayına düşer; onaysız hesapla giriş yapılamaz."
         />
       )}

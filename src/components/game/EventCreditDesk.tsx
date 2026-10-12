@@ -1,4 +1,5 @@
 "use client";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 import { useState } from "react";
 import { api, useApi } from "@/lib/client";
@@ -13,6 +14,7 @@ const BLANK = {
 };
 
 export function EventCreditDesk() {
+  const { tx } = useI18n();
   const { data, reload } = useApi<{ credits: EventCredit[] }>("/api/event-credits");
   const [form, setForm] = useState(BLANK);
   const [file, setFile] = useState<File | null>(null);
@@ -72,29 +74,22 @@ export function EventCreditDesk() {
   return (
     <section className="card p-4 space-y-4" style={{ borderLeft: "4px solid #0077C2" }}>
       <div>
-        <h2 className="display text-2xl">Oyun altı etkinlik sponsoru</h2>
-        <p className="text-sm text-[#57534e]">
-          Oyunların altında “yazı, logo, yazı” olarak görünür. Örnek: Katıldığınız bu etkinlik [logo] tarafından desteklenmiştir. Yalnızca seçtiğiniz saat aralığında yayında kalır. Saatler Antalya saatidir.
-        </p>
+        <h2 className="display text-2xl"><Tx>Oyun altı etkinlik sponsoru</Tx></h2>
+        <p className="text-sm text-[#57534e]"><Tx>Oyunların altında “yazı, logo, yazı” olarak görünür. Örnek: Katıldığınız bu etkinlik [logo] tarafından desteklenmiştir. Yalnızca seçtiğiniz saat aralığında yayında kalır. Saatler Antalya saatidir.</Tx></p>
       </div>
       <form className="grid md:grid-cols-2 gap-2" onSubmit={create}>
-        <label className="text-sm">Logo öncesi yazı
-          <input className="field mt-1" value={form.before} onChange={(e) => setForm({ ...form, before: e.target.value })} required />
+        <label className="text-sm"><Tx>Logo öncesi yazı</Tx><input className="field mt-1" value={form.before} onChange={(e) => setForm({ ...form, before: e.target.value })} required />
         </label>
-        <label className="text-sm">Logo sonrası yazı
-          <input className="field mt-1" value={form.after} onChange={(e) => setForm({ ...form, after: e.target.value })} placeholder="Boş bırakılırsa yalnızca logo kalır" />
+        <label className="text-sm"><Tx>Logo sonrası yazı</Tx><input className="field mt-1" value={form.after} onChange={(e) => setForm({ ...form, after: e.target.value })} placeholder={tx("Boş bırakılırsa yalnızca logo kalır")} />
         </label>
-        <label className="text-sm">Sponsor adı
-          <input className="field mt-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Logo alt yazısı" />
+        <label className="text-sm"><Tx>Sponsor adı</Tx><input className="field mt-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={tx("Logo alt yazısı")} />
         </label>
         <label className="text-sm">Logo
           <input className="field mt-1" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={(e) => setFile(e.target.files?.[0] || null)} />
         </label>
-        <label className="text-sm">Başlangıç
-          <input className="field mt-1" type="datetime-local" value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value })} required />
+        <label className="text-sm"><Tx>Başlangıç</Tx><input className="field mt-1" type="datetime-local" value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value })} required />
         </label>
-        <label className="text-sm">Bitiş
-          <input className="field mt-1" type="datetime-local" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} required />
+        <label className="text-sm"><Tx>Bitiş</Tx><input className="field mt-1" type="datetime-local" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} required />
         </label>
         <div className="md:col-span-2 flex flex-wrap items-center gap-3">
           <button className="btn" disabled={busy}>{busy ? "Kaydediliyor…" : "Sponsor satırı ekle"}</button>
@@ -105,7 +100,7 @@ export function EventCreditDesk() {
         {credits.map((row) => (
           <CreditRow key={row.id} row={row} onSave={save} onRemove={remove} />
         ))}
-        {credits.length === 0 ? <li className="text-sm text-[#57534e]">Henüz sponsor satırı yok.</li> : null}
+        {credits.length === 0 ? <li className="text-sm text-[#57534e]"><Tx>Henüz sponsor satırı yok.</Tx></li> : null}
       </ul>
     </section>
   );

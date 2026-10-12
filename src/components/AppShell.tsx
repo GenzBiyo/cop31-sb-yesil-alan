@@ -146,7 +146,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {menuOpen ? <button type="button" className="desk-backdrop" aria-label={tx("Kapat")} onClick={() => setMenuOpen(false)} /> : null}
       <aside className={`desk-aside bg-white text-[#0B1C33] px-3 py-5 border-r border-[#D4ECF6]${menuOpen ? " is-open" : ""}`}>
         <Link href="/dashboard" className="block px-2">
-          <img src="/brand/cop31-turkiye.png" alt="COP31 Türkiye Antalya" className="w-[168px] h-auto" />
+          <img src="/brand/cop31-turkiye.png" alt={tx("COP31 Türkiye Antalya")} className="w-[168px] h-auto" />
         </Link>
         <p className="px-2 mt-3 text-[10px] tracking-[0.18em] uppercase text-[#0077C2]">{tx("T.C. Sağlık Bakanlığı")}</p>
         <p className="px-2 mt-1 text-sm font-semibold text-[#0077C2]">{tx("Hazırlık masası")}</p>

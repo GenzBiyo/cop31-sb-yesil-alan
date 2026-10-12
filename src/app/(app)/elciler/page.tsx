@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { api, formatDate, useApi } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Field = {
   id: string;
@@ -114,8 +114,8 @@ export default function AmbassadorsAdminPage() {
     <div className="space-y-4">
       <div>
         <h1 className="display text-4xl">{tx("İklim Sağlık Elçileri")}</h1>
-        <p className="text-[#57534e]">Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.</p>
-        <a className="text-sm text-[#0077C2] underline" href="/giris/elciler" target="_blank">Açık başvuru formu</a>
+        <p className="text-[#57534e]"><Tx>Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.</Tx></p>
+        <a className="text-sm text-[#0077C2] underline" href="/giris/elciler" target="_blank"><Tx>Açık başvuru formu</Tx></a>
       </div>
       <div className="flex gap-2 flex-wrap">
         {[
@@ -144,8 +144,8 @@ export default function AmbassadorsAdminPage() {
                   <th>Ad</th>
                   <th>Okul</th>
                   <th>Dil</th>
-                  <th>Gün</th>
-                  <th>İletişim</th>
+                  <th><Tx>Gün</Tx></th>
+                  <th><Tx>İletişim</Tx></th>
                   <th>Durum</th>
                 </tr>
               </thead>
@@ -155,7 +155,7 @@ export default function AmbassadorsAdminPage() {
                     <td>
                       {a.fullName}
                       <div className="text-xs text-[#57534e]">{a.city}</div>
-                      {extraOf(a).needsSupport === "Evet" ? <span className="badge warn mt-1">Konaklama/ulaşım ister</span> : null}
+                      {extraOf(a).needsSupport === "Evet" ? <span className="badge warn mt-1"><Tx>Konaklama/ulaşım ister</Tx></span> : null}
                     </td>
                     <td>{a.schoolType} · {a.school}<div className="text-xs">{a.department}</div></td>
                     <td>{a.englishLevel}<div className="text-xs">{a.otherLanguages}</div></td>
@@ -190,7 +190,7 @@ export default function AmbassadorsAdminPage() {
               <div className="flex items-center justify-between gap-2 text-sm mb-1">
                 <span className="font-semibold">Günler (9–20 Kasım) · {activityForm.dates.length} gün seçili</span>
                 <span className="flex gap-2">
-                  <button type="button" className="text-[#0077C2] underline" onClick={() => setActivityForm({ ...activityForm, dates: [...ACTIVITY_DAYS] })}>Tümü</button>
+                  <button type="button" className="text-[#0077C2] underline" onClick={() => setActivityForm({ ...activityForm, dates: [...ACTIVITY_DAYS] })}><Tx>Tümü</Tx></button>
                   <button type="button" className="text-[#0077C2] underline" onClick={() => setActivityForm({ ...activityForm, dates: [] })}>Temizle</button>
                 </span>
               </div>
@@ -219,9 +219,9 @@ export default function AmbassadorsAdminPage() {
             <input className="field" type="time" value={activityForm.startTime} onChange={(e) => setActivityForm({ ...activityForm, startTime: e.target.value })} />
             <input className="field" type="time" value={activityForm.endTime} onChange={(e) => setActivityForm({ ...activityForm, endTime: e.target.value })} />
             <input className="field" placeholder="Yer" value={activityForm.location} onChange={(e) => setActivityForm({ ...activityForm, location: e.target.value })} />
-            <input className="field" placeholder="İhtiyaç duyulan rol" value={activityForm.roleNeed} onChange={(e) => setActivityForm({ ...activityForm, roleNeed: e.target.value })} />
-            <textarea className="field md:col-span-4" placeholder="Açıklama" value={activityForm.description} onChange={(e) => setActivityForm({ ...activityForm, description: e.target.value })} />
-            <button className="btn">Aktivite oluştur</button>
+            <input className="field" placeholder={tx("İhtiyaç duyulan rol")} value={activityForm.roleNeed} onChange={(e) => setActivityForm({ ...activityForm, roleNeed: e.target.value })} />
+            <textarea className="field md:col-span-4" placeholder={tx("Açıklama")} value={activityForm.description} onChange={(e) => setActivityForm({ ...activityForm, description: e.target.value })} />
+            <button className="btn"><Tx>Aktivite oluştur</Tx></button>
           </form>
           {(acts.data || []).map((act) => (
             <div key={act.id} className="card p-4">
@@ -238,13 +238,13 @@ export default function AmbassadorsAdminPage() {
                 {act.placements.map((p) => (
                   <li key={p.id} className="flex justify-between">
                     <span>{p.application?.fullName} — {p.role}</span>
-                    <button className="text-[#0077C2]" onClick={async () => { await fetch(`/api/ambassador/activities?placementId=${p.id}`, { method: "DELETE" }); await acts.reload(); await apps.reload(); }}>Çıkar</button>
+                    <button className="text-[#0077C2]" onClick={async () => { await fetch(`/api/ambassador/activities?placementId=${p.id}`, { method: "DELETE" }); await acts.reload(); await apps.reload(); }}><Tx>Çıkar</Tx></button>
                   </li>
                 ))}
               </ul>
               {act.placements.length > 0 ? (
                 <div className="mt-3 text-xs space-y-1 bg-[#EAF2F8] p-2">
-                  <div className="font-semibold">Elçi saha kayıt linkleri</div>
+                  <div className="font-semibold"><Tx>Elçi saha kayıt linkleri</Tx></div>
                   {act.placements.map((p) => (
                     <div key={`qr-${p.id}`}>
                       {p.application?.fullName}:{" "}
@@ -259,7 +259,7 @@ export default function AmbassadorsAdminPage() {
               ) : null}
               <div className="flex gap-2 mt-3">
                 <select id={`pick-${act.id}`} className="field">
-                  <option value="">Kabul edilenlerden yerleştir</option>
+                  <option value=""><Tx>Kabul edilenlerden yerleştir</Tx></option>
                   {accepted.map((a) => (
                     <option key={a.id} value={a.id}>{a.fullName} · {a.englishLevel} · {a.skills}</option>
                   ))}
@@ -277,9 +277,7 @@ export default function AmbassadorsAdminPage() {
                     await acts.reload();
                     await apps.reload();
                   }}
-                >
-                  Yerleştir ve bildir
-                </button>
+                ><Tx>Yerleştir ve bildir</Tx></button>
               </div>
             </div>
           ))}
@@ -329,9 +327,8 @@ export default function AmbassadorsAdminPage() {
               </div>
             ))}
           </div>
-          <label className="text-sm">İç not<textarea className="field mt-1" value={note} onChange={(e) => setNote(e.target.value)} /></label>
-          <label className="text-sm">Öğrenciye gidecek mesaj (boşsa varsayılan metin)
-            <textarea className="field mt-1" rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Kayıt kabul / red / bilgilendirme metni" />
+          <label className="text-sm"><Tx>İç not</Tx><textarea className="field mt-1" value={note} onChange={(e) => setNote(e.target.value)} /></label>
+          <label className="text-sm"><Tx>Öğrenciye gidecek mesaj (boşsa varsayılan metin)</Tx><textarea className="field mt-1" rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={tx("Kayıt kabul / red / bilgilendirme metni")} />
           </label>
           <div className="flex flex-wrap gap-2">
             <button className="btn" onClick={() => decide("Kabul edildi")}>Kabul et ve bildir</button>
@@ -359,8 +356,7 @@ function FormEditor({
 }) {
   return (
     <div className="space-y-4">
-      <label className="text-sm block">Formun başındaki not
-        <textarea className="field mt-1" rows={6} value={intro} onChange={(e) => setIntro(e.target.value)} />
+      <label className="text-sm block"><Tx>Formun başındaki not</Tx><textarea className="field mt-1" rows={6} value={intro} onChange={(e) => setIntro(e.target.value)} />
       </label>
       {fields.map((field, index) => (
         <div key={field.id} className="card p-3 grid md:grid-cols-2 gap-2">
@@ -389,21 +385,20 @@ function FormEditor({
                 const next = [...fields];
                 next[index] = { ...field, enabled: e.target.checked };
                 setFields(next);
-              }} /> Açık
-            </label>
+              }} /><Tx>Açık</Tx></label>
           </div>
           <input className="field" placeholder="Anahtar (fullName, email…)" value={field.key} onChange={(e) => {
             const next = [...fields];
             next[index] = { ...field, key: e.target.value };
             setFields(next);
           }} />
-          <input className="field" placeholder="Yardım metni" value={field.help} onChange={(e) => {
+          <input className="field" placeholder={tx("Yardım metni")} value={field.help} onChange={(e) => {
             const next = [...fields];
             next[index] = { ...field, help: e.target.value };
             setFields(next);
           }} />
           {(field.type === "select" || field.type === "multiselect") ? (
-            <textarea className="field md:col-span-2" placeholder="Seçenekler (her satır bir seçenek)" value={field.options} onChange={(e) => {
+            <textarea className="field md:col-span-2" placeholder={tx("Seçenekler (her satır bir seçenek)")} value={field.options} onChange={(e) => {
               const next = [...fields];
               next[index] = { ...field, options: e.target.value };
               setFields(next);

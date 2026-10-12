@@ -17,7 +17,7 @@ import { ShareBar } from "@/components/game/ShareBar";
 import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSponsor";
 import { EventCreditStrip } from "@/components/game/EventCreditStrip";
 import type { HatiraLogos, HatiraPublic } from "@/lib/hatira";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Person = { id: string; nickname: string; teamName: string };
 type Wall = {
@@ -134,7 +134,7 @@ function Wall({ slug }: { slug: string }) {
             />
             {plakTrack ? (
               <div className="space-y-3">
-                {wall.plak?.spinning ? <p className="text-xl text-[#C8EEFA]">Kapaklar dönüyor…</p> : <h2 className="display text-4xl md:text-6xl">{plakTrack.title}</h2>}
+                {wall.plak?.spinning ? <p className="text-xl text-[#C8EEFA]"><Tx>Kapaklar dönüyor…</Tx></p> : <h2 className="display text-4xl md:text-6xl">{plakTrack.title}</h2>}
                 <p className="text-2xl text-[#C8EEFA]">
                   {wall.spinPlayer ? `Bu parça ${wall.spinPlayer.nickname}'dan geliyor` : plakTrack.artist}
                 </p>
@@ -142,7 +142,7 @@ function Wall({ slug }: { slug: string }) {
                 {wall.plak?.spinning ? null : <ShareBar text={`Bu parça ${wall.spinPlayer?.nickname || "COP31"}'dan geliyor: ${plakTrack.title}`} />}
               </div>
             ) : (
-              <p className="text-xl text-[#C8EEFA]">Karekodu okutun. Onaylanınca Döndür’e basın.</p>
+              <p className="text-xl text-[#C8EEFA]"><Tx>Karekodu okutun. Onaylanınca Döndür’e basın.</Tx></p>
             )}
           </div>
         ) : isHatira ? (
@@ -293,7 +293,7 @@ function Wall({ slug }: { slug: string }) {
               <div className="mt-8 p-5" style={{ background: "#EEF8FD", color: "#1c1917" }}>
                 <h3 className="display text-3xl">{tx("Doğru işaretleyenler")}</h3>
                 <div className="mt-3">
-                  <NameList title="Doğru" tone="ok" people={wall.results?.correct || []} />
+                  <NameList title={tx("Doğru")} tone="ok" people={wall.results?.correct || []} />
                 </div>
                 <div className="mt-4">
                   <Scoreboard players={players} teams={wall.board?.teams} />
@@ -321,7 +321,7 @@ function Wall({ slug }: { slug: string }) {
 
       <aside className="p-6 flex flex-col items-center gap-4" style={{ background: "#0088C8" }}>
         <div className="bg-[#EEF8FD] p-3">
-          <QrImage path={`/oyun/${wall.slug}/katil`} alt="Katıl QR" size={220} />
+          <QrImage path={`/oyun/${wall.slug}/katil`} alt={tx("Katıl QR")} size={220} />
         </div>
         <p className="text-center text-sm tracking-[0.16em] uppercase">{tx("Katılmak için okut")}</p>
         <p className="text-center text-xs opacity-80 break-all">{origin ? `${origin}/oyun/${wall.slug}/katil` : tx("Karekod yükleniyor")}</p>

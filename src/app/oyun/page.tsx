@@ -36,14 +36,14 @@ export default function GamesHubPage() {
       wide
       live={live}
       kicker="COP31 Türkiye · Sağlık Pavilionu"
-      title="Etkileşim alanı"
+      title={tx("Etkileşim alanı")}
       lead="Her oyunun duvar ekranı ayrıdır. Karekodu okutunca rumuz giriş sayfası açılır."
     >
       <p className="-mt-2 text-sm">
         <Link href="/" className="underline underline-offset-4 text-[#0077C2]">{tx("← Kapılara dön")}</Link>
       </p>
       <section className="game-panel flex flex-wrap gap-5 items-center">
-        <QrImage path="/oyun" alt="Etkileşim alanı QR" size={132} />
+        <QrImage path="/oyun" alt={tx("Etkileşim alanı QR")} size={132} />
         <div>
           <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{tx("Alan girişi karekodu")}</div>
           <p className="text-sm mt-1">{tx("Ziyaretçi bu kodu okutunca açık oyunlara düşer. Yeni soru-cevaplar da burada görünür.")}</p>

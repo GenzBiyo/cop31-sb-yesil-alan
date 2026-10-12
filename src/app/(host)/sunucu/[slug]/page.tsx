@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import { api, useApi, useRealtime } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { NameList, Scoreboard, TimerRing } from "@/components/game/Board";
 import { QrImage } from "@/components/QrImage";
 import { QuestionOptions, QuestionVideo } from "@/components/game/QuestionMedia";
@@ -113,7 +113,7 @@ function Host({ slug }: { slug: string }) {
     return (
       <main className="cop-wall min-h-screen p-8 text-[#EEF8FD]">
         <p className="text-xs tracking-[0.18em] uppercase opacity-80">COP31 · Sunucu</p>
-        <h1 className="display text-4xl mt-2">Yeşil Dokunuş</h1>
+        <h1 className="display text-4xl mt-2"><Tx>Yeşil Dokunuş</Tx></h1>
         <p className="mt-3 text-[#C8EEFA]">{error || "Oyun yok"}</p>
         {login ? (
           <a className="btn mt-5 inline-flex" href={`/giris/bakanlik?next=/sunucu/${slug}`}>
@@ -147,7 +147,7 @@ function Host({ slug }: { slug: string }) {
       <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 px-5 py-4" style={{ background: "#00A3E0" }}>
         <div>
           <a href={`/oyunlar/${data.id}`} className="text-xs underline" style={{ color: "#EEF8FD" }}>← {isWheel ? "Dilimleri düzenle" : isMatch || isKilo || isHatira ? "Tur ayarı" : "Soru düzenle"}</a>
-          <a href={`/oyun/${data.slug}`} className="text-xs underline ml-3" style={{ color: "#EEF8FD" }} target="_blank">Duvar ekranı</a>
+          <a href={`/oyun/${data.slug}`} className="text-xs underline ml-3" style={{ color: "#EEF8FD" }} target="_blank"><Tx>Duvar ekranı</Tx></a>
           <h1 className="display text-3xl mt-1">{data.title}</h1>
           <p className="text-xs tracking-[0.16em] uppercase opacity-80">
             Sunucu · {data.phase} · {isWheel ? `${(data.slices || []).length} dilim` : isHatira ? "hatıra" : isKilo ? "kilo karbon" : isMatch ? (data.currentIndex === 1 ? "eşleştirme" : data.currentIndex === 0 ? "hafıza" : "lobi") : `soru ${qn}/${data.questions.length}`}
@@ -157,12 +157,12 @@ function Host({ slug }: { slug: string }) {
         <div className="flex flex-wrap gap-2">
           <button className="btn ghost" onClick={() => void run("lobby")}>{tx("Lobiye al")}</button>
           {isHatira || isKilo ? (
-            <span className="text-xs tracking-[0.14em] uppercase opacity-80">Telefondan giriş açık</span>
+            <span className="text-xs tracking-[0.14em] uppercase opacity-80"><Tx>Telefondan giriş açık</Tx></span>
           ) : isMatch ? (
             <>
-              <button className="btn" onClick={() => void run("memory")}>Hafızayı başlat</button>
-              <button className="btn ghost" onClick={() => void run("pairs")}>Eşleştirmeyi başlat</button>
-              <button className="btn ghost" onClick={() => void run("reveal")} disabled={data.phase !== "asking"}>Süre bitsin</button>
+              <button className="btn" onClick={() => void run("memory")}><Tx>Hafızayı başlat</Tx></button>
+              <button className="btn ghost" onClick={() => void run("pairs")}><Tx>Eşleştirmeyi başlat</Tx></button>
+              <button className="btn ghost" onClick={() => void run("reveal")} disabled={data.phase !== "asking"}><Tx>Süre bitsin</Tx></button>
               <button className="btn ghost" onClick={() => void run("next")} disabled={data.phase === "lobby"}>
                 {data.currentIndex >= 1 ? "Oyunu bitir" : "Eşleştirmeye geç"}
               </button>
@@ -228,8 +228,8 @@ function Host({ slug }: { slug: string }) {
             <div className="p-6" style={{ background: "#0088C8" }}>
               {isHatira ? (
                 <div>
-                  <h2 className="display text-4xl">COP31 Hatıra</h2>
-                  <p className="mt-2 text-[#C8EEFA]">Onayladığınız selfieler duvar ekranında görünür. Altında Teşekkür ederiz yazılır.</p>
+                  <h2 className="display text-4xl"><Tx>COP31 Hatıra</Tx></h2>
+                  <p className="mt-2 text-[#C8EEFA]"><Tx>Onayladığınız selfieler duvar ekranında görünür. Altında Teşekkür ederiz yazılır.</Tx></p>
                   <div className="mt-6">
                     <HatiraWallView hatira={data.hatira || null} />
                   </div>
@@ -237,7 +237,7 @@ function Host({ slug }: { slug: string }) {
               ) : isKilo ? (
                 <div>
                   <h2 className="display text-4xl">Kilo Karbon</h2>
-                  <p className="mt-2 text-[#C8EEFA]">Ziyaretçi yaş, boy, kilo girince 2035’e kadar gıda izi duvarda canlanır.</p>
+                  <p className="mt-2 text-[#C8EEFA]"><Tx>Ziyaretçi yaş, boy, kilo girince 2035’e kadar gıda izi duvarda canlanır.</Tx></p>
                   <div className="mt-6">
                     <KiloWallView kilo={data.kilo || null} />
                   </div>
@@ -245,7 +245,7 @@ function Host({ slug }: { slug: string }) {
               ) : isMatch ? (
                 <div>
                   <h2 className="display text-4xl">{data.currentIndex === 1 ? "Eşleştirme" : data.phase === "asking" ? "Hafıza" : "Yeşil Dokunuş"}</h2>
-                  <p className="mt-2 text-[#C8EEFA]">Oyuncular telefonlarından dokunur. Doğru eşleşmeye 10 puan.</p>
+                  <p className="mt-2 text-[#C8EEFA]"><Tx>Oyuncular telefonlarından dokunur. Doğru eşleşmeye 10 puan.</Tx></p>
                   {data.phase === "asking" ? <p className="display text-6xl mt-4">{left}</p> : <p className="mt-4 display text-5xl">{data.board.players.length} oyuncu</p>}
                   <div className="mt-6 p-4 space-y-4" style={{ background: "#EEF8FD", color: "#1c1917" }}>
                     <TouchScene meters={data.match?.meters || { clean: 18, health: 16, joy: 14 }} bloom={data.match?.bloom} />
@@ -266,7 +266,7 @@ function Host({ slug }: { slug: string }) {
                     />
                   </div>
                   <div>
-                    <h2 className="display text-4xl">Hediyeli çark</h2>
+                    <h2 className="display text-4xl"><Tx>Hediyeli çark</Tx></h2>
                     <p className="mt-2 text-[#C8EEFA]">
                       {wheel.mode === "coast"
                         ? `${data.spinPlayer ? data.spinPlayer.nickname + " çeviriyor." : "Çark dönüyor."} Durdur deyince yavaşlar.`
@@ -292,9 +292,8 @@ function Host({ slug }: { slug: string }) {
                         {data.spinPlayer ? <p className="mt-2">{data.spinPlayer.nickname}</p> : null}
                       </div>
                     ) : null}
-                    <label className="block text-sm mt-4">Bu tur kimin için
-                      <select className="field mt-1" value={pick} onChange={(e) => setPick(e.target.value)}>
-                        <option value="">Rastgele onaylı rumuz</option>
+                    <label className="block text-sm mt-4"><Tx>Bu tur kimin için</Tx><select className="field mt-1" value={pick} onChange={(e) => setPick(e.target.value)}>
+                        <option value=""><Tx>Rastgele onaylı rumuz</Tx></option>
                         {(data.roster || []).map((p) => (
                           <option key={p.id} value={p.id}>{p.nickname}</option>
                         ))}
@@ -304,8 +303,8 @@ function Host({ slug }: { slug: string }) {
                 </div>
               ) : data.phase === "closed" ? (
                 <div>
-                  <h2 className="display text-4xl">Yarışma bitti</h2>
-                  <p className="mt-2 text-[#C8EEFA]">Puan tablosu duvarda. Yeniden başlatınca aynı oyuncularla 5 soru sıfırdan açılır.</p>
+                  <h2 className="display text-4xl"><Tx>Yarışma bitti</Tx></h2>
+                  <p className="mt-2 text-[#C8EEFA]"><Tx>Puan tablosu duvarda. Yeniden başlatınca aynı oyuncularla 5 soru sıfırdan açılır.</Tx></p>
                 </div>
               ) : data.phase === "lobby" ? (
                 <div>
@@ -335,7 +334,7 @@ function Host({ slug }: { slug: string }) {
                   </p>
                 </>
               ) : (
-                <h2 className="display text-4xl">Yarışma bitti</h2>
+                <h2 className="display text-4xl"><Tx>Yarışma bitti</Tx></h2>
               )}
             </div>
           )}

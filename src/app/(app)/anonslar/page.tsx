@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api, useApi, useRealtime } from "@/lib/client";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Inbox = { id: string; title: string; body: string; read: boolean; createdAt: string };
 type Ann = { id: string; title: string; body: string; createdAt: string; emailStatus: string };
@@ -30,7 +30,7 @@ export default function AnnouncementsPage() {
       <section className="space-y-3">
         <h1 className="display text-4xl">{tx("Anonslar")}</h1>
         <p className="text-[#57534e]">{tx("Duyuruyu firmalara, bakanlığa veya ziyaretçi telefonlarına gönderebilirsiniz. Bir firma ile yazışmak için Mesaj kutusunu kullanın.")}</p>
-        <button className="btn ghost" onClick={async () => { await api("/api/inbox", { method: "PATCH", body: JSON.stringify({ all: true }) }); await inbox.reload(); }}>Tümünü okundu işaretle</button>
+        <button className="btn ghost" onClick={async () => { await api("/api/inbox", { method: "PATCH", body: JSON.stringify({ all: true }) }); await inbox.reload(); }}><Tx>Tümünü okundu işaretle</Tx></button>
         {(inbox.data || []).map((item) => (
           <button
             key={item.id}
@@ -52,7 +52,7 @@ export default function AnnouncementsPage() {
       {canSend ? (
       <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">Yeni anons</h2>
-        <input className="field" placeholder="Başlık" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input className="field" placeholder={tx("Başlık")} value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea className="field" rows={5} placeholder="Metin" value={body} onChange={(e) => setBody(e.target.value)} />
         <select className="field" value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="">{tx("Firmalar + SB")}</option>
@@ -68,14 +68,14 @@ export default function AnnouncementsPage() {
           await board.reload();
           await inbox.reload();
         }}>{role === "ZIYARETCI" ? tx("Ziyaretçilere gönder") : tx("Anonsu yayınla ve e-posta gönder")}</button>
-        <h3 className="font-semibold pt-2">Gönderilenler</h3>
+        <h3 className="font-semibold pt-2"><Tx>Gönderilenler</Tx></h3>
         {(board.data?.announcements || []).map((a) => (
           <div key={a.id} className="text-sm border-b border-[#DCE8F0] pb-2">
             <div>{a.title} <span className="badge muted">{a.emailStatus}</span></div>
             <div className="text-[#57534e]">{a.body}</div>
           </div>
         ))}
-        <h3 className="font-semibold pt-2">E-posta günlüğü</h3>
+        <h3 className="font-semibold pt-2"><Tx>E-posta günlüğü</Tx></h3>
         <ul className="text-xs space-y-1 max-h-40 overflow-auto">
           {(board.data?.emails || []).map((e) => (
             <li key={e.id}>{e.to} — {e.subject} ({e.status})</li>

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { formatDate, useApi, useRealtime } from "@/lib/client";
 import { CopDayGrid, CopDayDetail, type ProgramFilter } from "@/components/CopDayGrid";
 import type { PlanDay } from "@/lib/plan-types";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 type Todo = {
   id: string;
@@ -53,11 +53,11 @@ export default function TakvimPage() {
     <div className="space-y-4">
       <div>
         <h1 className="display text-4xl">{tx("Hazırlık takvimi")}</h1>
-        <p className="text-[#57534e]">9–20 Kasım, 12 kutu. Her günde panel, sunum ve etkinlik planı. Altta hazırlık Gantt’ı durur.</p>
+        <p className="text-[#57534e]"><Tx>9–20 Kasım, 12 kutu. Her günde panel, sunum ve etkinlik planı. Altta hazırlık Gantt’ı durur.</Tx></p>
       </div>
       <CopDayGrid days={plan?.days || []} selected={day} onSelect={setDay} filter={programFilter} onFilterChange={setProgramFilter} />
       <CopDayDetail day={selected} filter={programFilter} />
-      <h2 className="display text-2xl pt-2">Hazırlık Gantt</h2>
+      <h2 className="display text-2xl pt-2"><Tx>Hazırlık Gantt</Tx></h2>
       <div className="card p-3 overflow-auto">
         <div className="min-w-[980px]">
           <div className="relative h-8 mb-2 text-xs text-[#57534e]">

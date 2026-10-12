@@ -2,8 +2,49 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { interpolate, isLocale, LANG_COOKIE, localeTag, setActiveLocaleTag, type Locale } from "@/lib/i18n";
-import { EN } from "@/lib/i18n-phrases";
+import { EN as PHRASES } from "@/lib/i18n-phrases";
+import { EN_EXTRA } from "@/lib/i18n-extra";
 import { UI } from "@/lib/i18n-ui";
+
+const EN: Record<string, string> = { ...PHRASES, ...EN_EXTRA };
+
+/** Labels that repeat inside programme notes written in Turkish. */
+const GLOSS: [string, string][] = [
+  ["Yeşil beceriler; mükemmeliyet merkezi; yeşil satın alma; gençlerin sözü", "Green skills; a centre of excellence; green procurement; young people’s voice"],
+  ["Tütünün çevresel yükü; izmarit; dumansız çevre", "The environmental burden of tobacco; cigarette butts; a smoke-free environment"],
+  ["İş sağlığı; ısı stresi; çalışan sağlığı gözetimi; kamu-özel iş birliği", "Occupational health; heat stress; worker health surveillance; public–private cooperation"],
+  ["Ağız ve diş sağlığında yeşil yönetişim; iklim duyarlı insan kaynağı", "Green governance in oral and dental health; a climate-aware workforce"],
+  ["6 Şubat deneyimi; psikososyal dayanıklılık; afetlerde gençler", "The 6 February experience; psychosocial resilience; young people in disasters"],
+  ["Hastane dekarbonizasyonu; pilot uygulama; DE-CARE modeli", "Hospital decarbonisation; a pilot; the DE-CARE model"],
+  ["Gençlik; iklime hazır üniversite; bilim iletişimi", "Youth; a climate-ready university; science communication"],
+  ["Hastane yemeklerinde gıda atığı; hemşirelik hizmetlerinde atık yönetimi", "Food waste in hospital meals; waste management in nursing services"],
+  ["Kadın, iklim ve sağlık; kırsal dayanıklılık; kooperatifler", "Women, climate and health; rural resilience; cooperatives"],
+  ["Yeşil doğumhane; sarf malzemesi karbon ayak izi; kaynağında ayrıştırma", "A green maternity ward; the carbon footprint of consumables; sorting at source"],
+  ["İklim değişikliği ve sağlık; sağlık eğitimi; gençlik; iklim uyumu; sağlık iş gücünün iklim dirençliliği", "Climate change and health; health education; youth; climate adaptation; a climate-resilient health workforce"],
+  ["Halk Sağlığı Genel Müdürlüğü (HSGM)", "General Directorate of Public Health (HSGM)"],
+  ["Kamu Hastaneleri Genel Müdürlüğü (KHGM)", "General Directorate of Public Hospitals (KHGM)"],
+  ["Enerji ve Tabii Kaynaklar Bakanlığı", "Ministry of Energy and Natural Resources"],
+  ["Millî Eğitim Bakanlığı", "Ministry of National Education"],
+  ["Dünya Sağlık Örgütü (DSÖ)", "World Health Organization (WHO)"],
+  ["Türkiye Sağlık Enstitüleri Başkanlığı (TÜSEB)", "Health Institutes of Türkiye (TÜSEB)"],
+  ["Sağlık Bakanlığı", "Ministry of Health"],
+  ["Saat daha sonra girilecek.", "The time will be entered later."],
+  ["İçerik bekleniyor", "Content to follow"],
+  ["Teyit bekliyor", "Awaiting confirmation"],
+  ["Düzenleyen:", "Organised by:"],
+  ["Moderatör:", "Moderator:"],
+  ["Konuşmacılar:", "Speakers:"],
+  ["Süre:", "Duration:"],
+  ["Sunucu:", "Host:"],
+  [" dakika", " minutes"],
+  ["Planlandı", "Scheduled"],
+];
+
+function gloss(text: string) {
+  let next = text;
+  for (const [from, to] of GLOSS) next = next.split(from).join(to);
+  return next === text ? text : next;
+}
 
 type I18nValue = {
   locale: Locale;
@@ -61,7 +102,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     (text: string) => {
       if (!text) return text;
       if (locale === "tr") return text;
-      return EN[text] || EN[text.trim()] || text;
+      const compact = text.replace(/\s+/g, " ").trim();
+      return EN[text] || EN[text.trim()] || EN[compact] || gloss(text);
     },
     [locale],
   );

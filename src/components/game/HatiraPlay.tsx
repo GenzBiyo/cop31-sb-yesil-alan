@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HATIRA_H, HATIRA_W, HATIRA_WINDOW, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
 import { cutoutPerson, warmupSegmenter } from "@/lib/hatira-segment";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { ShareBar } from "@/components/game/ShareBar";
 
 const W = HATIRA_W;
@@ -200,13 +200,13 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
       ) : null}
       {step === "ready" ? (
         <div className="hatira-stage is-frame">
-          <img src={composed} alt="Hatıra" className="hatira-cam" />
+          <img src={composed} alt={tx("Hatıra")} className="hatira-cam" />
           <ShareBar text="COP31 Sağlık Pavilionu hatıram." image={composed} />
         </div>
       ) : null}
       {step === "sent" ? (
         <div className="card p-5 text-center space-y-3">
-          {composed ? <img src={composed} alt="Gönderilen hatıra" className="mx-auto max-w-full" /> : null}
+          {composed ? <img src={composed} alt={tx("Gönderilen hatıra")} className="mx-auto max-w-full" /> : null}
           <h2 className="display text-4xl">{tx("Teşekkür ederiz")}</h2>
           <p className="text-sm text-[#57534e]">{tx("Admin onaylarsa hatıran pavilion duvarında görünür.")}</p>
           <ShareBar text="COP31 Sağlık Pavilionu hatıram." image={composed} />
@@ -285,7 +285,7 @@ export function HatiraWallView({ hatira, background }: { hatira: HatiraPublic | 
     return (
       <div className="hatira-wall is-empty">
         {background ? <img src={background} alt="" /> : null}
-        <p className="text-xs tracking-[0.2em] uppercase opacity-70 mt-4">COP31 Türkiye</p>
+        <p className="text-xs tracking-[0.2em] uppercase opacity-70 mt-4"><Tx>COP31 Türkiye</Tx></p>
         <h2 className="display text-5xl mt-2">{tx("Hatıra")}</h2>
         <p className="mt-3 text-[#C8EEFA]">{tx("Karekodu okutun, selfie çekin. Admin onaylayınca burada görünürsünüz.")}</p>
       </div>
@@ -294,7 +294,7 @@ export function HatiraWallView({ hatira, background }: { hatira: HatiraPublic | 
 
   return (
     <div className="hatira-wall">
-      <img src={current.photoPath} alt="Hatıra" />
+      <img src={current.photoPath} alt={tx("Hatıra")} />
       <div className="display hatira-thanks">{tx("Teşekkür ederiz")}</div>
       {shots.length > 1 ? (
         <div className="hatira-strip">

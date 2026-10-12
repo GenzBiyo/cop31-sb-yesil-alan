@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/I18nProvider";
 import { SHARE_TAGS } from "@/lib/plak";
 
 async function fileFromImage(src: string) {
@@ -13,6 +14,7 @@ async function fileFromImage(src: string) {
 }
 
 export function ShareBar({ text, image }: { text: string; image?: string }) {
+  const { tx } = useI18n();
   const caption = `${text}\n${SHARE_TAGS}`;
 
   async function instagram() {
@@ -39,10 +41,10 @@ export function ShareBar({ text, image }: { text: string; image?: string }) {
 
   return (
     <div className="share-bar">
-      <button type="button" className="share-ig" onClick={() => void instagram()} aria-label="Instagram’da paylaş">
+      <button type="button" className="share-ig" onClick={() => void instagram()} aria-label={tx("Instagram’da paylaş")}>
         <IgIcon />
       </button>
-      <button type="button" className="share-x" onClick={twitter} aria-label="X’te paylaş">
+      <button type="button" className="share-x" onClick={twitter} aria-label={tx("X’te paylaş")}>
         <XIcon />
       </button>
     </div>

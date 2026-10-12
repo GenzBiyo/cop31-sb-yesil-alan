@@ -6,7 +6,7 @@ import { api, formatDate, useApi, useRealtime } from "@/lib/client";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
 import { VenueFields } from "@/components/VenueFields";
 import { SB_PAVILYON, canonicalVenue, clockLabel } from "@/lib/venues";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 import { ConceptEditor } from "@/components/ConceptEditor";
 import { SessionBrief } from "@/components/SessionBrief";
 import { useSpeakers } from "@/components/speakers";
@@ -203,9 +203,7 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
     <div className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{talk ? "Konuşmacılar" : "Konuşmacılar ve moderatör"}</div>
-        <span className="text-xs text-[#57534e]">
-          Sıra, programda ve panel ekranında görünen sıradır. Adı Konuşmacılar listesinden seçerseniz fotoğrafı ekrana gelir.
-        </span>
+        <span className="text-xs text-[#57534e]"><Tx>Sıra, programda ve panel ekranında görünen sıradır. Adı Konuşmacılar listesinden seçerseniz fotoğrafı ekrana gelir.</Tx></span>
       </div>
       <datalist id={listId}>
         {known.map((s) => <option key={s.id} value={s.name}>{[s.title, s.organization].filter(Boolean).join(" · ")}</option>)}
@@ -216,7 +214,7 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
           <div key={i} className="grid gap-2 md:grid-cols-[1.3fr_1fr_1fr_10rem_auto] items-center">
             <div className="relative">
               <input className="field" list={listId} placeholder="Ad soyad" value={g.name} onChange={(e) => pickName(i, e.target.value)} />
-              {linked ? <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#22A34A] font-semibold">fotoğraflı</span> : null}
+              {linked ? <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#22A34A] font-semibold"><Tx>fotoğraflı</Tx></span> : null}
             </div>
             <input className="field" placeholder="Unvan" value={g.title} onChange={(e) => patch(i, { title: e.target.value })} />
             <input className="field" placeholder="Kurum" value={g.organization} onChange={(e) => patch(i, { organization: e.target.value })} />
@@ -224,8 +222,8 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
               {ROLE_ORDER.map((r) => <option key={r} value={r}>{GUEST_ROLE_LABELS[r]}</option>)}
             </select>
             <span className="flex">
-              <button type="button" className="btn ghost px-2" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Yukarı"><ArrowUp size={14} /></button>
-              <button type="button" className="btn ghost px-2" onClick={() => move(i, 1)} disabled={i === guests.length - 1} aria-label="Aşağı"><ArrowDown size={14} /></button>
+              <button type="button" className="btn ghost px-2" onClick={() => move(i, -1)} disabled={i === 0} aria-label={tx("Yukarı")}><ArrowUp size={14} /></button>
+              <button type="button" className="btn ghost px-2" onClick={() => move(i, 1)} disabled={i === guests.length - 1} aria-label={tx("Aşağı")}><ArrowDown size={14} /></button>
               <button type="button" className="btn ghost px-2" onClick={() => onChange(guests.filter((_, idx) => idx !== i))} aria-label="Sil"><Trash2 size={14} /></button>
             </span>
           </div>
@@ -237,8 +235,7 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
         </button>
         {!talk && !guests.some((g) => g.role === "moderator") ? (
           <button type="button" className="btn ghost" onClick={() => onChange([...guests, { ...blankGuest(false), role: "moderator" }])}>
-            <Plus size={14} /> Moderatör ekle
-          </button>
+            <Plus size={14} /><Tx>Moderatör ekle</Tx></button>
         ) : null}
       </div>
     </div>
@@ -248,7 +245,7 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
 function ConceptBadge({ concept }: { concept?: string }) {
   const { percent } = conceptCompletion(parseConcept(concept));
   const tone = percent >= 80 ? "ok" : percent >= 30 ? "warn" : "muted";
-  return <span className={`badge ${tone}`} title="Detaylı konsept notunun doluluğu">Konsept %{percent}</span>;
+  return <span className={`badge ${tone}`} title={tx("Detaylı konsept notunun doluluğu")}>Konsept %{percent}</span>;
 }
 
 function PreviewSheet({
@@ -281,9 +278,9 @@ function PreviewSheet({
     <div className="fixed inset-0 z-[80] bg-[rgba(11,28,51,0.55)] overflow-auto p-4 md:p-10 concept-print-backdrop" onClick={onClose}>
       <article className="concept-print mx-auto max-w-3xl bg-white p-6 md:p-8 space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-wrap items-center justify-between gap-2 no-print">
-          <span className="text-xs tracking-[0.16em] uppercase text-[#57534e]">Ziyaretçi önizlemesi</span>
+          <span className="text-xs tracking-[0.16em] uppercase text-[#57534e]"><Tx>Ziyaretçi önizlemesi</Tx></span>
           <span className="flex gap-2">
-            <button type="button" className="btn" onClick={() => window.print()}><Printer size={15} /> Yazdır / PDF</button>
+            <button type="button" className="btn" onClick={() => window.print()}><Printer size={15} /><Tx>Yazdır / PDF</Tx></button>
             <button type="button" className="btn ghost" onClick={onClose}><X size={15} /> Kapat</button>
           </span>
         </div>
@@ -459,7 +456,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
           />
         </div>
         <input className="field md:col-span-2" placeholder="Konu" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
-        <input className="field md:col-span-2" placeholder="Paydaşlar" value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
+        <input className="field md:col-span-2" placeholder={tx("Paydaşlar")} value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
         <div className="md:col-span-4">
           <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
         </div>
@@ -592,7 +589,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
         {grouped.map((g) => (
           <section key={g.date} className="space-y-2">
             <h2 className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{g.label}</h2>
-            {g.rows.length === 0 ? <p className="text-sm text-[#57534e]">Bu günde kayıt yok.</p> : null}
+            {g.rows.length === 0 ? <p className="text-sm text-[#57534e]"><Tx>Bu günde kayıt yok.</Tx></p> : null}
             {g.rows.map((p) => {
               const lineup = lineupOf(p);
               const mod = lineup.find((x) => x.role === "moderator");
@@ -716,7 +713,7 @@ function SessionEditor({
   const actions = (
     <div className="flex flex-wrap items-center gap-2">
       <button className="btn" disabled={busy} onClick={() => void save()}>{busy ? "Kaydediliyor…" : "Kaydet"}</button>
-      <button type="button" className="btn ghost" onClick={() => setPreview(true)}><Eye size={15} /> Önizle / Yazdır</button>
+      <button type="button" className="btn ghost" onClick={() => setPreview(true)}><Eye size={15} /><Tx>Önizle / Yazdır</Tx></button>
       {saved ? <span className={`text-sm ${saved.startsWith("Kaydedildi") ? "text-[#22A34A]" : "text-[#E31C23]"}`}>{saved}</span> : null}
     </div>
   );
@@ -728,7 +725,7 @@ function SessionEditor({
         <button className="btn ghost" onClick={onClose}>Kapat</button>
       </div>
       <div className="grid md:grid-cols-2 gap-2">
-        <label className="text-sm md:col-span-2">Başlık<input className="field mt-1" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+        <label className="text-sm md:col-span-2"><Tx>Başlık</Tx><input className="field mt-1" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
         <div className="md:col-span-2 grid md:grid-cols-2 gap-2">
           <VenueFields
             location={location}
@@ -744,7 +741,7 @@ function SessionEditor({
           />
         </div>
         <label className="text-sm md:col-span-2">Konu<input className="field mt-1" value={topic} onChange={(e) => setTopic(e.target.value)} /></label>
-        <label className="text-sm md:col-span-2">Paydaşlar<input className="field mt-1" value={partners} onChange={(e) => setPartners(e.target.value)} /></label>
+        <label className="text-sm md:col-span-2"><Tx>Paydaşlar</Tx><input className="field mt-1" value={partners} onChange={(e) => setPartners(e.target.value)} /></label>
       </div>
       <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
       <ConceptEditor
@@ -779,13 +776,13 @@ function SessionEditor({
             await onSaved();
           }}>
             <option>Planlama</option>
-            <option>Davetler gönderildi</option>
+            <option><Tx>Davetler gönderildi</Tx></option>
             <option>Teyit edildi</option>
-            <option>Tamamlandı</option>
+            <option><Tx>Tamamlandı</Tx></option>
           </select>
         </label>
       ) : null}
-      <h3 className="font-semibold">Katılım teyidi</h3>
+      <h3 className="font-semibold"><Tx>Katılım teyidi</Tx></h3>
       <ul className="space-y-2">
         {session.participants.map((pt) => (
           <li key={pt.id} className="flex justify-between gap-2 text-sm">
@@ -804,7 +801,7 @@ function SessionEditor({
             </select>
           </li>
         ))}
-        {session.participants.length === 0 ? <li className="text-sm text-[#57534e]">Kaydettikten sonra konuşmacılar burada teyit için listelenir.</li> : null}
+        {session.participants.length === 0 ? <li className="text-sm text-[#57534e]"><Tx>Kaydettikten sonra konuşmacılar burada teyit için listelenir.</Tx></li> : null}
       </ul>
       {canManage && people.length ? (
         <div className="flex gap-2">
@@ -817,26 +814,24 @@ function SessionEditor({
             const personId = (document.getElementById(`personPick-${session.id}`) as HTMLSelectElement).value;
             await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "assign", personId, role: talk ? "sunum" : "panelist" }) });
             await onSaved();
-          }}>Kişi havuzundan ekle</button>
+          }}><Tx>Kişi havuzundan ekle</Tx></button>
         </div>
       ) : null}
-      <h3 className="font-semibold">İletişim</h3>
+      <h3 className="font-semibold"><Tx>İletişim</Tx></h3>
       <div className="space-y-2 max-h-56 overflow-auto bg-[#EAF2F8] p-3">
         {session.messages.map((m) => (
           <div key={m.id} className="text-sm">{m.body}<div className="text-xs text-[#57534e]">{new Date(m.createdAt).toLocaleString("tr-TR")}</div></div>
         ))}
-        {session.messages.length === 0 ? <p className="text-sm text-[#57534e]">Henüz mesaj yok.</p> : null}
+        {session.messages.length === 0 ? <p className="text-sm text-[#57534e]"><Tx>Henüz mesaj yok.</Tx></p> : null}
       </div>
       <textarea className="field" rows={3} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={talk ? "Konuşmacılara not" : "Panelist ve moderatörlere not"} />
       <label className="text-sm flex items-center gap-2">
-        <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-        Kayıtlı e-postalara da gönder
-      </label>
+        <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} /><Tx>Kayıtlı e-postalara da gönder</Tx></label>
       <button className="btn" onClick={async () => {
         await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "message", body: msg, notify }) });
         setMsg("");
         await onSaved();
-      }}>Gönder</button>
+      }}><Tx>Gönder</Tx></button>
       <p className="text-xs text-[#57534e]">{formatDate(session.date)}</p>
     </div>
   );

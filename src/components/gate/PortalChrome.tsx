@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { MOTES } from "./motes";
-import { useI18n } from "@/components/I18nProvider";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 export function PortalChrome({
   image,
@@ -39,7 +39,7 @@ export function PortalChrome({
           />
         ))}
         <div className="relative z-10 flex h-full min-h-[42vh] flex-col justify-end p-8 md:p-12">
-          <span className="self-start mb-4 px-2 py-1 text-[10px] tracking-[0.28em] uppercase" style={{ background: "#00A3E0", color: "#FFFFFF" }}>COP31 TÜRKİYE</span>
+          <span className="self-start mb-4 px-2 py-1 text-[10px] tracking-[0.28em] uppercase" style={{ background: "#00A3E0", color: "#FFFFFF" }}><Tx>COP31 TÜRKİYE</Tx></span>
           <Link href="/" className="text-xs tracking-[0.2em] uppercase opacity-80 underline underline-offset-4">{tx("← Kapılara dön")}</Link>
           <p className="text-xs tracking-[0.28em] uppercase mt-8 opacity-80">{tx(kicker)}</p>
           <h1 className="display text-4xl md:text-5xl mt-2 leading-tight">{tx(title)}</h1>

@@ -1,4 +1,5 @@
 "use client";
+import { useI18n, Tx } from "@/components/I18nProvider";
 
 import { useState } from "react";
 import { ArrowDown, ArrowUp, Check, Plus, Trash2 } from "lucide-react";
@@ -37,6 +38,7 @@ export function ConceptEditor({
   lineupNames?: string[];
   sessionMinutes?: number;
 }) {
+  const { tx } = useI18n();
   const [step, setStep] = useState(CONCEPT_SECTIONS[0].id);
   const completion = conceptCompletion(concept);
   const section = CONCEPT_SECTIONS.find((s) => s.id === step) || CONCEPT_SECTIONS[0];
@@ -45,17 +47,15 @@ export function ConceptEditor({
 
   return (
     <div className="space-y-3 md:col-span-6">
-      <label className="text-sm block">
-        Özet
-        <span className="block text-xs text-[#57534e] mb-1">
-          Ziyaretçi önce bunu okur. Kısa tutun; yaklaşık 300 kelimeyi geçmeyin. ({words} kelime)
+      <label className="text-sm block"><Tx>Özet</Tx>        <span className="block text-xs text-[#57534e] mb-1">
+          {tx("Ziyaretçi önce bunu okur. Kısa tutun; yaklaşık 300 kelimeyi geçmeyin.")} ({words} {tx("kelime")})
         </span>
-        <textarea className="field" rows={6} value={summary} onChange={(e) => onSummary(e.target.value)} placeholder="Oturumun kısa özeti" />
+        <textarea className="field" rows={6} value={summary} onChange={(e) => onSummary(e.target.value)} placeholder={tx("Oturumun kısa özeti")} />
       </label>
 
       <div className="border border-[#B5DFF2] bg-white">
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-[#DCE8F0]">
-          <span className="text-sm font-semibold text-[#0077C2]">Detaylı konsept notu</span>
+          <span className="text-sm font-semibold text-[#0077C2]"><Tx>Detaylı konsept notu</Tx></span>
           <span className="text-xs text-[#57534e]">
             Doluluk <strong className="text-[#00796B]">%{completion.percent}</strong>
           </span>
@@ -63,7 +63,7 @@ export function ConceptEditor({
         <div className="h-1 bg-[#EAF2F8]">
           <div className="h-1 bg-[#22A34A] transition-all" style={{ width: `${completion.percent}%` }} />
         </div>
-        <nav className="flex flex-wrap gap-1 p-2 border-b border-[#DCE8F0]" aria-label="Konsept bölümleri">
+        <nav className="flex flex-wrap gap-1 p-2 border-b border-[#DCE8F0]" aria-label={tx("Konsept bölümleri")}>
           {CONCEPT_SECTIONS.map((s, i) => {
             const state = completion.sections[i];
             const active = s.id === section.id;
@@ -113,7 +113,7 @@ export function ConceptEditor({
             );
           })}
           {section.id === "kimlik" ? (
-            <p className="text-xs text-[#57534e]">Konuşmacılar ve rolleri yukarıdaki konuşmacı listesinden otomatik alınır.</p>
+            <p className="text-xs text-[#57534e]"><Tx>Konuşmacılar ve rolleri yukarıdaki konuşmacı listesinden otomatik alınır.</Tx></p>
           ) : null}
           <div className="flex justify-between gap-2 pt-1">
             <button
@@ -121,9 +121,7 @@ export function ConceptEditor({
               className="btn ghost"
               disabled={index === 0}
               onClick={() => setStep(CONCEPT_SECTIONS[index - 1].id)}
-            >
-              ← Önceki
-            </button>
+            ><Tx>← Önceki</Tx></button>
             <button
               type="button"
               className="btn ghost"
@@ -150,6 +148,7 @@ function FlowEditor({
   lineupNames: string[];
   sessionMinutes: number;
 }) {
+  const { tx } = useI18n();
   const rows = flowRows(concept);
   const total = rows.reduce((n, r) => n + r.minutes, 0);
   const listId = "flow-who-options";
@@ -174,9 +173,7 @@ function FlowEditor({
         {lineupNames.map((n) => <option key={n} value={n} />)}
       </datalist>
       {rows.length === 0 ? (
-        <div className="flex flex-wrap items-center gap-2 text-sm text-[#57534e]">
-          Henüz akış yok.
-          <button type="button" className="btn ghost" onClick={() => save(FLOW_PRESET)}>Standart akışla başla</button>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-[#57534e]"><Tx>Henüz akış yok.</Tx><button type="button" className="btn ghost" onClick={() => save(FLOW_PRESET)}><Tx>Standart akışla başla</Tx></button>
         </div>
       ) : null}
       {rows.map((r, i) => (
@@ -189,30 +186,29 @@ function FlowEditor({
               max={240}
               value={r.minutes || ""}
               onChange={(e) => patch(i, { minutes: Number(e.target.value) })}
-              aria-label="Süre (dk)"
+              aria-label={tx("Süre (dk)")}
             />
             dk
           </label>
-          <input className="field" placeholder="Bölüm (ör. Açılış)" value={r.title} onChange={(e) => patch(i, { title: e.target.value })} />
-          <input className="field" placeholder="Kim? (isteğe bağlı)" list={listId} value={r.who} onChange={(e) => patch(i, { who: e.target.value })} />
+          <input className="field" placeholder={tx("Bölüm (ör. Açılış)")} value={r.title} onChange={(e) => patch(i, { title: e.target.value })} />
+          <input className="field" placeholder={tx("Kim? (isteğe bağlı)")} list={listId} value={r.who} onChange={(e) => patch(i, { who: e.target.value })} />
           <span className="flex">
-            <button type="button" className="btn ghost px-2" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Yukarı"><ArrowUp size={14} /></button>
-            <button type="button" className="btn ghost px-2" onClick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Aşağı"><ArrowDown size={14} /></button>
+            <button type="button" className="btn ghost px-2" onClick={() => move(i, -1)} disabled={i === 0} aria-label={tx("Yukarı")}><ArrowUp size={14} /></button>
+            <button type="button" className="btn ghost px-2" onClick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label={tx("Aşağı")}><ArrowDown size={14} /></button>
             <button type="button" className="btn ghost px-2" onClick={() => save(rows.filter((_, idx) => idx !== i))} aria-label="Sil"><Trash2 size={14} /></button>
           </span>
         </div>
       ))}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button type="button" className="btn ghost" onClick={() => save([...rows, { minutes: 10, title: "", who: "" }])}>
-          <Plus size={14} /> Bölüm ekle
-        </button>
+          <Plus size={14} /><Tx>Bölüm ekle</Tx></button>
         {rows.length ? (
           <span className="text-sm">
             Toplam <strong>{total} dk</strong>
             {sessionMinutes > 0 && total !== sessionMinutes ? (
               <span className="text-[#c2410c]"> · oturum {sessionMinutes} dk</span>
             ) : sessionMinutes > 0 ? (
-              <span className="text-[#22A34A]"> · oturum süresiyle aynı</span>
+              <span className="text-[#22A34A]"><Tx>· oturum süresiyle aynı</Tx></span>
             ) : null}
           </span>
         ) : null}
