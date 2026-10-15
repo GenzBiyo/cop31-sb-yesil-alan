@@ -127,6 +127,8 @@ model AgendaItem {
   reminded2h  Boolean     @default(false)
   signups     AgendaSignup[]
   notices     AgendaNotice[]
+
+  @@index([dayId, startTime])
 }
 
 model AgendaSignup {
@@ -360,6 +362,8 @@ model PavilionEvent {
   proposedById    String        @default("")
   approvalStatus  String        @default("Onaylandı")
   signups         EventSignup[]
+
+  @@index([published, date])
 }
 
 model Visitor {

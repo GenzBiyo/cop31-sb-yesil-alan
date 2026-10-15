@@ -4,14 +4,14 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { ensureEvents } from "@/lib/events-db";
-import { ensureAgendaSlots, tickAgendaReminders } from "@/lib/agenda";
+import { ensureAgendaSlots, nudgeReminders } from "@/lib/agenda";
 
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
   await ensureEvents();
   await ensureAgendaSlots();
-  await tickAgendaReminders();
+  nudgeReminders();
   const days = await prisma.thematicDay.findMany({
     include: {
       agenda: {

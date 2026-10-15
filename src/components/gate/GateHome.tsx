@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MOTES } from "@/components/gate/motes";
 import { MainLogo, SponsorRail } from "@/components/SponsorRail";
@@ -96,7 +95,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
         <div className="climate-lung climate-lung-l" />
         <div className="climate-lung climate-lung-r" />
         <div className="climate-earth">
-          <img src="/gate/gate-hero-earth.webp" alt="" />
+          <img src="/gate/gate-hero-earth.webp" alt="" fetchPriority="high" decoding="async" />
         </div>
         <span className="climate-ring" />
         <span className="climate-ring climate-ring-2" />
@@ -135,9 +134,9 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
                 <em>{tx("Sağlıklı gezegen")}</em>
               </h1>
               {inApp ? (
-                <Link href={next && next.startsWith("/") ? next : "/dashboard"} className="climate-return">
+                <a href={next && next.startsWith("/") ? next : "/dashboard"} className="climate-return">
                   {next?.startsWith("/sunucu") ? tx("Sunucu ekranına dön →") : tx("Hazırlık masasına dön →")}
-                </Link>
+                </a>
               ) : null}
             </div>
           </header>

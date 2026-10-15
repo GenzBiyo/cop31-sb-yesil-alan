@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { broadcast } from "@/lib/realtime";
-import { memoClear } from "@/lib/memo";
+import { memoClear, memoClearPrefix } from "@/lib/memo";
 import { formatWhen, slotInstant } from "@/lib/agenda-time";
 
 export type Audience = "katilimci" | "konusmaci" | "hepsi";
@@ -28,13 +28,28 @@ export async function ensureAgendaSlots() {
   broadcast({ type: "agenda" });
 }
 
+/** Run reminders without making the visitor wait on mail. */
+export function nudgeReminders() {
+  void tickAgendaReminders().catch(() => undefined);
+}
+
 export async function tickAgendaReminders() {
   if (Date.now() - lastTick < 45_000) return;
   lastTick = Date.now();
   await ensureAgendaSlots();
   const now = Date.now();
   const items = await prisma.agendaItem.findMany({
-    include: { day: true, signups: true },
+    where: { OR: [{ reminded24h: false }, { reminded2h: false }] },
+    select: {
+      id: true,
+      title: true,
+      startTime: true,
+      endTime: true,
+      location: true,
+      reminded24h: true,
+      reminded2h: true,
+      day: { select: { date: true } },
+    },
   });
   for (const item of items) {
     const start = slotInstant(item.day.date, item.startTime).getTime();
@@ -141,7 +156,7 @@ export async function notifyAgenda(agendaId: string, opts: NotifyOpts) {
     sent += 1;
   }
 
-  memoClear("public-program");
+  memoClearPrefix("public-program");
   broadcast({ type: "inbox", payload: { agendaId, kind: opts.kind } });
   broadcast({ type: "agenda" });
   try {

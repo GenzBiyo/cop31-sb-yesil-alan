@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
-import { tickAgendaReminders } from "@/lib/agenda";
+import { nudgeReminders } from "@/lib/agenda";
 import { parseConcept } from "@/lib/session-concept";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  await tickAgendaReminders();
+  nudgeReminders();
   const { id } = await ctx.params;
   const item = await prisma.agendaItem.findUnique({
     where: { id },

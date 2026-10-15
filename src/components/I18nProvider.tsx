@@ -2,11 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { interpolate, isLocale, LANG_COOKIE, localeTag, setActiveLocaleTag, type Locale } from "@/lib/i18n";
-import { EN as PHRASES } from "@/lib/i18n-phrases";
-import { EN_EXTRA } from "@/lib/i18n-extra";
 import { UI } from "@/lib/i18n-ui";
-
-const EN: Record<string, string> = { ...PHRASES, ...EN_EXTRA };
 
 /** Labels that repeat inside programme notes written in Turkish. */
 const GLOSS: [string, string][] = [
@@ -56,6 +52,17 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
+let dictionary: Record<string, string> | null = null;
+let dictionaryLoad: Promise<void> | null = null;
+
+function loadDictionary() {
+  if (dictionary || dictionaryLoad) return dictionaryLoad;
+  dictionaryLoad = import("@/lib/i18n-dict").then((mod) => {
+    dictionary = mod.EN;
+  });
+  return dictionaryLoad;
+}
+
 function readStored(): Locale {
   if (typeof document !== "undefined") {
     const cookie = document.cookie.split("; ").find((row) => row.startsWith(`${LANG_COOKIE}=`));
@@ -78,17 +85,28 @@ function persist(locale: Locale) {
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("tr");
+  const [dictReady, setDictReady] = useState(false);
+
+  const armEnglish = useCallback(() => {
+    if (dictionary) {
+      setDictReady(true);
+      return;
+    }
+    void loadDictionary()?.then(() => setDictReady(true));
+  }, []);
 
   useEffect(() => {
     const next = readStored();
     setLocaleState(next);
     persist(next);
-  }, []);
+    if (next === "en") armEnglish();
+  }, [armEnglish]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     persist(next);
-  }, []);
+    if (next === "en") armEnglish();
+  }, [armEnglish]);
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
@@ -101,11 +119,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const tx = useCallback(
     (text: string) => {
       if (!text) return text;
-      if (locale === "tr") return text;
+      if (locale === "tr" || !dictionary) return text;
       const compact = text.replace(/\s+/g, " ").trim();
-      return EN[text] || EN[text.trim()] || EN[compact] || gloss(text);
+      return dictionary[text] || dictionary[text.trim()] || dictionary[compact] || gloss(text);
     },
-    [locale],
+    [locale, dictReady],
   );
 
   const value = useMemo<I18nValue>(

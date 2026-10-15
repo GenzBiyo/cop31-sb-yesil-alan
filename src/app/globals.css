@@ -1330,7 +1330,7 @@ table.data td {
 
 .climate-gates {
   position: absolute;
-  z-index: 5;
+  z-index: 8;
   left: 0.7rem;
   right: 0.7rem;
   bottom: 0.7rem;
@@ -2692,15 +2692,15 @@ button.q-opt:disabled { cursor: default; }
 .agenda-block:active { cursor: grabbing; }
 .agenda-alert {
   position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 119, 194, 0.28);
-  padding: 16px;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 70;
+  width: min(440px, calc(100% - 2rem));
+  pointer-events: none;
 }
 .agenda-alert-card {
-  width: min(440px, 100%);
+  width: 100%;
+  pointer-events: auto;
   background: #fff;
   border: 1px solid #B5DFF2;
   padding: 20px;

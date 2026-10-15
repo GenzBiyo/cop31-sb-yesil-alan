@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
-import { tickAgendaReminders, validEmail } from "@/lib/agenda";
+import { nudgeReminders, validEmail } from "@/lib/agenda";
 
 export async function GET(req: NextRequest) {
-  await tickAgendaReminders();
+  nudgeReminders();
   const email = String(req.nextUrl.searchParams.get("email") || "")
     .trim()
     .toLowerCase();

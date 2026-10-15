@@ -1,4 +1,4 @@
-import { memoClear } from "./memo";
+import { memoClearPrefix } from "./memo";
 
 type Listener = (chunk: string) => void;
 
@@ -11,7 +11,7 @@ export type RealtimeEvent = {
 };
 
 export function broadcast(event: RealtimeEvent) {
-  if (event.type === "agenda" || event.type === "panel") memoClear("public-program");
+  if (event.type === "agenda" || event.type === "panel") memoClearPrefix("public-program");
   const chunk = `event: ${event.type}\ndata: ${JSON.stringify(event.payload ?? {})}\n\n`;
   for (const listener of listeners) listener(chunk);
   if (event.type === "game") {

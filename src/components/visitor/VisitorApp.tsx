@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useI18n, Tx } from "@/components/I18nProvider";
 import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/components/CopDayGrid";
 import { SessionBrief } from "@/components/SessionBrief";
@@ -178,7 +177,6 @@ function urlBase64ToUint8Array(value: string) {
 
 export function VisitorApp() {
   const { tx, tag } = useI18n();
-  const router = useRouter();
   const [token, setToken] = useState("");
   const [state, setState] = useState<AppState | null>(null);
   const [tab, setTab] = useState<Tab>("gundem");
@@ -417,10 +415,10 @@ export function VisitorApp() {
     if (window.history.length > 1) {
       window.history.back();
       window.setTimeout(() => {
-        if (window.location.pathname === here) router.push("/");
+        if (window.location.pathname === here) window.location.assign("/");
       }, 350);
     } else {
-      router.push("/");
+      window.location.assign("/");
     }
   }
 

@@ -1,48 +1,85 @@
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonOk } from "@/lib/api";
 import { ensureEvents } from "@/lib/events-db";
 import { memoGet, memoSet } from "@/lib/memo";
-import { ensureAgendaSlots, tickAgendaReminders } from "@/lib/agenda";
+import { nudgeReminders } from "@/lib/agenda";
 
 const FRESH = { "Cache-Control": "no-store" };
+const SHOWN = /panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i;
 
-export async function GET() {
-  const cached = memoGet<{ days: unknown; events: unknown }>("public-program", 8000);
-  if (cached) return jsonOk(cached, 200, FRESH);
+const eventSelect = {
+  slug: true,
+  title: true,
+  type: true,
+  companyName: true,
+  date: true,
+  startTime: true,
+  endTime: true,
+  location: true,
+  gift: true,
+} as const;
+
+function warmReminders() {
+  nudgeReminders();
+}
+
+async function loadEvents() {
+  return prisma.pavilionEvent.findMany({
+    where: { published: true },
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    select: eventSelect,
+  });
+}
+
+export async function GET(req: NextRequest) {
+  const eventsOnly = req.nextUrl.searchParams.get("part") === "events";
+  const key = eventsOnly ? "public-program-events" : "public-program";
+  const cached = memoGet<unknown>(key, 8000);
+  if (cached) {
+    warmReminders();
+    return jsonOk(cached, 200, FRESH);
+  }
 
   await ensureEvents();
-  await ensureAgendaSlots();
-  await tickAgendaReminders();
+  warmReminders();
+
+  if (eventsOnly) {
+    const body = { events: await loadEvents() };
+    memoSet(key, body);
+    return jsonOk(body, 200, FRESH);
+  }
+
   const [days, events] = await Promise.all([
     prisma.thematicDay.findMany({
-      include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },
       orderBy: { date: "asc" },
+      select: {
+        date: true,
+        themeTr: true,
+        topic1: true,
+        agenda: {
+          orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }],
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            title: true,
+            location: true,
+            type: true,
+            description: true,
+          },
+        },
+      },
     }),
-    prisma.pavilionEvent.findMany({
-      where: { published: true },
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-    }),
+    loadEvents(),
   ]);
   const body = {
     days: days.map((day) => ({
       ...day,
-      agenda: day.agenda.filter((item) => /panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(item.type)),
+      agenda: day.agenda.filter((item) => SHOWN.test(item.type)),
     })),
-    events: events.map((e) => ({
-      id: e.id,
-      slug: e.slug,
-      title: e.title,
-      type: e.type,
-      companyName: e.companyName,
-      topic: e.topic,
-      date: e.date,
-      startTime: e.startTime,
-      endTime: e.endTime,
-      location: e.location,
-      description: e.description,
-      gift: e.gift,
-    })),
+    events,
   };
-  memoSet("public-program", body);
+  memoSet(key, body);
   return jsonOk(body, 200, FRESH);
 }

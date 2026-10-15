@@ -160,7 +160,10 @@ export function useProgramLive(reload: () => void) {
     };
     connect();
     document.addEventListener("visibilitychange", onVis);
-    const backup = window.setInterval(() => kick(true), 15000);
+    const backup = window.setInterval(() => {
+      if (!es || es.readyState === EventSource.CLOSED) connect();
+      kick(true);
+    }, 45000);
     return () => {
       document.removeEventListener("visibilitychange", onVis);
       disconnect();
