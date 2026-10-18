@@ -38,6 +38,7 @@ const PUBLIC = [
   "/gate",
   "/hatira",
   "/uploads",
+  "/giveaways",
 ];
 
 function isPublic(pathname: string) {
@@ -88,5 +89,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|gate/|hatira/|brand/|kilo/|fonts/|uploads/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|gate/|hatira/|brand/|kilo/|fonts/|uploads/|giveaways/).*)"],
 };

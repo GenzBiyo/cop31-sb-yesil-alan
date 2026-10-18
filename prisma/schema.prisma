@@ -48,6 +48,7 @@ model Company {
   rules              CompanyRule[]
   submissions        CompanySubmission[]
   gameSponsorships   GameSponsorship[]
+  giveawayItems      GiveawayItem[]
   meetingSlots       MeetingSlot[]
 }
 
@@ -740,5 +741,26 @@ model CalendarJoin {
   createdAt DateTime @default(now())
 
   @@unique([userId, itemKey])
+  @@index([companyId])
+}
+
+model GiveawayItem {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  kind      String
+  title     String
+  detail    String   @default("")
+  quantity  Int      @default(0)
+  unitPrice Int      @default(0)
+  priceNote String   @default("")
+  imagePath String   @default("")
+  sourceUrl String   @default("")
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([companyId])
 }

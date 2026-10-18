@@ -3271,3 +3271,56 @@ body:has(.phone-app) {
   .home-foot { flex-direction: column; align-items: stretch; }
   .home-qr { justify-content: center; }
 }
+
+.booklet-cover {
+  background: #fff;
+  border: 1px solid #D4ECF6;
+  padding: 1.5rem 1.5rem 1.25rem;
+}
+.booklet-logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.booklet-sb { height: 72px; width: auto; }
+.booklet-cop { height: 58px; width: auto; }
+.booklet-kicker {
+  margin: 1rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0077C2;
+}
+.booklet-title { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 0.95; margin: 0.4rem 0 0; }
+.booklet-motto {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.02;
+  color: #0B1C33;
+}
+.booklet-motto em { font-style: italic; color: #0077C2; }
+.booklet-lead { max-width: 46rem; margin: 0.8rem 0 1rem; color: #3E6A88; }
+.booklet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.9rem;
+}
+.booklet-card h3 a { color: inherit; text-decoration: none; }
+.booklet-card h3 a:hover { color: #0077C2; }
+.booklet-photo {
+  display: block;
+  width: 100%;
+  height: 190px;
+  object-fit: contain;
+  background: #F7FBFD;
+  border-bottom: 1px solid #D4ECF6;
+}
+@media print {
+  .desk-aside, .desk-backdrop, header.no-print, .booklet-admin, .no-print { display: none !important; }
+  .min-h-screen { display: block !important; background: #fff !important; }
+  main { padding: 0 !important; }
+  .booklet-card { break-inside: avoid; }
+}

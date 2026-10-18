@@ -1031,5 +1031,102 @@ export const EN_EXTRA: Record<string, string> = {
   "Yenilenebilir enerji": "Renewable energy",
   "Yerel tohum paketi": "Local seed pack",
   "Zemin": "Ground",
+  "COP31 Yeşil Alan · T.C. Sağlık Bakanlığı Pavilyonu · Antalya 9–20 Kasım 2026":
+    "COP31 Green Zone · Ministry of Health Pavilion · Antalya 9–20 November 2026",
+  "Eşantiyon ve İkram Kural Kitapçığı": "Giveaway and hospitality rule booklet",
+  "Sağlıklı İnsan": "Healthy people",
+  "Sağlıklı Gezegen": "Healthy planet",
+  "Pavilyonda dağıtılacak eşantiyon ve ikramlar bu listeyle sınırlıdır. Örnek ürünler geri dönüşümlü malzemedendir. Desteği üstlenecek paydaşı yönetici belirler.":
+    "Giveaways and hospitality at the pavilion are limited to this list. The examples use recyclable materials. The administrator assigns which stakeholder supports each item.",
+  "Yazdır / PDF": "Print / PDF",
+  "Atanmamış kalem": "Unassigned item",
+  "Kim destekler": "Who supports",
+  "Eşantiyon ve ikramlar etkinlik paydaşlarının desteğiyle hazırlanır. Hangi paydaşın hangi kalemi, kaç adet üstleneceğini yalnızca yönetici atar. Paydaş kendi sponsorluğunu seçemez ve adedi değiştiremez.":
+    "Giveaways and hospitality are prepared with stakeholder support. Only the administrator assigns which stakeholder covers which item, and in what quantity. A stakeholder cannot choose their own sponsorship or change the quantity.",
+  "Uygun malzeme": "Acceptable materials",
+  "Geri dönüştürülebilir, yeniden kullanılabilir veya kompostlanabilir malzeme kullanılır. Tohumlu kurşun kalem, tohumlu tükenmez, bambu veya çelik matara, kâğıt su ve pet şişe olmayan su, tohum kartı, bitki kiti, ham bez veya kanvas çanta ve ahşap USB bu kapsamdadır.":
+    "Materials are recyclable, reusable or compostable. This includes seed pencils, seed pens, bamboo or steel bottles, paper water and non-PET bottled water, seed cards, grow kits, raw-canvas or canvas bags, and wooden USB drives.",
+  "Dağıtılamaz": "Not allowed",
+  "Pet şişe, tek kullanımlık plastik şişe ve plastik poşet dağıtılamaz. İlaç, kozmetik ve kişisel bakım numunesi, yüksek adetli tek kullanımlık broşür ve paydaş reklamı taşıyan ambalaj da dağıtılamaz.":
+    "PET bottles, single-use plastic bottles and plastic bags are not distributed. Neither are medicines, cosmetics, personal-care samples, large runs of disposable brochures, or packaging that carries a stakeholder advertisement.",
+  "Baskı ve mesaj": "Print and message",
+  "Ürünün üzerinde kurum logosu olarak yalnızca T.C. Sağlık Bakanlığı logosu yer alabilir. Mesaj, COP31 logosu ile birlikte “Sağlıklı İnsan, Sağlıklı Gezegen” mottosudur. Başka kurum veya paydaş logosu, satış vaadi ve doğrulanmamış sağlık iddiası basılmaz.":
+    "The only institutional logo on an item is the Ministry of Health mark. The message is the COP31 logo together with the motto “Healthy People, Healthy Planet”. No other institution or stakeholder logo, sales claim, or unverified health claim is printed.",
+  "Su ve ikram": "Water and hospitality",
+  "Su, kâğıt ambalajda veya pet olmayan geri dönüştürülebilir kapta sunulur. Bardak ve matara yeniden doldurulabilir olur. İkram tek kullanımlık plastik bardakla verilmez. Atıklar ayrıştırılır.":
+    "Water is served in paper packaging or a non-PET recyclable container. Cups and bottles are refillable. Hospitality is not served in single-use plastic cups. Waste is sorted.",
+  "Dağıtım yeri": "Where items are handed out",
+  "Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranının yanından yapılır. Kitapçıkta olmayan veya yönetici ataması bulunmayan kalem bu noktalardan çıkmaz.":
+    "Items are handed out from the reception desk on the floor plan and beside the information screen on the left. Anything outside this booklet, or without an administrator assignment, does not leave those points.",
+  "Örnek ürünler": "Example items",
+  "Adetler pavilyon hedefidir. Görseller örnek üründür. Baskıda yalnızca Bakanlık logosu, COP31 logosu ve motto bulunur.":
+    "Quantities are the pavilion targets. Pictures are example products. The print carries only the Ministry logo, the COP31 logo and the motto.",
+  "Destekleyen paydaş": "Supporting stakeholder",
+  "Yönetici atayacak": "The administrator will assign",
+  "Paydaş": "Stakeholder",
+  "Atanmadı": "Unassigned",
+  "Örnek ürün bağlantısı": "Example product link",
+  "Atamayı kaydet": "Save assignment",
+  "Kaydediliyor…": "Saving…",
+  "Etkinlik ve sunum": "Event and talk",
+  "Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon ve ikram desteği kural kitapçığındadır; hangi kalemi üstleneceğinizi yönetici atar.":
+    "Submit your event or talk with a quantity and a description. Giveaway and hospitality support is in the rule booklet; the administrator assigns which item you cover.",
+  "adet": "pcs",
+  "Toplam": "Total",
+  "Satın al": "Buy",
+  "Birim fiyat teklifle": "Unit price on request",
+  "Adet ve tutar ürün sayfasından alındı. Görsele, ada veya Satın al düğmesine basınca o ürünün satış sayfası açılır. Aralık varsa bütçe, yayımlanan en yüksek birim fiyattan hesaplanır. KDV hariçtir.":
+    "Quantity and amount come from the product page. The picture, the name or Buy opens that product’s shop page. Where a range is published, the budget uses the highest unit price. VAT is excluded.",
+  "KDV hariç. 1.000 adet minimum sipariş fiyatı (sayfadaki aralık 11,40–11,90 ₺).":
+    "Excluding VAT. Price at the 1,000-piece minimum (published range 11.40–11.90 ₺).",
+  "KDV hariç. 100 adet için yayımlanan birim fiyat.": "Excluding VAT. Published unit price for 100 pieces.",
+  "Satıcı birim fiyatı yayımlamamış. Satın alma sayfasından teklif istenir.":
+    "The seller has not published a unit price. Request a quote on the shop page.",
+  "KDV hariç. Çift taraf tek renk baskı dahil. 500 adet minimum sipariş fiyatı (aralık 29,90–39,90 ₺).":
+    "Excluding VAT. Two-sided one-colour print included. Price at the 500-piece minimum (range 29.90–39.90 ₺).",
+  "KDV hariç. Sayfadaki birim aralığının üst ucu (19,90–22,90 ₺).":
+    "Excluding VAT. Top of the published unit range (19.90–22.90 ₺).",
+  "KDV hariç. Sayfadaki birim aralığının üst ucu (9,90–10,75 ₺).":
+    "Excluding VAT. Top of the published unit range (9.90–10.75 ₺).",
+  "KDV hariç. Sayfadaki birim aralığının üst ucu (399,90–464,50 ₺).":
+    "Excluding VAT. Top of the published unit range (399.90–464.50 ₺).",
+  "KDV hariç. Sayfadaki birim aralığının üst ucu (619,00–690,00 ₺).":
+    "Excluding VAT. Top of the published unit range (619.00–690.00 ₺).",
+  "KDV hariç. Çift taraf baskı dahil. Sayfadaki birim aralığının üst ucu (4,85–10,00 ₺).":
+    "Excluding VAT. Two-sided print included. Top of the published unit range (4.85–10.00 ₺).",
+  "Eşantiyon ve ikram desteğini yönetici atar. Kural kitapçığına bakın.":
+    "The administrator assigns giveaway and hospitality support. See the rule booklet.",
+  "Sponsorluğu yalnızca yönetici atar": "Only the administrator assigns sponsorship",
+  "Adet sıfır veya pozitif tam sayı olmalı": "Quantity must be zero or a positive whole number",
+  "Bitki yetiştirme kiti": "Grow kit",
+  "8 oz karton saksı, kapak, tohum ve toprak. Fesleğen, kekik, lavanta, maydanoz gibi yenilebilir veya kokulu bitki tohumları.":
+    "An 8 oz cardboard pot with lid, seed and soil. Edible or fragrant seeds such as basil, thyme, lavender and parsley.",
+  "Bambu kapaklı termos ve çelik bardak seti": "Bamboo-lid flask and steel cup set",
+  "550 ml bambu kapaklı termos ve 350 ml çelik bardak. Yeniden doldurulabilir set. Pet şişe yerine kullanılır.":
+    "A 550 ml flask with a bamboo lid and a 350 ml steel cup. A refillable set, used instead of a PET bottle.",
+  "Kanvas çanta 16×22×5 cm": "Canvas bag 16×22×5 cm",
+  "300 gr kanvas kumaş, küçük bez çanta. Kozmetik veya numune konulmaz.":
+    "300 g canvas, a small cloth bag. No cosmetics or samples go inside.",
+  "Ham bez çanta 35×40 cm": "Raw-canvas bag 35×40 cm",
+  "140 gr ham bez, 70 cm sap. Plastik poşet yerine kullanılır.":
+    "140 g raw canvas with a 70 cm handle. Used instead of a plastic bag.",
+  "Tohumlu tükenmez kalem": "Seed ballpoint pen",
+  "Geri dönüşümlü karton gövde, yaprak desenli klips, mavi mürekkep. İçinde karaçam tohumu vardır; kullanımdan sonra ekilebilir.":
+    "Recycled cardboard barrel, leaf-pattern clip, blue ink. It holds a black-pine seed that can be planted after use.",
+  "Tohumlu kurşun kalem": "Seed pencil",
+  "Geri dönüşümlü gövdeli kurşun kalem. İçindeki tohum kullanımdan sonra toprağa ekilir.":
+    "A pencil with a recycled barrel. The seed inside is planted after use.",
+  "Ahşap USB bellek": "Wooden USB drive",
+  "Ahşap gövdeli bellek. İçine pavilyonun iklim ve sağlık notları konabilir. Plastik gövde kullanılmaz.":
+    "A wooden drive that can hold the pavilion’s climate and health notes. No plastic body.",
+  "Bambu termos": "Bamboo flask",
+  "Bambu gövdeli, yeniden doldurulabilir termos. Tek kullanımlık plastik şişenin yerine geçer.":
+    "A refillable flask with a bamboo body. It replaces a single-use plastic bottle.",
+  "Bambu çelik kupa termos": "Bamboo and steel cup flask",
+  "Bambu ve çelik kupa termos, yaklaşık 500 ml. İkram suyu bu kaba doldurulur.":
+    "A bamboo and steel cup flask, about 500 ml. Hospitality water is poured into it.",
+  "Tohumlu kraft kart 7×7 cm": "Seed kraft card 7×7 cm",
+  "Kraft tohum kartı, çam tohumlu. Kartın mesaj alanı motto için ayrılır.":
+    "A kraft seed card with a pine seed. The message area is reserved for the motto.",
 };
 

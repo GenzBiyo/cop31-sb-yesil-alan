@@ -1,178 +1,205 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 
-type Me = { role: string; companyId: string | null };
-type Row = {
+type Company = { id: string; name: string };
+type Item = {
   id: string;
-  type: string;
+  slug: string;
+  kind: string;
   title: string;
-  payload: string;
-  quantity?: string;
-  reviewNote?: string;
-  status: string;
-  attachment?: string;
-  linkUrl?: string;
+  detail: string;
+  quantity: number;
+  unitPrice: number;
+  priceNote: string;
+  imagePath: string;
+  sourceUrl: string;
+  published: boolean;
+  companyId: string | null;
+  company: Company | null;
 };
-type Company = { id: string; submissions: Row[] };
-type Item = Row & { company: { name: string; booth: string } };
+type Payload = { items: Item[]; companies: Company[]; admin: boolean };
 
-const KINDS = [
-  { id: "esantiyon", label: "Eşantiyon" },
-  { id: "ikram", label: "İkram" },
+const RULES: { title: string; body: string }[] = [
+  {
+    title: "Kim destekler",
+    body: "Eşantiyon ve ikramlar etkinlik paydaşlarının desteğiyle hazırlanır. Hangi paydaşın hangi kalemi, kaç adet üstleneceğini yalnızca yönetici atar. Paydaş kendi sponsorluğunu seçemez ve adedi değiştiremez.",
+  },
+  {
+    title: "Uygun malzeme",
+    body: "Geri dönüştürülebilir, yeniden kullanılabilir veya kompostlanabilir malzeme kullanılır. Tohumlu kurşun kalem, tohumlu tükenmez, bambu veya çelik matara, kâğıt su ve pet şişe olmayan su, tohum kartı, bitki kiti, ham bez veya kanvas çanta ve ahşap USB bu kapsamdadır.",
+  },
+  {
+    title: "Dağıtılamaz",
+    body: "Pet şişe, tek kullanımlık plastik şişe ve plastik poşet dağıtılamaz. İlaç, kozmetik ve kişisel bakım numunesi, yüksek adetli tek kullanımlık broşür ve paydaş reklamı taşıyan ambalaj da dağıtılamaz.",
+  },
+  {
+    title: "Baskı ve mesaj",
+    body: "Ürünün üzerinde kurum logosu olarak yalnızca T.C. Sağlık Bakanlığı logosu yer alabilir. Mesaj, COP31 logosu ile birlikte “Sağlıklı İnsan, Sağlıklı Gezegen” mottosudur. Başka kurum veya paydaş logosu, satış vaadi ve doğrulanmamış sağlık iddiası basılmaz.",
+  },
+  {
+    title: "Su ve ikram",
+    body: "Su, kâğıt ambalajda veya pet olmayan geri dönüştürülebilir kapta sunulur. Bardak ve matara yeniden doldurulabilir olur. İkram tek kullanımlık plastik bardakla verilmez. Atıklar ayrıştırılır.",
+  },
+  {
+    title: "Dağıtım yeri",
+    body: "Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranının yanından yapılır. Kitapçıkta olmayan veya yönetici ataması bulunmayan kalem bu noktalardan çıkmaz.",
+  },
 ];
 
 export default function GiveawayPage() {
   const { tx } = useI18n();
-  const { data: me } = useApi<Me>("/api/auth/me");
-  const manager = me?.role === "ADMIN" || me?.role === "SAGLIK";
-  const { data: companies, reload: reloadCompany } = useApi<Company[]>(me && !manager ? "/api/companies" : null);
-  const { data: queue, reload: reloadQueue } = useApi<Item[]>(manager ? "/api/submissions" : null);
-  const [item, setItem] = useState({ type: "esantiyon", title: "", quantity: "", payload: "", linkUrl: "" });
-  const [file, setFile] = useState<File | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>({});
+  const { data, reload } = useApi<Payload>("/api/giveaways");
+  const [drafts, setDrafts] = useState<Record<string, { companyId: string; quantity: string }>>({});
+  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const mine = (companies?.[0]?.submissions || []).filter((row) => KINDS.some((kind) => kind.id === row.type));
-  const rows = (queue || []).filter((row) => KINDS.some((kind) => kind.id === row.type));
-  if (!me) return <p>{tx("Yükleniyor…")}</p>;
+  const [saved, setSaved] = useState("");
 
-  return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="display text-4xl">{tx("Eşantiyon ve İkram")}</h1>
-        <p className="text-[#57534e]">
-          {tx("Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranından yapılır. Uygun kararı almayan hiçbir eşantiyon veya ikram bu noktalardan çıkmaz.")}
-        </p>
-      </div>
-      {error ? <p className="text-sm text-[#E31C23]">{tx(error)}</p> : null}
-      {!manager ? (
-        <section className="card p-4 space-y-3">
-          <h2 className="display text-2xl">{tx("Dağıtılacak eşantiyon veya ikram")}</h2>
-          <p className="text-sm text-[#57534e]">{tx("Resim, PDF veya bağlantı ekleyin.")}</p>
-          <div className="grid md:grid-cols-4 gap-2">
-            <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
-              {KINDS.map((kind) => <option key={kind.id} value={kind.id}>{tx(kind.label)}</option>)}
-            </select>
-            <input className="field md:col-span-2" placeholder={tx("Tanım")} value={item.title} onChange={(e) => setItem({ ...item, title: e.target.value })} />
-            <input className="field" placeholder={tx("Adet")} value={item.quantity} onChange={(e) => setItem({ ...item, quantity: e.target.value })} />
-            <textarea className="field md:col-span-4" placeholder={tx("Ne, hangi malzeme, nasıl dağıtılacak")} value={item.payload} onChange={(e) => setItem({ ...item, payload: e.target.value })} />
-            <label className="text-sm md:col-span-2">
-              {tx("Görsel yükle")}
-              <input
-                className="field mt-1"
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.pdf"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-            </label>
-            <label className="text-sm md:col-span-2">
-              {tx("Bağlantı")}
-              <input className="field mt-1" placeholder="https://" value={item.linkUrl} onChange={(e) => setItem({ ...item, linkUrl: e.target.value })} />
-            </label>
-            <button
-              className="btn"
-              onClick={async () => {
-                setError("");
-                const body = new FormData();
-                body.append("type", item.type);
-                body.append("title", item.title);
-                body.append("quantity", item.quantity);
-                body.append("payload", item.payload);
-                body.append("linkUrl", item.linkUrl);
-                if (file) body.append("file", file);
-                try {
-                  await api("/api/submissions", { method: "POST", body });
-                  setItem({ type: item.type, title: "", quantity: "", payload: "", linkUrl: "" });
-                  setFile(null);
-                  await reloadCompany();
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "Kayıt alınamadı");
-                }
-              }}
-            >
-              {tx("Onaya gönder")}
-            </button>
-          </div>
-          <ul className="space-y-2">
-            {mine.map((row) => (
-              <li key={row.id} className="border-b border-[#DCE8F0] pb-2 text-sm">
-                <div className="flex justify-between gap-2">
-                  <div>
-                    <span className="badge muted">{tx(KINDS.find((kind) => kind.id === row.type)?.label || row.type)}</span>{" "}
-                    <strong>{row.title}</strong> · {row.quantity}
-                  </div>
-                  <span className={`badge ${row.status === "Uygun" ? "ok" : row.status === "Uygun değil" ? "high" : "warn"}`}>{tx(row.status)}</span>
-                </div>
-                {row.payload ? <div className="text-[#57534e] mt-1">{row.payload}</div> : null}
-                <Media row={row} />
-                {row.status !== "Uygun" ? <div className="text-xs text-[#E31C23] mt-1">{tx("Bu kayıt dağıtılamaz.")}</div> : null}
-              </li>
-            ))}
-            {mine.length === 0 ? <li className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</li> : null}
-          </ul>
-        </section>
-      ) : (
-        <div className="space-y-3">
-          {rows.map((row) => (
-            <article key={row.id} className="card p-4 space-y-2">
-              <div className="flex justify-between gap-3 flex-wrap">
-                <div>
-                  <div className="text-xs uppercase text-[#0077C2]">{tx(KINDS.find((kind) => kind.id === row.type)?.label || row.type)} · {row.quantity}</div>
-                  <h2 className="display text-2xl">{row.title}</h2>
-                  <p className="text-sm text-[#57534e]">{row.company.name}{row.company.booth ? ` · ${row.company.booth}` : ""}</p>
-                </div>
-                <span className={`badge ${row.status === "Uygun" ? "ok" : row.status === "Uygun değil" ? "high" : "warn"}`}>{tx(row.status)}</span>
-              </div>
-              {row.payload ? <p className="text-sm">{row.payload}</p> : null}
-              <Media row={row} />
-              <textarea
-                className="field"
-                rows={2}
-                value={notes[row.id] ?? row.reviewNote}
-                onChange={(e) => setNotes({ ...notes, [row.id]: e.target.value })}
-                placeholder={tx("Gerekçe")}
-              />
-              <div className="flex gap-2">
-                <button className="btn" onClick={() => decide(row.id, "Uygun", (notes[row.id] ?? row.reviewNote) || "", reloadQueue, setError)}>{tx("Uygun")}</button>
-                <button className="btn ghost" onClick={() => decide(row.id, "Uygun değil", (notes[row.id] ?? row.reviewNote) || "", reloadQueue, setError)}>{tx("Uygun değil")}</button>
-              </div>
-            </article>
-          ))}
-          {rows.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</p> : null}
-        </div>
-      )}
-    </div>
-  );
-}
+  useEffect(() => {
+    if (!data) return;
+    setDrafts(Object.fromEntries(data.items.map((item) => [item.id, { companyId: item.companyId || "", quantity: String(item.quantity) }])));
+  }, [data]);
 
-function Media({ row }: { row: { attachment?: string; linkUrl?: string } }) {
-  const file = row.attachment || "";
-  const image = /\.(png|jpe?g|webp|gif)$/i.test(file);
-  const pdf = /\.pdf$/i.test(file);
-  if (!file && !row.linkUrl) return null;
-  return (
-    <div className="mt-2 space-y-2">
-      {image ? <img src={file} alt="" className="max-h-40 w-auto border border-[#DCE8F0]" /> : null}
-      {pdf ? <a className="text-[#0077C2] underline" href={file} target="_blank" rel="noreferrer">PDF</a> : null}
-      {row.linkUrl ? <a className="text-[#0077C2] underline block break-all" href={row.linkUrl} target="_blank" rel="noreferrer">{row.linkUrl}</a> : null}
-    </div>
-  );
-}
+  if (!data) return <p>{tx("Yükleniyor…")}</p>;
+  const open = data.items.filter((item) => !item.companyId).length;
 
-async function decide(
-  id: string,
-  status: "Uygun" | "Uygun değil",
-  reviewNote: string,
-  reload: () => Promise<void>,
-  setError: (value: string) => void,
-) {
-  setError("");
-  try {
-    await api("/api/submissions", { method: "PATCH", body: JSON.stringify({ id, status, reviewNote }) });
-    await reload();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Karar kaydedilemedi");
+  async function save(item: Item) {
+    const draft = drafts[item.id];
+    if (!draft) return;
+    setBusy(item.id);
+    setError("");
+    setSaved("");
+    try {
+      await api(`/api/giveaways/${item.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ companyId: draft.companyId || null, quantity: Number(draft.quantity) }),
+      });
+      setSaved(item.title);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kayıt alınamadı");
+    } finally {
+      setBusy("");
+    }
   }
+
+  return (
+    <div className="booklet space-y-6">
+      <header className="booklet-cover">
+        <div className="booklet-logos">
+          <img src="/icons/saglik-192.png" alt={tx("T.C. Sağlık Bakanlığı")} className="booklet-sb" />
+          <img src="/brand/cop31-turkiye.png" alt={tx("COP31 Türkiye Antalya")} className="booklet-cop" />
+        </div>
+        <p className="booklet-kicker">{tx("COP31 Yeşil Alan · T.C. Sağlık Bakanlığı Pavilyonu · Antalya 9–20 Kasım 2026")}</p>
+        <h1 className="display booklet-title">{tx("Eşantiyon ve İkram Kural Kitapçığı")}</h1>
+        <p className="booklet-motto">
+          {tx("Sağlıklı İnsan")}
+          <br />
+          <em>{tx("Sağlıklı Gezegen")}</em>
+        </p>
+        <p className="booklet-lead">
+          {tx("Pavilyonda dağıtılacak eşantiyon ve ikramlar bu listeyle sınırlıdır. Örnek ürünler geri dönüşümlü malzemedendir. Desteği üstlenecek paydaşı yönetici belirler.")}
+        </p>
+        <div className="no-print flex flex-wrap gap-2">
+          <button type="button" className="btn ghost" onClick={() => window.print()}>{tx("Yazdır / PDF")}</button>
+          {data.admin ? <span className="badge warn">{tx("Atanmamış kalem")}: {open}</span> : null}
+        </div>
+      </header>
+
+      {error ? <p className="text-sm text-[#E31C23]">{tx(error)}</p> : null}
+      {saved ? <p className="no-print text-sm text-[#0077C2]">{tx("Kaydedildi")}: {tx(saved)}</p> : null}
+
+      <section className="grid md:grid-cols-2 gap-3">
+        {RULES.map((rule) => (
+          <article key={rule.title} className="card p-4">
+            <h2 className="display text-2xl">{tx(rule.title)}</h2>
+            <p className="text-sm text-[#3E6A88] mt-2">{tx(rule.body)}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="display text-3xl">{tx("Örnek ürünler")}</h2>
+        <p className="text-sm text-[#3E6A88]">
+          {tx("Adet ve tutar ürün sayfasından alındı. Görsele, ada veya Satın al düğmesine basınca o ürünün satış sayfası açılır. Aralık varsa bütçe, yayımlanan en yüksek birim fiyattan hesaplanır. KDV hariçtir.")}
+        </p>
+        <div className="booklet-grid">
+          {data.items.map((item) => {
+            const draft = drafts[item.id] || { companyId: item.companyId || "", quantity: String(item.quantity) };
+            const dirty = draft.companyId !== (item.companyId || "") || Number(draft.quantity) !== item.quantity;
+            return (
+              <article key={item.id} className="booklet-card card">
+                {item.imagePath ? (
+                  <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+                    <img src={item.imagePath} alt={tx(item.title)} className="booklet-photo" />
+                  </a>
+                ) : null}
+                <div className="p-4 space-y-2">
+                  <div className="flex justify-between gap-2">
+                    <span className="badge muted">{tx(item.kind === "ikram" ? "İkram" : "Eşantiyon")}</span>
+                    <strong>{Number(item.quantity).toLocaleString("tr-TR")} {tx("adet")}</strong>
+                  </div>
+                  <h3 className="display text-xl leading-tight">
+                    <a href={item.sourceUrl} target="_blank" rel="noreferrer">{tx(item.title)}</a>
+                  </h3>
+                  <p className="text-sm text-[#3E6A88]">{tx(item.detail)}</p>
+                  <p className="text-sm">
+                    {item.unitPrice > 0 ? (
+                      <>
+                        <strong>{money(item.unitPrice)}</strong> / {tx("adet")}
+                        <span className="block">{tx("Toplam")} {money(item.unitPrice * item.quantity)}</span>
+                      </>
+                    ) : (
+                      <strong>{tx("Birim fiyat teklifle")}</strong>
+                    )}
+                  </p>
+                  {item.priceNote ? <p className="text-xs text-[#57534e]">{tx(item.priceNote)}</p> : null}
+                  <a className="btn" href={item.sourceUrl} target="_blank" rel="noreferrer">{tx("Satın al")}</a>
+                  <p className="text-sm">
+                    <span className="text-[#0077C2]">{tx("Destekleyen paydaş")}: </span>
+                    {item.company ? <strong>{item.company.name}</strong> : <span className="text-[#57534e]">{tx("Yönetici atayacak")}</span>}
+                  </p>
+                  {data.admin ? (
+                    <div className="booklet-admin space-y-2 pt-2 border-t border-[#D4ECF6]">
+                      <label className="text-xs block">
+                        {tx("Paydaş")}
+                        <select
+                          className="field mt-1"
+                          value={draft.companyId}
+                          onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, companyId: e.target.value } })}
+                        >
+                          <option value="">{tx("Atanmadı")}</option>
+                          {data.companies.map((company) => (
+                            <option key={company.id} value={company.id}>{company.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs block">
+                        {tx("Adet")}
+                        <input
+                          className="field mt-1"
+                          inputMode="numeric"
+                          value={draft.quantity}
+                          onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, quantity: e.target.value.replace(/[^\d]/g, "") } })}
+                        />
+                      </label>
+                      <button type="button" className="btn ghost" disabled={!dirty || busy === item.id} onClick={() => void save(item)}>
+                        {busy === item.id ? tx("Kaydediliyor…") : tx("Atamayı kaydet")}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function money(kurus: number) {
+  return (kurus / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₺";
 }

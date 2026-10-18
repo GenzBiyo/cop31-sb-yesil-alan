@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
   const companyId = user.role === "FIRMA" ? user.companyId : body.companyId;
   if (!companyId) return jsonError("Firma gerekli");
   const type = String(body.type || "application");
+  if ((type === "esantiyon" || type === "ikram") && !canManage(user.role)) {
+    return jsonError("Eşantiyon ve ikram desteğini yönetici atar. Kural kitapçığına bakın.");
+  }
   const compliance = COMPLIANCE.has(type);
   if (compliance && !String(body.title || "").trim()) return jsonError("Tanım gerekli");
   if (compliance && !String(body.quantity || "").trim()) return jsonError("Adet gerekli");

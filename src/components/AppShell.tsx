@@ -83,7 +83,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"], firmTools: true },
+  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"] },
   { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];

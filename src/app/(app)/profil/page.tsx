@@ -35,8 +35,6 @@ type Company = {
 
 const COMPLIANCE = [
   { id: "etkinlik", label: "Etkinlik / sunum" },
-  { id: "ikram", label: "İkram" },
-  { id: "esantiyon", label: "Eşantiyon" },
 ];
 
 export default function ProfilePage() {
@@ -45,7 +43,7 @@ export default function ProfilePage() {
   const company = data?.[0];
   const [rulesOpen, setRulesOpen] = useState(false);
   const [sub, setSub] = useState({ type: "calendar", title: "", payload: "", eventDate: "" });
-  const [item, setItem] = useState({ type: "esantiyon", title: "", quantity: "", payload: "" });
+  const [item, setItem] = useState({ type: "etkinlik", title: "", quantity: "", payload: "" });
   const [formError, setFormError] = useState("");
   if (!company) return <p><Tx>Yükleniyor…</Tx></p>;
   const kind = accountKind(company.kind);
@@ -108,9 +106,10 @@ export default function ProfilePage() {
         </ul>
       </section>
       <section className="card p-4 space-y-3">
-        <h2 className="display text-2xl">{tx("Etkinlik, ikram ve eşantiyon")}</h2>
+        <h2 className="display text-2xl">{tx("Etkinlik ve sunum")}</h2>
         <p className="text-sm text-[#57534e]">
-          {tx("Dağıtacağınız veya ikram edeceğiniz her kalemi adet ve tanımla Sağlık Bakanlığı onayına sunun. Uygun kararı almayan hiçbir şey pavilyonda dağıtılamaz.")}
+          {tx("Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon ve ikram desteği kural kitapçığındadır; hangi kalemi üstleneceğinizi yönetici atar.")}{" "}
+          <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
         </p>
         <div className="grid md:grid-cols-4 gap-2">
           <select className="field" value={item.type} onChange={(e) => setItem({ ...item, type: e.target.value })}>
@@ -181,7 +180,7 @@ export default function ProfilePage() {
           <textarea className="field md:col-span-4" placeholder={tx("Ayrıntı")} value={sub.payload} onChange={(e) => setSub({ ...sub, payload: e.target.value })} />
         </div>
         <ul className="mt-4 space-y-2">
-          {company.submissions.filter((s) => !COMPLIANCE.some((kind) => kind.id === s.type)).map((s) => (
+          {company.submissions.filter((s) => !["etkinlik", "ikram", "esantiyon"].includes(s.type)).map((s) => (
             <li key={s.id} className="text-sm border-b border-[#DCE8F0] pb-2">
               <span className="badge muted">{s.type}</span> {s.title} {s.eventDate ? `· ${s.eventDate}` : ""} — {s.status}
               <div className="text-[#57534e]">{s.payload}</div>
