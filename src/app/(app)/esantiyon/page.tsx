@@ -66,7 +66,12 @@ const RULES: { title: string; body: string }[] = [
 export default function GiveawayPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Payload>("/api/giveaways");
-  const [drafts, setDrafts] = useState<Record<string, { packagePrice: string; vatRate: string; packageQty: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, { title: string; detail: string; printNote: string; packagePrice: string; vatRate: string; packageQty: string }>>({});
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string } | null>>({});
+  const [cleared, setCleared] = useState<Record<string, boolean>>({});
+  const [creating, setCreating] = useState(false);
+  const [fresh, setFresh] = useState({ title: "", detail: "", printNote: "", packagePrice: "", vatRate: "20", packageQty: "" });
+  const [freshImage, setFreshImage] = useState<File | null>(null);
   const [claims, setClaims] = useState<Record<string, string>>({});
   const [slots, setSlots] = useState<Record<string, { date: string; start: string; end: string }>>({});
   const [busy, setBusy] = useState("");
@@ -76,10 +81,18 @@ export default function GiveawayPage() {
   useEffect(() => {
     if (!data) return;
     setDrafts(Object.fromEntries(data.items.map((item) => [item.id, {
+      title: item.title,
+      detail: item.detail,
+      printNote: item.printNote,
       packagePrice: item.packagePrice ? (item.packagePrice / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
       vatRate: String(item.vatRate),
       packageQty: item.packageQty ? String(item.packageQty) : "",
     }])));
+    setPhotos((prev) => {
+      for (const row of Object.values(prev)) if (row?.preview) URL.revokeObjectURL(row.preview);
+      return {};
+    });
+    setCleared({});
     setClaims(Object.fromEntries(data.items.map((item) => [item.id, "1"])));
     const next: Record<string, { date: string; start: string; end: string }> = {};
     for (const item of data.items) {
@@ -103,6 +116,70 @@ export default function GiveawayPage() {
     });
     const body = encodeURIComponent(`COP31 Sağlık Pavilionu sponsorluk siparişi\n\nSatın alma: ${data.supplier.name}\n\n${lines.join("\n") || "Henüz paket alınmadı."}\n`);
     window.location.href = `mailto:${data.supplier.email}?subject=${encodeURIComponent("COP31 sponsorluk siparişi")}&body=${body}`;
+  }
+
+  async function createPackage() {
+    setBusy("new");
+    setError("");
+    setSaved("");
+    try {
+      const body = new FormData();
+      for (const [key, value] of Object.entries(fresh)) body.set(key, value);
+      if (freshImage) body.set("image", freshImage);
+      await api("/api/giveaways", { method: "POST", body });
+      setFresh({ title: "", detail: "", printNote: "", packagePrice: "", vatRate: "20", packageQty: "" });
+      setFreshImage(null);
+      setCreating(false);
+      setSaved(fresh.title);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kayıt alınamadı");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function saveItem(item: Item) {
+    const draft = drafts[item.id];
+    if (!draft?.title.trim()) {
+      setError("Paket adı gerekli");
+      return;
+    }
+    setBusy(item.id);
+    setError("");
+    setSaved("");
+    try {
+      const body = new FormData();
+      body.set("title", draft.title);
+      body.set("detail", draft.detail);
+      body.set("printNote", draft.printNote);
+      body.set("packagePrice", draft.packagePrice);
+      body.set("vatRate", draft.vatRate);
+      body.set("packageQty", draft.packageQty);
+      if (photos[item.id]?.file) body.set("image", photos[item.id]!.file);
+      if (cleared[item.id]) body.set("removeImage", "1");
+      await api(`/api/giveaways/${item.id}`, { method: "PATCH", body });
+      setSaved(draft.title);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kayıt alınamadı");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function removeItem(item: Item) {
+    if (!confirm(tx("Bu sponsorluk paketi listeden kaldırılsın mı?"))) return;
+    setBusy(`del-${item.id}`);
+    setError("");
+    try {
+      await api(`/api/giveaways/${item.id}`, { method: "DELETE" });
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Silinemedi");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function run(key: string, title: string, path: string, body: unknown) {
@@ -160,31 +237,103 @@ export default function GiveawayPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="display text-3xl">{tx("Sponsorluk listesi")}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="display text-3xl">{tx("Sponsorluk listesi")}</h2>
+          {data.staff ? (
+            <button type="button" className="btn" onClick={() => setCreating((on) => !on)}>{creating ? tx("Formu kapat") : tx("Yeni paket ekle")}</button>
+          ) : null}
+        </div>
         <p className="text-sm text-[#3E6A88]">
           {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}
         </p>
+        {data.staff && creating ? (
+          <form className="card p-4 grid md:grid-cols-2 gap-2" onSubmit={(e) => { e.preventDefault(); void createPackage(); }}>
+            <label className="text-sm">{tx("Paket adı")} *
+              <input className="field mt-1" required value={fresh.title} onChange={(e) => setFresh({ ...fresh, title: e.target.value })} />
+            </label>
+            <label className="text-sm">{tx("Baskı notu")}
+              <input className="field mt-1" value={fresh.printNote} onChange={(e) => setFresh({ ...fresh, printNote: e.target.value })} />
+            </label>
+            <label className="text-sm md:col-span-2">{tx("Açıklama")}
+              <textarea className="field mt-1" rows={2} value={fresh.detail} onChange={(e) => setFresh({ ...fresh, detail: e.target.value })} />
+            </label>
+            <label className="text-sm">{tx("Paket fiyatı, KDV hariç (₺)")}
+              <input className="field mt-1" value={fresh.packagePrice} onChange={(e) => setFresh({ ...fresh, packagePrice: e.target.value })} />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-sm">{tx("KDV %")}
+                <input className="field mt-1" inputMode="numeric" value={fresh.vatRate} onChange={(e) => setFresh({ ...fresh, vatRate: e.target.value.replace(/[^\d]/g, "") })} />
+              </label>
+              <label className="text-sm">{tx("Paketteki adet")}
+                <input className="field mt-1" inputMode="numeric" value={fresh.packageQty} onChange={(e) => setFresh({ ...fresh, packageQty: e.target.value.replace(/[^\d]/g, "") })} />
+              </label>
+            </div>
+            <label className="text-sm md:col-span-2">{tx("Resim")}
+              <input className="field mt-1" type="file" accept="image/*" onChange={(e) => setFreshImage(e.target.files?.[0] || null)} />
+            </label>
+            <button className="btn" disabled={busy === "new"}>{busy === "new" ? tx("Kaydediliyor…") : tx("Paketi ekle")}</button>
+          </form>
+        ) : null}
         <div className="booklet-grid">
           {data.items.map((item) => {
             const draft = drafts[item.id] || {
+              title: item.title,
+              detail: item.detail,
+              printNote: item.printNote,
               packagePrice: item.packagePrice ? (item.packagePrice / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
               vatRate: String(item.vatRate),
               packageQty: item.packageQty ? String(item.packageQty) : "",
             };
+            const shownImage = cleared[item.id] ? "" : photos[item.id]?.preview || item.imagePath;
             const ready = item.packageQty > 0 && item.packagePrice > 0;
             const gross = ready ? Math.round(item.packagePrice * (100 + item.vatRate) / 100) : 0;
             const wanted = Number(claims[item.id] || 0);
             return (
               <article key={item.id} className="booklet-card card">
-                {item.imagePath ? <img src={item.imagePath} alt={tx(item.title)} className="booklet-photo" /> : null}
+                {shownImage ? <img src={shownImage} alt={draft.title || item.title} className="booklet-photo" /> : null}
                 <div className="p-4 space-y-2">
                   <div className="flex justify-between gap-2 text-xs">
                     <span className="badge muted">{item.offerNo ? `${tx("Teklif")} ${item.offerNo} · ` : ""}{item.sku}</span>
                     <strong>{item.packagesTaken.toLocaleString("tr-TR")} {tx("paket alındı")}</strong>
                   </div>
-                  <h3 className="display text-xl leading-tight">{tx(item.title)}</h3>
-                  <p className="text-sm text-[#3E6A88]">{tx(item.detail)}</p>
-                  {item.printNote ? <p className="text-xs">{tx("Baskı")}: {tx(item.printNote)}</p> : null}
+                  {data.staff ? (
+                    <div className="space-y-2">
+                      <label className="text-xs block">{tx("Paket adı")}
+                        <input className="field mt-1" value={draft.title} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, title: e.target.value } })} />
+                      </label>
+                      <label className="text-xs block">{tx("Açıklama")}
+                        <textarea className="field mt-1" rows={2} value={draft.detail} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, detail: e.target.value } })} />
+                      </label>
+                      <label className="text-xs block">{tx("Baskı notu")}
+                        <input className="field mt-1" value={draft.printNote} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, printNote: e.target.value } })} />
+                      </label>
+                      <label className="text-xs block">{tx("Resim")}
+                        <input className="field mt-1" type="file" accept="image/*" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          setCleared({ ...cleared, [item.id]: false });
+                          setPhotos((prev) => {
+                            if (prev[item.id]?.preview) URL.revokeObjectURL(prev[item.id]!.preview);
+                            return { ...prev, [item.id]: file ? { file, preview: URL.createObjectURL(file) } : null };
+                          });
+                        }} />
+                      </label>
+                      {shownImage ? (
+                        <button type="button" className="text-xs text-[#E31C23] underline" onClick={() => {
+                          setCleared({ ...cleared, [item.id]: true });
+                          setPhotos((prev) => {
+                            if (prev[item.id]?.preview) URL.revokeObjectURL(prev[item.id]!.preview);
+                            return { ...prev, [item.id]: null };
+                          });
+                        }}>{tx("Resmi kaldır")}</button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="display text-xl leading-tight">{tx(item.title)}</h3>
+                      <p className="text-sm text-[#3E6A88]">{tx(item.detail)}</p>
+                      {item.printNote ? <p className="text-xs">{tx("Baskı")}: {tx(item.printNote)}</p> : null}
+                    </>
+                  )}
                   {ready ? (
                     <p className="text-sm">
                       <strong>1 {tx("paket")} = {item.packageQty.toLocaleString("tr-TR")} {tx("adet")}</strong>
@@ -208,18 +357,14 @@ export default function GiveawayPage() {
                           <input className="field mt-1" inputMode="numeric" value={draft.packageQty} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, packageQty: e.target.value.replace(/[^\d]/g, "") } })} />
                         </label>
                       </div>
-                      <button
-                        type="button"
-                        className="btn ghost"
-                        disabled={busy === item.id}
-                        onClick={() => void run(item.id, item.title, `/api/giveaways/${item.id}`, {
-                          packagePrice: draft.packagePrice,
-                          vatRate: Number(draft.vatRate),
-                          packageQty: Number(draft.packageQty),
-                        })}
-                      >
-                        {busy === item.id ? tx("Kaydediliyor…") : tx("Paketi kaydet")}
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" className="btn" disabled={busy === item.id} onClick={() => void saveItem(item)}>
+                          {busy === item.id ? tx("Kaydediliyor…") : tx("Güncelle")}
+                        </button>
+                        <button type="button" className="btn ghost" style={{ color: "#E31C23" }} disabled={busy === `del-${item.id}`} onClick={() => void removeItem(item)}>
+                          {tx("Sil")}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                   {data.companyId && ready ? (

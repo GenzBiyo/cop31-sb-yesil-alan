@@ -2,7 +2,9 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
-import { tlToKurus } from "@/lib/giveaways";
+import { saveGiveawayImage, tlToKurus } from "@/lib/giveaways";
+
+export const runtime = "nodejs";
 
 const DAY = /^2026-11-(0[9]|1\d|20)$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -25,8 +27,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const existing = await prisma.giveawayItem.findUnique({ where: { id }, include });
   if (!existing || !existing.published) return jsonError("Kayıt yok", 404);
-  const body = await req.json();
   const staff = canManage(user.role);
+  const multipart = (req.headers.get("content-type") || "").includes("multipart/form-data");
+  const body = multipart ? Object.fromEntries(await req.formData()) : await req.json();
 
   if (body.action === "claim") {
     if (user.role !== "FIRMA" || !user.companyId) return jsonError("Sponsorluğu paydaş hesabı alır", 403);
@@ -77,15 +80,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (!staff) return jsonError("Paket fiyatı ve adedini Sağlık Bakanlığı belirler", 403);
-  const data: { packageQty?: number; packagePrice?: number; vatRate?: number; title?: string; detail?: string; printNote?: string } = {};
-  if ("packageQty" in body) {
+  const data: { packageQty?: number; packagePrice?: number; vatRate?: number; title?: string; detail?: string; printNote?: string; imagePath?: string } = {};
+  if ("packageQty" in body && String(body.packageQty) !== "") {
     const packageQty = Number(body.packageQty);
-    if (!Number.isInteger(packageQty) || packageQty < 1) return jsonError("Paketteki adet en az 1 olmalı");
+    if (!Number.isInteger(packageQty) || packageQty < 0) return jsonError("Paketteki adet geçersiz");
     data.packageQty = packageQty;
   }
-  if ("packagePrice" in body) {
+  if ("packagePrice" in body && String(body.packagePrice) !== "") {
     const packagePrice = tlToKurus(body.packagePrice);
-    if (packagePrice == null || packagePrice < 1) return jsonError("Paket fiyatı geçersiz");
+    if (packagePrice == null || packagePrice < 0) return jsonError("Paket fiyatı geçersiz");
     data.packagePrice = packagePrice;
   }
   if ("vatRate" in body) {
@@ -100,7 +103,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   if ("detail" in body) data.detail = String(body.detail || "").trim();
   if ("printNote" in body) data.printNote = String(body.printNote || "").trim();
+  const image = body.image;
+  try {
+    if (image instanceof File && image.size) data.imagePath = await saveGiveawayImage(image);
+    else if (String(body.removeImage || "") === "1") data.imagePath = "";
+  } catch (err) {
+    return jsonError(err instanceof Error ? err.message : "Fotoğraf yüklenemedi");
+  }
 
   const item = await prisma.giveawayItem.update({ where: { id }, data, include });
   return jsonOk(withTaken(item));
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { user, error } = await withUser();
+  if (error || !user) return error!;
+  if (!canManage(user.role)) return jsonError("Paketi Sağlık Bakanlığı siler", 403);
+  const { id } = await params;
+  const existing = await prisma.giveawayItem.findUnique({ where: { id } });
+  if (!existing) return jsonError("Kayıt yok", 404);
+  await prisma.giveawayItem.update({ where: { id }, data: { published: false } });
+  return jsonOk({ ok: true });
 }

@@ -1153,6 +1153,14 @@ export const EN_EXTRA: Record<string, string> = {
   "Paket fiyatı ve adedi henüz belirlenmedi.": "The package price and quantity have not been set yet.",
   "Siparişi Greenstyle’a gönder": "Send the order to Greenstyle",
   "Satın alma": "Purchase",
+  "Yeni paket ekle": "Add a package",
+  "Paketi ekle": "Add the package",
+  "Paket adı": "Package name",
+  "Baskı notu": "Print note",
+  "Resim": "Image",
+  "Resmi kaldır": "Remove the image",
+  "Bu sponsorluk paketi listeden kaldırılsın mı?": "Remove this sponsorship package from the list?",
+  "Paket adı gerekli": "A package name is required",
   "Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.":
     "Purchases are made by the company contracted by the Ministry. For the sponsorship package you choose, contact that company and transfer the amount to them.",
   "Paket fiyatı ve paketteki adet sabittir; Sağlık Bakanlığı belirler. Paydaş kaç paket alacağını seçer. Satın almayı anlaşmalı firma Greenstyle yapar.":

@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 import { prisma } from "./prisma";
 
 export type GiveawaySeed = {
@@ -326,6 +328,30 @@ export const CONTRACTED_SUPPLIER = {
   email: "info@greenstyle.com.tr",
   phone: "+90 216 606 76 66",
 };
+
+export async function saveGiveawayImage(file: File) {
+  if (file.size > 5 * 1024 * 1024) throw new Error("Fotoğraf en fazla 5 MB olabilir");
+  if (!(file.type || "").startsWith("image/")) throw new Error("JPG, PNG veya WebP fotoğraf yükleyin");
+  const ext = file.type.includes("png") ? "png" : file.type.includes("webp") ? "webp" : "jpg";
+  const dir = path.join(process.cwd(), "public", "uploads", "giveaways");
+  await mkdir(dir, { recursive: true });
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
+  return `/uploads/giveaways/${filename}`;
+}
+
+export function packageSlug(title: string) {
+  const base = title
+    .trim()
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ı/g, "i")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40) || "paket";
+  return `${base}-${Date.now().toString(36)}`;
+}
 
 export function tlToKurus(raw: unknown): number | null {
   const s = String(raw ?? "").trim().replace(/\s/g, "");
