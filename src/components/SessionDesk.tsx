@@ -174,6 +174,7 @@ function minutesBetween(start: string, end: string) {
 }
 
 function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest[]; onChange: (next: Guest[]) => void }) {
+  const { tx } = useI18n();
   const { data } = useSpeakers();
   const known = data?.speakers || [];
   const listId = talk ? "speaker-pick-talk" : "speaker-pick-panel";
@@ -243,6 +244,7 @@ function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest
 }
 
 function ConceptBadge({ concept }: { concept?: string }) {
+  const { tx } = useI18n();
   const { percent } = conceptCompletion(parseConcept(concept));
   const tone = percent >= 80 ? "ok" : percent >= 30 ? "warn" : "muted";
   return <span className={`badge ${tone}`} title={tx("Detaylı konsept notunun doluluğu")}>Konsept %{percent}</span>;
