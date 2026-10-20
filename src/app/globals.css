@@ -2248,6 +2248,75 @@ button.q-opt:disabled { cursor: default; }
   border-color: #00A3E0;
   box-shadow: inset 0 0 0 1px #00A3E0;
 }
+.hour-board {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+.hour-board th,
+.hour-board td {
+  border: 1px solid #D4ECF6;
+  vertical-align: top;
+  padding: 0.25rem;
+}
+.hour-board thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.hour-board tbody th,
+.hour-board thead th:first-child {
+  position: sticky;
+  left: 0;
+  background: #F4FBFE;
+  z-index: 2;
+  width: 4.2rem;
+  text-align: left;
+  color: #0077C2;
+  font-variant-numeric: tabular-nums;
+}
+.hour-board thead button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: left;
+}
+.hour-board thead button strong {
+  font-family: var(--font-display), serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #0077C2;
+}
+.hour-board thead button em {
+  font-style: normal;
+  color: #3E6A88;
+  font-size: 0.68rem;
+}
+.hour-board thead th.is-on { background: #E6F6FC; }
+.hour-board td button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 2.6rem;
+  text-align: left;
+}
+.hour-board td.is-free { background: #F7FBF4; }
+.hour-board td.is-free button { color: #245C42; font-weight: 700; }
+.hour-board td.is-busy { background: #fff; }
+.hour-board td.is-busy span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.25;
+}
+.hour-board td.is-closed { background: #F4F7F8; color: #8AA0AE; }
+
 .cop-day-slot {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);

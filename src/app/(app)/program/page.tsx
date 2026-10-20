@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api, useApi, useRealtime } from "@/lib/client";
 import Link from "next/link";
 import { CalendarDays, Check, Plus } from "lucide-react";
-import { CopDayGrid, PlanChip, type ProgramFilter, planMatchesFilter } from "@/components/CopDayGrid";
+import { CopDayGrid, PavilionHourBoard, PlanChip, ProgramFilterBar, type ProgramFilter, planMatchesFilter } from "@/components/CopDayGrid";
 import type { PlanDay, PlanItem } from "@/lib/plan-types";
 import { useI18n, Tx } from "@/components/I18nProvider";
 import { AgendaDayBoard, type AgendaRow } from "@/components/AgendaDayBoard";
@@ -111,6 +111,7 @@ export default function ProgramPage() {
   const [boot, setBoot] = useState(false);
   const [editAgenda, setEditAgenda] = useState<string | null>(null);
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
+  const [board, setBoard] = useState(true);
   const [copied, setCopied] = useState(false);
   const publicOrigin = usePublicOrigin();
 
@@ -165,6 +166,9 @@ export default function ProgramPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button type="button" className={board ? "btn" : "btn ghost"} onClick={() => setBoard((on) => !on)}>
+            {board ? tx("Gün kutuları") : tx("Büyük takvim")}
+          </button>
           <a className="btn" href="/api/pdf/program">{tx("Program PDF")}</a>
           <a className="btn secondary" href="/api/calendar">{tx("ICS indir")}</a>
           <a className="btn ghost" href="/p" target="_blank"><Tx>Açık program</Tx></a>
@@ -172,17 +176,33 @@ export default function ProgramPage() {
           <button className="btn ghost" onClick={copySubscribe}>{copied ? tx("URL kopyalandı") : tx("Google’a abone URL")}</button>
         </div>
       </div>
-      <CopDayGrid
-        days={plan?.days || []}
-        filter={programFilter}
-        onFilterChange={setProgramFilter}
-        selected={selectedDate}
-        onSelect={(date) => {
-          setEditAgenda(null);
-          setSelectedDate(date);
-          requestAnimationFrame(() => document.getElementById("gun-gorunumu")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-        }}
-      />
+      <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
+      {board ? (
+        <>
+          <p className="text-sm text-[#3E6A88]">{tx("9.00–19.00 arası her saat. Yeşil kutu boştur; dolu kutuda oturumun adı yazar.")}</p>
+          <PavilionHourBoard
+            days={plan?.days || []}
+            filter={programFilter}
+            selected={selectedDate}
+            onSelect={(date) => {
+              setEditAgenda(null);
+              setSelectedDate(date);
+              requestAnimationFrame(() => document.getElementById("gun-gorunumu")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+            }}
+          />
+        </>
+      ) : (
+        <CopDayGrid
+          days={plan?.days || []}
+          filter={programFilter}
+          selected={selectedDate}
+          onSelect={(date) => {
+            setEditAgenda(null);
+            setSelectedDate(date);
+            requestAnimationFrame(() => document.getElementById("gun-gorunumu")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
+        />
+      )}
       {planDay ? (
         <div id="gun-gorunumu" className="space-y-4">
           <PavilionDay

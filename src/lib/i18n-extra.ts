@@ -1168,5 +1168,12 @@ export const EN_EXTRA: Record<string, string> = {
   "Kraft tohum kartı, çam tohumlu. Kartın mesaj alanı motto için ayrılır.":
     "A kraft seed card with a pine seed. The message area is reserved for the motto.",
   "Yeşil Alan kapalı": "Green Zone closed",
+  "Büyük takvim": "Full calendar",
+  "Gün kutuları": "Day cards",
+  "Boş": "Free",
+  "boş": "free",
+  "Kapalı": "Closed",
+  "9.00–19.00 arası her saat. Yeşil kutu boştur; dolu kutuda oturumun adı yazar.":
+    "Every hour from 09:00 to 19:00. A green cell is free; a filled cell shows the session.",
 };
 

@@ -2,7 +2,27 @@
 
 import Link from "next/link";
 import type { PlanDay, PlanItem, PlanKind } from "@/lib/plan-types";
+import { PAVILION_CLOSED } from "@/lib/pavilion-program";
 import { useI18n } from "@/components/I18nProvider";
+
+const DAY_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+function clockMinutes(value: string) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function itemsAtHour(items: PlanItem[], hour: number) {
+  const start = hour * 60;
+  const end = start + 60;
+  return items.filter((item) => {
+    const from = clockMinutes(item.startTime);
+    if (from == null) return false;
+    const to = clockMinutes(item.endTime) ?? from + 60;
+    return from < end && to > start;
+  });
+}
 
 const KIND: Record<PlanKind, { label: string; color: string; bg: string }> = {
   panel: { label: "Panel", color: "#6E3A44", bg: "#F3E6E8" },
@@ -137,6 +157,72 @@ export function CopDayGrid({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+export function PavilionHourBoard({
+  days,
+  selected,
+  onSelect,
+  filter = "all",
+}: {
+  days: PlanDay[];
+  selected?: string | null;
+  onSelect?: (date: string) => void;
+  filter?: ProgramFilter;
+}) {
+  const { tx, tag } = useI18n();
+  return (
+    <div className="card p-3 overflow-x-auto">
+      <table className="hour-board">
+        <thead>
+          <tr>
+            <th>{tx("Saat")}</th>
+            {days.map((day) => {
+              const items = day.items.filter((item) => planMatchesFilter(item.kind, filter) && clockMinutes(item.startTime) != null);
+              const free = PAVILION_CLOSED.includes(day.date) ? 0 : DAY_HOURS.filter((hour) => itemsAtHour(items, hour).length === 0).length;
+              const on = selected === day.date;
+              return (
+                <th key={day.date} className={on ? "is-on" : ""}>
+                  <button type="button" onClick={() => onSelect?.(day.date)}>
+                    <span>{new Date(day.date + "T00:00:00").toLocaleDateString(tag, { weekday: "short" })}</span>
+                    <strong>{day.day}</strong>
+                    <em>{PAVILION_CLOSED.includes(day.date) ? tx("Kapalı") : `${free} ${tx("boş")}`}</em>
+                  </button>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {DAY_HOURS.map((hour) => (
+            <tr key={hour}>
+              <th>{String(hour).padStart(2, "0")}:00</th>
+              {days.map((day) => {
+                const closed = PAVILION_CLOSED.includes(day.date);
+                const items = closed ? [] : itemsAtHour(day.items.filter((item) => planMatchesFilter(item.kind, filter)), hour);
+                return (
+                  <td key={day.date} className={closed ? "is-closed" : items.length ? "is-busy" : "is-free"}>
+                    {closed ? (hour === 13 ? tx("Yeşil Alan kapalı") : "") : items.length ? (
+                      <button type="button" onClick={() => onSelect?.(day.date)}>
+                        {items.map((item) => (
+                          <span key={item.id} title={`${item.startTime}–${item.endTime} ${item.title}`}>
+                            <PlanChip kind={item.kind} />
+                            {tx(item.title)}
+                          </span>
+                        ))}
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => onSelect?.(day.date)}>{tx("Boş")}</button>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
