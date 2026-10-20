@@ -4,12 +4,13 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { sendMail } from "@/lib/mail";
-import { saveFirmTalks, setPanelGuests, setPanelLineup, syncPanelAgenda } from "@/lib/panels";
+import { saveFirmTalks, setPanelGuests, setPanelLineup, syncPanelAgenda, upsertPerson } from "@/lib/panels";
+import { foldName } from "@/lib/speaker-names";
 import { THEME_TR } from "@/lib/constants";
 import { venueBookingError } from "@/lib/venue-booking";
 import { canonicalVenue } from "@/lib/venues";
 import { APPROVED, notifyCompanyDecision, notifySbProposal, PENDING, REJECTED } from "@/lib/proposals";
-import { SPEAKER_PENDING } from "@/lib/speakers";
+import { SPEAKER_PENDING, SPEAKER_REJECTED } from "@/lib/speakers";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
@@ -130,13 +131,41 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
   if (body.action === "assign") {
     if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+    const speaker = await prisma.speaker.findUnique({ where: { id: String(body.speakerId || "") } });
+    if (!speaker || !speaker.active || speaker.status === SPEAKER_REJECTED) return jsonError("Konuşmacı listesinde yok", 404);
+    const panel = await prisma.panel.findUnique({
+      where: { id },
+      include: { participants: { include: { person: true } } },
+    });
+    if (!panel) return jsonError("Panel yok", 404);
+    const key = foldName(speaker.name);
+    const already = panel.participants.find((row) => foldName(row.person.name) === key);
+    if (already) {
+      await prisma.person.update({
+        where: { id: already.personId },
+        data: {
+          name: speaker.name,
+          organization: speaker.organization,
+          role: speaker.title || already.person.role,
+        },
+      });
+      broadcast({ type: "panel" });
+      return jsonOk(already);
+    }
+    const person = await upsertPerson(
+      speaker.name,
+      speaker.organization,
+      body.role === "moderator" ? "moderator" : "speaker",
+      speaker.title,
+    );
+    if (!person) return jsonError("Konuşmacı adı yok");
     const last = await prisma.panelPerson.aggregate({ where: { panelId: id }, _max: { sortOrder: true } });
     const row = await prisma.panelPerson.create({
       data: {
         panelId: id,
-        personId: body.personId,
+        personId: person.id,
         role: body.role || "panelist",
-        confirmed: body.confirmed || "Davet edildi",
+        confirmed: "Davet edildi",
         sortOrder: (last._max.sortOrder || 0) + 1,
       },
     });

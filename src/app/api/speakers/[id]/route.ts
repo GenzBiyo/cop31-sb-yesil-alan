@@ -4,6 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { notifyCompanyDecision } from "@/lib/proposals";
 import { saveSpeakerPhoto, speakerFields, SPEAKER_APPROVED, SPEAKER_PENDING, SPEAKER_REJECTED } from "@/lib/speakers";
+import { broadcast } from "@/lib/realtime";
 
 export const runtime = "nodejs";
 
@@ -37,6 +38,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
           body: `${row.name}${reviewNote ? `\nNot: ${reviewNote}` : ""}`,
         });
       }
+      broadcast({ type: "speaker" });
       return jsonOk(updated);
     }
     if (body.move === "up" || body.move === "down") {
@@ -49,10 +51,13 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
           list.map((s, i) => prisma.speaker.update({ where: { id: s.id }, data: { sortOrder: i + 1 } }))
         );
       }
+      broadcast({ type: "speaker" });
       return jsonOk({ ok: true });
     }
     if (typeof body.active === "boolean") {
-      return jsonOk(await prisma.speaker.update({ where: { id }, data: { active: body.active } }));
+      const updated = await prisma.speaker.update({ where: { id }, data: { active: body.active } });
+      broadcast({ type: "speaker" });
+      return jsonOk(updated);
     }
     return jsonError("Geçersiz istek");
   }
@@ -71,6 +76,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         ...(form.get("removePhoto") === "1" && !photoPath ? { photoPath: "" } : {}),
       },
     });
+    broadcast({ type: "speaker" });
     return jsonOk(updated);
   } catch (e) {
     return jsonError(e instanceof Error ? e.message : "Kayıt alınamadı");
@@ -86,5 +92,6 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
   const own = user.role === "FIRMA" && row.companyId === user.companyId && row.status === SPEAKER_PENDING;
   if (!canManage(user.role) && !own) return jsonError("Yetkiniz yok", 403);
   await prisma.speaker.delete({ where: { id } });
+  broadcast({ type: "speaker" });
   return jsonOk({ ok: true });
 }

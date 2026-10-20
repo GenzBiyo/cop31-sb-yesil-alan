@@ -10,6 +10,8 @@ import { useI18n, Tx } from "@/components/I18nProvider";
 import { ConceptEditor } from "@/components/ConceptEditor";
 import { SessionBrief } from "@/components/SessionBrief";
 import { useSpeakers } from "@/components/speakers";
+import { foldName, speakerLabel, uniqueSpeakers } from "@/lib/speaker-names";
+import Link from "next/link";
 import { parseDelegation } from "@/lib/delegation";
 import {
   conceptCompletion,
@@ -173,10 +175,20 @@ function minutesBetween(start: string, end: string) {
   return Math.max(0, toMin(end) - toMin(start));
 }
 
-function LineupEditor({ talk, guests, onChange }: { talk: boolean; guests: Guest[]; onChange: (next: Guest[]) => void }) {
+function LineupEditor({
+  talk,
+  guests,
+  onChange,
+  speakers,
+}: {
+  talk: boolean;
+  guests: Guest[];
+  onChange: (next: Guest[]) => void;
+  speakers?: { id: string; name: string; title: string; organization: string }[];
+}) {
   const { tx } = useI18n();
   const { data } = useSpeakers();
-  const known = data?.speakers || [];
+  const known = speakers ?? data?.speakers ?? [];
   const listId = talk ? "speaker-pick-talk" : "speaker-pick-panel";
 
   function patch(i: number, part: Partial<Guest>) {
@@ -317,9 +329,13 @@ function PreviewSheet({
 export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   const { tx } = useI18n();
   const talk = mode === "sunum";
-  const { data, reload } = useApi<{ panels: Session[]; people: Person[] }>("/api/panels");
+  const { data, reload } = useApi<{ panels: Session[] }>("/api/panels");
   const { data: me } = useApi<{ role: string; companyId?: string | null }>("/api/auth/me");
   const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
+  const { data: speakerData, reload: reloadSpeakers } = useApi<{
+    speakers: { id: string; name: string; title: string; organization: string; photoPath: string; status: string; active: boolean }[];
+  }>(canReview ? "/api/speakers" : null);
+  const speakerChoices = useMemo(() => uniqueSpeakers(speakerData?.speakers || []), [speakerData]);
   const isFirma = me?.role === "FIRMA";
   const [openId, setOpenId] = useState<string | null>(null);
   const openedFromQuery = useRef(false);
@@ -369,6 +385,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
 
   useRealtime((t) => {
     if (t === "panel" || t === "agenda") void reload();
+    if (t === "speaker") void reloadSpeakers();
   });
 
   const rows = useMemo(
@@ -460,7 +477,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
         <input className="field md:col-span-2" placeholder="Konu" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
         <input className="field md:col-span-2" placeholder={tx("Paydaşlar")} value={form.partners} onChange={(e) => setForm({ ...form, partners: e.target.value })} />
         <div className="md:col-span-4">
-          <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
+          <LineupEditor talk={talk} guests={guests} onChange={setGuests} speakers={canReview ? speakerChoices : undefined} />
         </div>
         <div className="md:col-span-4">
           <ConceptEditor
@@ -575,7 +592,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                 <SessionEditor
                   key={p.id}
                   session={p}
-                  people={data?.people || []}
+                  speakers={speakerChoices}
                   canManage={!!canReview}
                   talk={talk}
                   onClose={() => setOpenId(null)}
@@ -632,7 +649,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
                     <SessionEditor
                       key={p.id}
                       session={p}
-                      people={data?.people || []}
+                      speakers={speakerChoices}
                       canManage={!!canReview}
                       talk={talk}
                       onClose={() => setOpenId(null)}
@@ -651,19 +668,20 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
 
 function SessionEditor({
   session,
-  people,
+  speakers,
   canManage,
   talk,
   onClose,
   onSaved,
 }: {
   session: Session;
-  people: Person[];
+  speakers: { id: string; name: string; title: string; organization: string }[];
   canManage: boolean;
   talk: boolean;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const { tx } = useI18n();
   const [title, setTitle] = useState(session.title);
   const [date, setDate] = useState(session.date);
   const [startTime, setStartTime] = useState(session.startTime);
@@ -682,6 +700,17 @@ function SessionEditor({
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState("");
   const [preview, setPreview] = useState(false);
+  const [speakerId, setSpeakerId] = useState("");
+  const [addRole, setAddRole] = useState(talk ? "sunum" : "panelist");
+  const [addError, setAddError] = useState("");
+  const openSpeakers = useMemo(() => {
+    const taken = new Set([
+      ...session.participants.map((row) => foldName(row.person.name)),
+      ...guests.map((row) => foldName(row.name)),
+    ]);
+    return speakers.filter((row) => !taken.has(foldName(row.name)));
+  }, [speakers, session.participants, guests]);
+  const pick = openSpeakers.some((row) => row.id === speakerId) ? speakerId : openSpeakers[0]?.id || "";
 
   async function save() {
     setBusy(true);
@@ -745,7 +774,7 @@ function SessionEditor({
         <label className="text-sm md:col-span-2">Konu<input className="field mt-1" value={topic} onChange={(e) => setTopic(e.target.value)} /></label>
         <label className="text-sm md:col-span-2"><Tx>Paydaşlar</Tx><input className="field mt-1" value={partners} onChange={(e) => setPartners(e.target.value)} /></label>
       </div>
-      <LineupEditor talk={talk} guests={guests} onChange={setGuests} />
+      <LineupEditor talk={talk} guests={guests} onChange={setGuests} speakers={speakers} />
       <ConceptEditor
         summary={summary}
         concept={concept}
@@ -789,7 +818,9 @@ function SessionEditor({
         {session.participants.map((pt) => (
           <li key={pt.id} className="flex justify-between gap-2 text-sm">
             <span>
-              <strong>{pt.person.name}</strong>{pt.person.organization ? ` · ${pt.person.organization}` : ""}
+              <strong>{pt.person.name}</strong>
+              {pt.person.role ? ` · ${pt.person.role}` : ""}
+              {pt.person.organization && foldName(pt.person.organization) !== foldName(pt.person.name) ? ` · ${pt.person.organization}` : ""}
               <span className="badge muted ml-2">{GUEST_ROLE_LABELS[pt.role] || (pt.role === "speaker" ? "Sunum" : "Panelist")}</span>
               {pt.companyId ? <span className="badge warn ml-1">Firma bildirdi</span> : null}
               {pt.talkTitle ? <span className="block text-[#0077C2]">Konuşma: “{pt.talkTitle}”</span> : null}
@@ -805,18 +836,37 @@ function SessionEditor({
         ))}
         {session.participants.length === 0 ? <li className="text-sm text-[#57534e]"><Tx>Kaydettikten sonra konuşmacılar burada teyit için listelenir.</Tx></li> : null}
       </ul>
-      {canManage && people.length ? (
-        <div className="flex gap-2">
-          <select id={`personPick-${session.id}`} className="field">
-            {people.map((p) => (
-              <option key={p.id} value={p.id}>{p.name} — {p.organization}</option>
-            ))}
-          </select>
-          <button className="btn secondary" onClick={async () => {
-            const personId = (document.getElementById(`personPick-${session.id}`) as HTMLSelectElement).value;
-            await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "assign", personId, role: talk ? "sunum" : "panelist" }) });
-            await onSaved();
-          }}><Tx>Kişi havuzundan ekle</Tx></button>
+      {canManage ? (
+        <div className="space-y-2">
+          <p className="text-xs text-[#57534e]"><Tx>Liste konuşmacılar sayfasından canlı gelir. Aynı isim bir kez görünür; yazımı oradan düzeltirsiniz.</Tx></p>
+          {openSpeakers.length ? (
+            <div className="flex flex-wrap gap-2">
+              <select className="field min-w-[16rem] flex-1" value={pick} onChange={(e) => setSpeakerId(e.target.value)}>
+                {openSpeakers.map((row) => <option key={row.id} value={row.id}>{speakerLabel(row)}</option>)}
+              </select>
+              <select className="field w-36" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
+                {ROLE_ORDER.map((role) => <option key={role} value={role}>{GUEST_ROLE_LABELS[role]}</option>)}
+              </select>
+              <button type="button" className="btn secondary" onClick={async () => {
+                setAddError("");
+                try {
+                  const chosen = speakers.find((row) => row.id === pick);
+                  if (chosen) {
+                    setGuests((rows) => [
+                      ...rows.filter((row) => row.name.trim()),
+                      { name: chosen.name, title: chosen.title, organization: chosen.organization, role: addRole },
+                    ]);
+                  }
+                  await api(`/api/panels/${session.id}`, { method: "POST", body: JSON.stringify({ action: "assign", speakerId: pick, role: addRole }) });
+                  await onSaved();
+                } catch (err) {
+                  setAddError(err instanceof Error ? err.message : tx("Eklenemedi"));
+                }
+              }}><Tx>Konuşmacılardan ekle</Tx></button>
+            </div>
+          ) : <p className="text-sm text-[#57534e]"><Tx>Eklenecek konuşmacı kalmadı.</Tx></p>}
+          <Link className="text-sm font-semibold text-[#0077C2]" href="/konusmaci-yonetimi"><Tx>Konuşmacılar sayfasında düzenle</Tx></Link>
+          {addError ? <p className="text-sm text-[#E31C23]">{addError}</p> : null}
         </div>
       ) : null}
       <h3 className="font-semibold"><Tx>İletişim</Tx></h3>

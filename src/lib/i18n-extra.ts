@@ -437,6 +437,13 @@ export const EN_EXTRA: Record<string, string> = {
   "Kişi": "Person",
   "Kişi ekle": "Add person",
   "Kişi havuzundan ekle": "Add from the people pool",
+  "Konuşmacılardan ekle": "Add from speakers",
+  "Konuşmacılar sayfasında düzenle": "Edit on the speakers page",
+  "Liste konuşmacılar sayfasından canlı gelir. Aynı isim bir kez görünür; yazımı oradan düzeltirsiniz.":
+    "The list comes live from the speakers page. Each name appears once; correct the spelling there.",
+  "Eklenecek konuşmacı kalmadı.": "No speaker left to add.",
+  "Eklenemedi": "Could not add",
+  "Konuşmacı listesinde yok": "Not on the speaker list",
   "kişi katılacağını bildirdiniz": "people you listed as attending",
   "Kişisel karbon ipucu kartı": "Personal carbon tip card",
   "KOAH riskini artıran iklim etkisi hangisi?": "Which climate effect raises COPD risk?",

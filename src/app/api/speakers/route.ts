@@ -4,6 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { notifySbProposal } from "@/lib/proposals";
 import { ensureSpeakers, saveSpeakerPhoto, speakerFields, SPEAKER_APPROVED, SPEAKER_PENDING } from "@/lib/speakers";
+import { broadcast } from "@/lib/realtime";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
         href: "/konusmaci-yonetimi",
       });
     }
+    broadcast({ type: "speaker" });
     return jsonOk(row, 201);
   } catch (e) {
     return jsonError(e instanceof Error ? e.message : "Kayıt alınamadı");

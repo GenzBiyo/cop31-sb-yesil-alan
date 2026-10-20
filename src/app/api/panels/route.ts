@@ -40,7 +40,6 @@ export async function GET() {
     },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
-  const people = await prisma.person.findMany({ orderBy: { name: "asc" } });
   const companies = await prisma.company.findMany({ select: { id: true, name: true } });
   const names = new Map(companies.map((c) => [c.id, c.name]));
   const visible = canManage(user.role)
@@ -63,7 +62,6 @@ export async function GET() {
       mine: mine.has(p.id),
       participants: firm ? p.participants.map((row) => ({ ...row, own: isOwnParticipant(row, firm) })) : p.participants,
     })),
-    people,
     days: Object.entries(THEME_TR).map(([date, theme]) => ({ date, theme })),
   });
 }

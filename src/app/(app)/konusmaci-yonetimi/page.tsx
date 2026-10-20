@@ -49,7 +49,7 @@ export default function SpeakerAdminPage() {
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   useRealtime((t) => {
-    if (t === "agenda") void reload();
+    if (t === "agenda" || t === "speaker") void reload();
   });
 
   useEffect(() => {

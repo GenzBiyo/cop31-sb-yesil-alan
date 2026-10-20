@@ -6,12 +6,13 @@ const listeners = new Set<Listener>();
 const gameListeners = new Set<Listener>();
 
 export type RealtimeEvent = {
-  type: "message" | "qa" | "announcement" | "inbox" | "panel" | "todo" | "agenda" | "account" | "game" | "app";
+  type: "message" | "qa" | "announcement" | "inbox" | "panel" | "todo" | "agenda" | "account" | "game" | "app" | "speaker";
   payload?: unknown;
 };
 
 export function broadcast(event: RealtimeEvent) {
   if (event.type === "agenda" || event.type === "panel") memoClearPrefix("public-program");
+  if (event.type === "speaker") memoClearPrefix("public-speakers");
   const chunk = `event: ${event.type}\ndata: ${JSON.stringify(event.payload ?? {})}\n\n`;
   for (const listener of listeners) listener(chunk);
   if (event.type === "game") {

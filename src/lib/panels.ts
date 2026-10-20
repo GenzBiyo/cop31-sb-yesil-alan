@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { broadcast } from "./realtime";
 import { companyPanelWhere, isOwnParticipant } from "./company-panels";
+import { foldName } from "./speaker-names";
 
 export type NamedGuest = { name: string; organization?: string };
 export type LineupGuest = { name: string; title?: string; organization?: string; role?: string };
@@ -11,14 +12,22 @@ export async function upsertPerson(name: string, organization = "", kind = "spea
   const trimmed = name.trim();
   if (!trimmed) return null;
   const org = organization.trim();
-  const found = await prisma.person.findFirst({
-    where: { name: trimmed, ...(org ? { organization: org } : {}) },
+  const key = foldName(trimmed);
+  const people = await prisma.person.findMany({
+    select: { id: true, name: true, organization: true, role: true },
   });
+  const found = people.find((row) => foldName(row.name) === key);
   if (found) {
-    if (title.trim() && title.trim() !== found.role) {
-      return prisma.person.update({ where: { id: found.id }, data: { role: title.trim() } });
-    }
-    return found;
+    const orgWasName = foldName(found.organization) === foldName(found.name);
+    return prisma.person.update({
+      where: { id: found.id },
+      data: {
+        name: trimmed,
+        organization: org || (orgWasName ? "" : found.organization),
+        role: title.trim() || found.role,
+        kind,
+      },
+    });
   }
   return prisma.person.create({
     data: { name: trimmed, organization: org, kind, role: title.trim() },
