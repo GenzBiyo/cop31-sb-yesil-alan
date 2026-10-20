@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { AMBASSADOR_INTRO, DEFAULT_FIELDS } from "@/lib/ambassador";
 import { cancelSolaklar } from "@/lib/events-db";
 
-const PREVIOUS_INTRO_STARTS = ["Önemli not: Konaklama sağlanmamaktadır.", "COP31 Sağlık Elçileri Gönüllü Öğrenci Çağrısı"];
-
 const ADDED_KEYS = ["needsSupport", "experience"];
 
 async function upgradeFields() {
@@ -41,8 +39,6 @@ async function seedAmbassadorWork() {
   const intro = await prisma.setting.findUnique({ where: { key: "ambassadorIntro" } });
   if (!intro) {
     await prisma.setting.create({ data: { key: "ambassadorIntro", value: AMBASSADOR_INTRO } });
-  } else if (PREVIOUS_INTRO_STARTS.some((start) => intro.value.startsWith(start)) || intro.value.includes("Solaklar")) {
-    await prisma.setting.update({ where: { key: "ambassadorIntro" }, data: { value: AMBASSADOR_INTRO } });
   }
   const count = await prisma.formField.count({ where: { formKey: "ambassador" } });
   if (count === 0) {

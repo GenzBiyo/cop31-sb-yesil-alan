@@ -1,16 +1,8 @@
-export const AMBASSADOR_INTRO = `🌍 COP31 Sağlık Elçileri Gönüllü Öğrenci Çağrısı
+export const AMBASSADOR_INTRO = `COP31 Türkiye kapsamında Sağlık Bakanlığı Pavyonu yönetiminde gönüllü olarak görev almak isteyen öğrencileri COP31 Sağlık Elçileri ekibine davet ediyoruz!
+Gönüllü öğrenciler; pavilyon ve sahada etkinlik ve programlarda ekibe destek olacak ve COP31 deneyiminin bir parçası olacak.
+Başvurusu uygun bulunan öğrenciler, oluşturulan uygun ekiplere yerleştirilecek ve tüm bilgilendirmeler başvuru sırasında belirtilen iletişim adresleri üzerinden yapılacaktır.
 
-COP31 Türkiye kapsamında Sağlık Bakanlığı Pavyonu ve pavyon programında gönüllü olarak görev almak isteyen öğrencileri Sağlık Elçileri ekibine davet ediyoruz!
-
-Gönüllü öğrenciler; pavyonu ziyaret edecek, etkinlik ve programlarda ekibe destek olacak ve COP31 deneyiminin bir parçası olacak.
-
-📍 Başvurular Antalya ve çevresindeki üniversite ve liselerden alınmaktadır.
-⚠️ Konaklama sağlanmamaktadır.
-
-Başvurusu uygun bulunan öğrenciler, oluşturulan gönüllü ekiplere yerleştirilecek ve tüm bilgilendirmeler başvuru sırasında belirtilen iletişim adresleri üzerinden yapılacaktır.
-
-Etkinliğe katılacakların ayrıca COP31 ziyaretçi kaydını tamamlaması gerekmektedir:
-https://cop31.tr/tr/ziyaret-kaydi`;
+** Etkinliğe katılacakların ayrıca COP31 ziyaretçi kaydını tamamlaması gerekmektedir: https://cop31.tr/tr/ziyaret-kaydi`;
 
 const NEARBY_PROVINCES = ["Antalya", "Burdur", "Isparta", "Muğla", "Konya", "Karaman", "Mersin", "Denizli"];
 

@@ -7,13 +7,14 @@ import { ensureAmbassadorForm } from "@/lib/ambassador-db";
 export async function GET() {
   const form = await ensureAmbassadorForm();
   const { user } = await withUser();
+  const fresh = { "Cache-Control": "no-store" };
   if (!user) {
     return jsonOk({
       intro: form.intro,
       fields: form.fields.filter((f) => f.enabled),
-    });
+    }, 200, fresh);
   }
-  return jsonOk(form);
+  return jsonOk(form, 200, fresh);
 }
 
 export async function PUT(req: NextRequest) {
