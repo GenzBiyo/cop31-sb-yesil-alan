@@ -11,7 +11,7 @@ fi
 python3 - <<'PY'
 from pathlib import Path
 
-extra = " cop31saglik.com www.cop31saglik.com"
+extra_names = ["cop31saglik.com", "www.cop31saglik.com", "cop31saglik.com.tr", "www.cop31saglik.com.tr"]
 roots = [Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/sites-available"), Path("/etc/nginx/conf.d")]
 seen = set()
 changed = []
@@ -31,9 +31,11 @@ for root in roots:
         out = []
         dirty = False
         for line in text.splitlines(keepends=True):
-            if "server_name" in line and "cop31saglikbakanligi.com" in line and "cop31saglik.com" not in line and ";" in line:
-                line = line.replace(";", extra + ";", 1)
-                dirty = True
+            if "server_name" in line and "cop31saglikbakanligi.com" in line and ";" in line:
+                missing = [name for name in extra_names if name not in line]
+                if missing:
+                    line = line.replace(";", " " + " ".join(missing) + ";", 1)
+                    dirty = True
             out.append(line)
         if dirty:
             real.write_text("".join(out))
@@ -61,6 +63,9 @@ if $SUDO certbot --nginx --expand --non-interactive --agree-tos --redirect \
   echo CERTBOT_OK
 else
   $SUDO certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email --redirect \
-    -d cop31saglik.com -d www.cop31saglik.com
+    -d cop31saglik.com -d www.cop31saglik.com || true
   echo CERTBOT_OK
 fi
+
+$SUDO certbot --nginx --expand --non-interactive --agree-tos --redirect \
+  -d cop31saglik.com.tr -d www.cop31saglik.com.tr || echo CERTBOT_TR_SKIP

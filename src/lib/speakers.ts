@@ -1,13 +1,17 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
+import { SPEAKER_CATALOG } from "@/lib/speaker-catalog";
 
 export const SPEAKER_PENDING = "Onay bekliyor";
 export const SPEAKER_APPROVED = "Onaylandı";
 export const SPEAKER_REJECTED = "Reddedildi";
 
 const SEEDED_KEY = "speakersSeeded";
+const CATALOG_KEY = "speakersCatalog20261020";
 const MAX_PHOTO = 5 * 1024 * 1024;
+
+const HIDDEN = new Set(["Umut Ağyüz", "Haluk Sancak", "Mehmet Üvez", "Nihan Yegin Yarayan"]);
 
 const SEED = [
   { name: "Umut Ağyüz", title: "", organization: "" },
@@ -17,19 +21,41 @@ const SEED = [
   { name: "Haluk Sancak", title: "", organization: "" },
   { name: "Prof. Dr. Ahmet Hacımüftüoğlu", title: "Rektör", organization: "Atatürk Üniversitesi" },
   { name: "Esra Bayraktaroğlu", title: "Genel Müdür Yardımcısı", organization: "Humanis İlaç" },
-  { name: "Marc Gates", title: "Global Director", organization: "Astorg (Thermo Fisher)" },
+  { name: "Marc Gates", title: "Global Director", organization: "Oxoid" },
   { name: "Mehmet Üvez", title: "Türkiye Direktör Yardımcısı, Ankara Ofisi Başkanı", organization: "EBRD" },
   { name: "Nihan Yegin Yarayan", title: "Proje Yöneticisi ve Genel Sekreter", organization: "İklim Araştırmaları Derneği" },
-];
+].map((s) => ({ ...s, active: !HIDDEN.has(s.name) }));
 
 /** Seeds the first speakers once; later deletions are not undone. */
 export async function ensureSpeakers() {
-  const flag = await prisma.setting.findUnique({ where: { key: SEEDED_KEY } });
-  if (flag) return;
-  if ((await prisma.speaker.count()) === 0) {
-    await prisma.speaker.createMany({ data: SEED.map((s, i) => ({ ...s, sortOrder: i + 1 })) });
+  const seeded = await prisma.setting.findUnique({ where: { key: SEEDED_KEY } });
+  if (!seeded) {
+    if ((await prisma.speaker.count()) === 0) {
+      await prisma.speaker.createMany({ data: SEED.map((s, i) => ({ ...s, sortOrder: i + 1 })) });
+    }
+    await prisma.setting.upsert({ where: { key: SEEDED_KEY }, update: { value: "1" }, create: { key: SEEDED_KEY, value: "1" } });
   }
-  await prisma.setting.upsert({ where: { key: SEEDED_KEY }, update: { value: "1" }, create: { key: SEEDED_KEY, value: "1" } });
+  const catalogued = await prisma.setting.findUnique({ where: { key: CATALOG_KEY } });
+  if (catalogued) return;
+  const existing = await prisma.speaker.findMany({ select: { name: true } });
+  const have = new Set(existing.map((row) => row.name));
+  const max = await prisma.speaker.aggregate({ _max: { sortOrder: true } });
+  const start = (max._max.sortOrder || 0) + 1;
+  const missing = SPEAKER_CATALOG.filter((row) => !have.has(row.name));
+  if (missing.length) {
+    await prisma.speaker.createMany({
+      data: missing.map((row, index) => ({
+        name: row.name,
+        title: row.title,
+        organization: row.organization,
+        status: SPEAKER_APPROVED,
+        active: !HIDDEN.has(row.name),
+        sortOrder: start + index,
+      })),
+    });
+  }
+  await prisma.speaker.updateMany({ where: { name: { in: [...HIDDEN] } }, data: { active: false } });
+  await prisma.setting.upsert({ where: { key: CATALOG_KEY }, update: { value: "1" }, create: { key: CATALOG_KEY, value: "1" } });
 }
 
 export function cleanLinkedin(raw: unknown) {

@@ -2,158 +2,336 @@ import { prisma } from "./prisma";
 
 export type GiveawaySeed = {
   slug: string;
-  kind: "esantiyon" | "ikram";
+  kind: "esantiyon";
+  sku: string;
+  offerNo: string;
   title: string;
   detail: string;
+  printNote: string;
   quantity: number;
-  /** Birim fiyat, kuruş. 0 ise satıcı sayfada fiyat yayımlamamıştır. */
+  /** Birim fiyat, kuruş, KDV hariç. */
   unitPrice: number;
+  vatRate: number;
   priceNote: string;
   imagePath: string;
   sourceUrl: string;
   sortOrder: number;
 };
 
-/** Örnek katalog. Yönetici atamasını ve adedi sonradan değiştirebilir; mevcut kayıtların üzerine yazılmaz. */
+/** Greenstyle teklif 560 ve 561. Sağlık Bakanlığı fiyat ve adedi sonradan değiştirir. */
 export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
   {
-    slug: "bitki-yetistirme-kiti",
+    slug: "gs-8700-tek-renk",
     kind: "esantiyon",
-    title: "Bitki yetiştirme kiti",
-    detail: "8 oz karton saksı, kapak, tohum ve toprak. Fesleğen, kekik, lavanta, maydanoz gibi yenilebilir veya kokulu bitki tohumları.",
-    quantity: 1000,
-    unitPrice: 1190,
-    priceNote: "KDV hariç. 1.000 adet minimum sipariş fiyatı (sayfadaki aralık 11,40–11,90 ₺).",
-    imagePath: "/giveaways/bitki.webp",
-    sourceUrl: "https://greenstyle.com.tr/urun/bitki-yetistirme-kiti/",
+    sku: "8700",
+    offerNo: "560",
+    title: "Ham bez çanta 35×40 cm",
+    detail: "140 gr ham bez kumaş, 70 cm sap. Plastik poşet yerine kullanılır.",
+    printNote: "Çift taraf, tek renk baskı",
+    quantity: 10000,
+    unitPrice: 2890,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat. Sağlık Bakanlığı adet ve fiyatı güncelleyebilir.",
+    imagePath: "/giveaways/hambez.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/hambez-canta-35x40cm/",
     sortOrder: 10,
   },
   {
-    slug: "bambu-termos-celik-bardak",
+    slug: "gs-3066-saat",
     kind: "esantiyon",
-    title: "Bambu kapaklı termos ve çelik bardak seti",
-    detail: "550 ml bambu kapaklı termos ve 350 ml çelik bardak. Yeniden doldurulabilir set. Pet şişe yerine kullanılır.",
-    quantity: 100,
-    unitPrice: 156094,
-    priceNote: "KDV hariç. 100 adet için yayımlanan birim fiyat.",
-    imagePath: "/giveaways/termos-set.webp",
-    sourceUrl: "https://promozone.com.tr/urun/550-ml-bambu-kapakli-termos-ve-350-ml-celik-bardak-seti-pz6652/PZ6652",
+    sku: "3066",
+    offerNo: "560",
+    title: "Masaüstü kablosuz şarjlı bambu dijital masa saati",
+    detail: "Bambu gövdeli masa saati, kablosuz şarjlı.",
+    printNote: "Baskısız",
+    quantity: 50,
+    unitPrice: 65700,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    imagePath: "",
+    sourceUrl: "",
     sortOrder: 20,
   },
   {
-    slug: "kanvas-canta",
+    slug: "gs-2153-mantar",
     kind: "esantiyon",
-    title: "Kanvas çanta 16×22×5 cm",
-    detail: "300 gr kanvas kumaş, küçük bez çanta. Kozmetik veya numune konulmaz.",
-    quantity: 500,
-    unitPrice: 0,
-    priceNote: "Satıcı birim fiyatı yayımlamamış. Satın alma sayfasından teklif istenir.",
-    imagePath: "/giveaways/kanvas.jpg",
-    sourceUrl: "https://greenstyle.com.tr/urun/kanvas-makyaj-cantasi-16x22x5-cm/",
+    sku: "2153",
+    offerNo: "560",
+    title: "Kutulu VIP mantar hediyelik set",
+    detail: "Kutulu mantar hediyelik set.",
+    printNote: "Baskısız",
+    quantity: 20,
+    unitPrice: 127500,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    imagePath: "",
+    sourceUrl: "",
     sortOrder: 30,
   },
   {
-    slug: "hambez-canta",
+    slug: "gs-6141-termos",
     kind: "esantiyon",
-    title: "Ham bez çanta 35×40 cm",
-    detail: "140 gr ham bez, 70 cm sap. Plastik poşet yerine kullanılır.",
-    quantity: 500,
-    unitPrice: 3990,
-    priceNote: "KDV hariç. Çift taraf tek renk baskı dahil. 500 adet minimum sipariş fiyatı (aralık 29,90–39,90 ₺).",
-    imagePath: "/giveaways/hambez.jpg",
-    sourceUrl: "https://greenstyle.com.tr/urun/hambez-canta-35x40cm/",
+    sku: "6141",
+    offerNo: "560",
+    title: "Bambu termos",
+    detail: "Bambu gövdeli, yeniden doldurulabilir termos. Tek kullanımlık plastik şişenin yerine geçer.",
+    printNote: "Baskısız",
+    quantity: 100,
+    unitPrice: 41400,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/bambu-termos.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/6141-bambu-termos/",
     sortOrder: 40,
   },
   {
-    slug: "tohumlu-tukenmez",
+    slug: "gs-4832-baskisiz",
     kind: "esantiyon",
-    title: "Tohumlu tükenmez kalem",
-    detail: "Geri dönüşümlü karton gövde, yaprak desenli klips, mavi mürekkep. İçinde karaçam tohumu vardır; kullanımdan sonra ekilebilir.",
+    sku: "4832",
+    offerNo: "560",
+    title: "Tohumlu kurşun kalem",
+    detail: "Geri dönüşümlü gövdeli kurşun kalem. İçindeki tohum kullanımdan sonra toprağa ekilir.",
+    printNote: "Baskısız",
     quantity: 1000,
-    unitPrice: 2290,
-    priceNote: "KDV hariç. Sayfadaki birim aralığının üst ucu (19,90–22,90 ₺).",
-    imagePath: "/giveaways/tukenmez.webp",
-    sourceUrl: "https://greenstyle.com.tr/urun/4835-tohumlu-tukenmez-kalem/",
+    unitPrice: 940,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/kursun.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/4832-tohumlu-kursun-kalem/",
     sortOrder: 50,
   },
   {
-    slug: "tohumlu-kursun",
+    slug: "gs-2518-feslegen",
     kind: "esantiyon",
-    title: "Tohumlu kurşun kalem",
-    detail: "Geri dönüşümlü gövdeli kurşun kalem. İçindeki tohum kullanımdan sonra toprağa ekilir.",
-    quantity: 1000,
-    unitPrice: 1075,
-    priceNote: "KDV hariç. Sayfadaki birim aralığının üst ucu (9,90–10,75 ₺).",
-    imagePath: "/giveaways/kursun.jpg",
-    sourceUrl: "https://greenstyle.com.tr/urun/4832-tohumlu-kursun-kalem/",
+    sku: "2518",
+    offerNo: "561",
+    title: "Fesleğen hobi dikim kiti",
+    detail: "Tohum seçenekleri: fesleğen, çam ya da lavanta. Saksı, tohum ve toprak.",
+    printNote: "Saksı üzeri, tek yön logo baskı",
+    quantity: 8000,
+    unitPrice: 1740,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/bitki.webp",
+    sourceUrl: "https://greenstyle.com.tr/urun/bitki-yetistirme-kiti/",
     sortOrder: 60,
   },
   {
-    slug: "ahsap-usb",
+    slug: "gs-8700-iki-renk",
     kind: "esantiyon",
-    title: "Ahşap USB bellek",
-    detail: "Ahşap gövdeli bellek. İçine pavilyonun iklim ve sağlık notları konabilir. Plastik gövde kullanılmaz.",
-    quantity: 200,
-    unitPrice: 0,
-    priceNote: "Satıcı birim fiyatı yayımlamamış. Satın alma sayfasından teklif istenir.",
-    imagePath: "/giveaways/usb.jpg",
-    sourceUrl: "https://greenstyle.com.tr/urun/8615-ahsap-usb-bellek/",
+    sku: "8700",
+    offerNo: "561",
+    title: "Ham bez çanta 35×40 cm",
+    detail: "130 gr ham bez kumaş, 70 cm sap. Plastik poşet yerine kullanılır.",
+    printNote: "Çift taraf, iki renk baskı",
+    quantity: 3000,
+    unitPrice: 3290,
+    vatRate: 10,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat. Bu kalemde KDV %10.",
+    imagePath: "/giveaways/hambez.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/hambez-canta-35x40cm/",
     sortOrder: 70,
   },
   {
-    slug: "bambu-termos",
+    slug: "gs-4835-tukenmez",
     kind: "esantiyon",
-    title: "Bambu termos",
-    detail: "Bambu gövdeli, yeniden doldurulabilir termos. Tek kullanımlık plastik şişenin yerine geçer.",
-    quantity: 100,
-    unitPrice: 46450,
-    priceNote: "KDV hariç. Sayfadaki birim aralığının üst ucu (399,90–464,50 ₺).",
-    imagePath: "/giveaways/bambu-termos.jpg",
-    sourceUrl: "https://greenstyle.com.tr/urun/6141-bambu-termos/",
+    sku: "4835",
+    offerNo: "561",
+    title: "Tohumlu tükenmez kalem",
+    detail: "Karaçam tohumlu, kılıflı. Geri dönüşümlü gövde. Kullanımdan sonra tohum ekilebilir.",
+    printNote: "Tek taraf baskı",
+    quantity: 5000,
+    unitPrice: 2140,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/tukenmez.webp",
+    sourceUrl: "https://greenstyle.com.tr/urun/4835-tohumlu-tukenmez-kalem/",
     sortOrder: 80,
   },
   {
-    slug: "bambu-celik-kupa",
+    slug: "gs-4832-baskili",
     kind: "esantiyon",
-    title: "Bambu çelik kupa termos",
-    detail: "Bambu ve çelik kupa termos, yaklaşık 500 ml. İkram suyu bu kaba doldurulur.",
-    quantity: 100,
-    unitPrice: 69000,
-    priceNote: "KDV hariç. Sayfadaki birim aralığının üst ucu (619,00–690,00 ₺).",
-    imagePath: "/giveaways/bambu-kupa.png",
-    sourceUrl: "https://greenstyle.com.tr/urun/bambu-celik-kupa-termos/",
+    sku: "4832",
+    offerNo: "561",
+    title: "Tohumlu kurşun kalem",
+    detail: "Karaçam tohumlu, kılıflı. İçindeki tohum kullanımdan sonra toprağa ekilir.",
+    printNote: "Tek taraf baskı",
+    quantity: 10000,
+    unitPrice: 950,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/kursun.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/4832-tohumlu-kursun-kalem/",
     sortOrder: 90,
   },
   {
-    slug: "tohumlu-kart",
+    slug: "gs-8615-usb",
     kind: "esantiyon",
+    sku: "8615",
+    offerNo: "561",
+    title: "16 GB ahşap USB bellek",
+    detail: "Ahşap gövdeli bellek. İçine pavilyonun iklim ve sağlık notları konabilir.",
+    printNote: "Tek taraf baskı",
+    quantity: 200,
+    unitPrice: 27500,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/usb.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/8615-ahsap-usb-bellek/",
+    sortOrder: 100,
+  },
+  {
+    slug: "gs-6168-termos",
+    kind: "esantiyon",
+    sku: "6168",
+    offerNo: "561",
+    title: "Bambu çelik termos 500 ml",
+    detail: "Bambu ve çelik termos, 500 ml. İkram suyu bu kaba doldurulur.",
+    printNote: "Tek taraf baskı",
+    quantity: 100,
+    unitPrice: 63500,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    imagePath: "/giveaways/bambu-kupa.png",
+    sourceUrl: "https://greenstyle.com.tr/urun/bambu-celik-kupa-termos/",
+    sortOrder: 110,
+  },
+  {
+    slug: "gs-4857-kart",
+    kind: "esantiyon",
+    sku: "4857",
+    offerNo: "561",
     title: "Tohumlu kraft kart 7×7 cm",
     detail: "Kraft tohum kartı, çam tohumlu. Kartın mesaj alanı motto için ayrılır.",
-    quantity: 10000,
-    unitPrice: 1000,
-    priceNote: "KDV hariç. Çift taraf baskı dahil. Sayfadaki birim aralığının üst ucu (4,85–10,00 ₺).",
+    printNote: "Çift taraf baskı",
+    quantity: 20000,
+    unitPrice: 455,
+    vatRate: 20,
+    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
     imagePath: "/giveaways/tohum-kart.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/tohumlu-kart-kraft-7x7cm-cam/",
-    sortOrder: 100,
+    sortOrder: 120,
+  },
+  {
+    slug: "gs-3077-saat",
+    kind: "esantiyon",
+    sku: "3077",
+    offerNo: "",
+    title: "Bambu kablosuz şarjlı masa saati",
+    detail: "17×7,5 cm, 264 g. Alarm, kablosuz şarj (15W), dijital termometre ve dahili pil.",
+    printNote: "Logo baskı",
+    quantity: 20,
+    unitPrice: 106750,
+    vatRate: 20,
+    priceNote: "Greenstyle 3077. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    imagePath: "/giveaways/saat-3077.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/bambu-kablosuz-sarjli-masa-saati-3077/",
+    sortOrder: 130,
+  },
+  {
+    slug: "gs-3068-hoparlor",
+    kind: "esantiyon",
+    sku: "3068",
+    offerNo: "",
+    title: "5’i 1 arada kablosuz şarjlı bambu bluetooth hoparlör",
+    detail: "Alarmlı saat, 15W kablosuz şarj, üç kademeli lamba ve döner telefon standı.",
+    printNote: "Logo baskı",
+    quantity: 10,
+    unitPrice: 219500,
+    vatRate: 20,
+    priceNote: "Greenstyle 3068. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    imagePath: "/giveaways/hoparlor-3068.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/3068-5i-1-arada-kablosuz-sarjli-bluetooth-hoparlor/",
+    sortOrder: 140,
+  },
+  {
+    slug: "gs-8013-speaker",
+    kind: "esantiyon",
+    sku: "8013",
+    offerNo: "",
+    title: "Bluetooth speaker",
+    detail: "Bluetooth 5.0, 3W, bambu ve buğday samanı gövde. 6,5×6,5×3,5 cm. Taşıma sapı ve 3,5 mm jak.",
+    printNote: "Logo baskı",
+    quantity: 100,
+    unitPrice: 82900,
+    vatRate: 20,
+    priceNote: "Greenstyle 8013. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    imagePath: "/giveaways/speaker-8013.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/8013-bluetooth-speaker/",
+    sortOrder: 150,
   },
 ];
 
+const LEGACY_SLUGS = [
+  "bitki-yetistirme-kiti",
+  "bambu-termos-celik-bardak",
+  "kanvas-canta",
+  "hambez-canta",
+  "tohumlu-tukenmez",
+  "tohumlu-kursun",
+  "ahsap-usb",
+  "bambu-termos",
+  "bambu-celik-kupa",
+  "tohumlu-kart",
+];
+
+const QUOTE_FLAG = "giveawayQuote561";
+let quoteReady = false;
+
 export async function ensureGiveawayCatalog() {
-  for (const item of GIVEAWAY_CATALOG) {
-    const existing = await prisma.giveawayItem.findUnique({ where: { slug: item.slug }, select: { id: true, priceNote: true } });
-    if (!existing) {
-      await prisma.giveawayItem.create({ data: item });
-      continue;
+  if (quoteReady) return;
+  const flag = await prisma.setting.findUnique({ where: { key: QUOTE_FLAG }, select: { key: true } });
+  if (!flag) {
+    for (const item of GIVEAWAY_CATALOG) {
+      await prisma.giveawayItem.upsert({
+        where: { slug: item.slug },
+        create: item,
+        update: {
+          sku: item.sku,
+          offerNo: item.offerNo,
+          title: item.title,
+          detail: item.detail,
+          printNote: item.printNote,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          vatRate: item.vatRate,
+          priceNote: item.priceNote,
+          imagePath: item.imagePath,
+          sourceUrl: item.sourceUrl,
+          sortOrder: item.sortOrder,
+          published: true,
+          kind: item.kind,
+        },
+      });
     }
-    if (existing.priceNote) continue;
-    await prisma.giveawayItem.update({
-      where: { slug: item.slug },
-      data: {
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        priceNote: item.priceNote,
-        sourceUrl: item.sourceUrl,
-      },
+    await prisma.giveawayItem.updateMany({
+      where: { slug: { in: LEGACY_SLUGS } },
+      data: { published: false },
+    });
+    await prisma.setting.upsert({
+      where: { key: QUOTE_FLAG },
+      update: { value: "1" },
+      create: { key: QUOTE_FLAG, value: "1" },
     });
   }
+  for (const item of GIVEAWAY_CATALOG) {
+    const existing = await prisma.giveawayItem.findUnique({ where: { slug: item.slug }, select: { id: true } });
+    if (!existing) await prisma.giveawayItem.create({ data: item });
+  }
+  quoteReady = true;
+}
+
+export const CONTRACTED_SUPPLIER = {
+  name: "Greenstyle",
+  email: "info@greenstyle.com.tr",
+  phone: "+90 216 606 76 66",
+};
+
+export function tlToKurus(raw: unknown): number | null {
+  const s = String(raw ?? "").trim().replace(/\s/g, "");
+  if (!s) return null;
+  const normalized = s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s;
+  const n = Number(normalized);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 100);
 }

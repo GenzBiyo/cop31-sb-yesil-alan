@@ -16,7 +16,8 @@ async function tuneSqlite() {
     await prisma.$queryRawUnsafe("PRAGMA journal_mode=WAL");
     await prisma.$queryRawUnsafe("PRAGMA busy_timeout=20000");
     await prisma.$queryRawUnsafe("PRAGMA synchronous=NORMAL");
-    await prisma.$queryRawUnsafe("PRAGMA cache_size=-32000");
+    await prisma.$queryRawUnsafe("PRAGMA cache_size=-64000");
+    await prisma.$queryRawUnsafe("PRAGMA mmap_size=134217728");
     await prisma.$queryRawUnsafe("PRAGMA temp_store=MEMORY");
     await prisma.$queryRawUnsafe("PRAGMA wal_autocheckpoint=1000");
     globalForPrisma.sqliteReady = true;

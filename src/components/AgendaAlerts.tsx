@@ -41,7 +41,7 @@ export function AgendaAlerts({ publicMode = false }: { publicMode?: boolean }) {
 
   useEffect(() => {
     void load();
-    const t = window.setInterval(() => void load(), 20000);
+    const t = window.setInterval(() => void load(), 60000);
     return () => window.clearInterval(t);
   }, [load, email]);
 

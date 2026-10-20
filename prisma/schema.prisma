@@ -49,6 +49,7 @@ model Company {
   submissions        CompanySubmission[]
   gameSponsorships   GameSponsorship[]
   giveawayItems      GiveawayItem[]
+  giveawayPledges    GiveawayPledge[]
   meetingSlots       MeetingSlot[]
 }
 
@@ -745,22 +746,47 @@ model CalendarJoin {
 }
 
 model GiveawayItem {
-  id        String   @id @default(cuid())
-  slug      String   @unique
+  id        String           @id @default(cuid())
+  slug      String           @unique
   kind      String
+  sku       String           @default("")
+  offerNo   String           @default("")
   title     String
-  detail    String   @default("")
-  quantity  Int      @default(0)
-  unitPrice Int      @default(0)
-  priceNote String   @default("")
-  imagePath String   @default("")
-  sourceUrl String   @default("")
-  sortOrder Int      @default(0)
-  published Boolean  @default(true)
+  detail    String           @default("")
+  printNote String           @default("")
+  quantity     Int              @default(0)
+  unitPrice    Int              @default(0)
+  packageQty   Int              @default(0)
+  packagePrice Int              @default(0)
+  vatRate      Int              @default(20)
+  priceNote String           @default("")
+  imagePath String           @default("")
+  sourceUrl String           @default("")
+  sortOrder Int              @default(0)
+  published Boolean          @default(true)
   companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  company   Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  pledges   GiveawayPledge[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
+  @@index([companyId])
+}
+
+model GiveawayPledge {
+  id              String       @id @default(cuid())
+  itemId          String
+  item            GiveawayItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  quantity        Int
+  packages        Int          @default(0)
+  agreedPrice     Int          @default(0)
+  distributeDate  String       @default("")
+  distributeStart String       @default("")
+  distributeEnd   String       @default("")
+  createdAt       DateTime     @default(now())
+
+  @@index([itemId])
   @@index([companyId])
 }

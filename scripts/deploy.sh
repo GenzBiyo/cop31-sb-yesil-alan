@@ -36,7 +36,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .pavilion-program-20261020 -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -127,9 +127,9 @@ fi
 
 bash "$APP/scripts/point-domain.sh"
 
-if [ ! -f "$APP/.pavilion-program-applied" ]; then
+if [ ! -f "$APP/.pavilion-program-20261020" ]; then
   npx tsx scripts/apply-pavilion-program.ts
-  touch "$APP/.pavilion-program-applied"
+  touch "$APP/.pavilion-program-20261020"
 fi
 
 if [ ! -f "$APP/.stands-off-agenda" ]; then

@@ -9,7 +9,6 @@ export const SB_HIDDEN_PAGES = [
   "/sunucu",
   "/oyun-sponsorluk",
   "/anonslar",
-  "/esantiyon",
   "/uygunluk",
 ];
 

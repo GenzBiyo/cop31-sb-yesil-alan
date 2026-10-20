@@ -3,8 +3,17 @@ import { EVENT_CATALOG } from "./event-catalog";
 
 const solaklarFlag = globalThis as unknown as { solaklarCancelled?: boolean };
 
-export async function cancelSolaklar() {
+export function cancelSolaklar() {
   if (solaklarFlag.solaklarCancelled) return;
+  solaklarFlag.solaklarCancelled = true;
+  void cancelSolaklarWork().catch(() => {
+    solaklarFlag.solaklarCancelled = false;
+  });
+}
+
+async function cancelSolaklarWork() {
+  const done = await prisma.setting.findUnique({ where: { key: "solaklarCancelled" } });
+  if (done) return;
   await prisma.pavilionEvent.deleteMany({
     where: {
       OR: [
@@ -46,13 +55,17 @@ export async function cancelSolaklar() {
       location: "",
     },
   });
-  solaklarFlag.solaklarCancelled = true;
+  await prisma.setting.upsert({
+    where: { key: "solaklarCancelled" },
+    update: { value: "1" },
+    create: { key: "solaklarCancelled", value: "1" },
+  });
 }
 
 const eventsFlag = globalThis as unknown as { eventsReady?: boolean };
 
 export async function ensureEvents() {
-  await cancelSolaklar();
+  cancelSolaklar();
   if (eventsFlag.eventsReady) return;
   const catalogCount = await prisma.pavilionEvent.count();
   if (catalogCount >= EVENT_CATALOG.length) {

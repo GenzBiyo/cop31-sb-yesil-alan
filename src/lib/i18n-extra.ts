@@ -556,7 +556,14 @@ export const EN_EXTRA: Record<string, string> = {
   "Ödül belirtilmedi": "No prize specified",
   "Öğle molasında tek kullanımlık gördünüz mü?": "Did you see any single-use items at the lunch break?",
   "Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.":
-    "Student volunteer applications, activity placement and form editing. Acceptance notes go to the contact addresses.",
+    "Student volunteer applications, activity placement and form editing. Acceptance notices go to the contact details.",
+  "Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider.":
+    "Accept or reject applications from the open form here. The decision is emailed to the applicant.",
+  "Elçi başvuruları": "Ambassador applications",
+  "elçi başvurusu kabul veya red bekliyor.":
+    "ambassador applications are waiting to be accepted or rejected.",
+  "Karar kaydedildi. E-posta gönderilemedi.": "The decision was saved. The email could not be sent.",
+  "Karar kaydedilemedi": "The decision could not be saved",
   "Öğrenciye gidecek mesaj (boşsa varsayılan metin)": "Message to the student (default text if empty)",
   "Önce pavilyona katılacağınız günleri seçin, sonra bu günlerde toplantıya uygun saat aralığını açın. Ziyaretçi uygulamasından veya diğer hesaplardan toplantı isteyenler bu saatlerden birini seçer; siz onaylayınca saat dolar.":
     "First choose the days you will attend the pavilion, then open the hours you are free for meetings. People requesting a meeting from the visitor app or other accounts pick one of these hours; the slot fills when you approve.",
@@ -1012,7 +1019,7 @@ export const EN_EXTRA: Record<string, string> = {
   "Seminer Salonu": "Seminar hall",
   "Senaryo": "Scenario",
   "Solaklar — meydan": "Solaklar — square",
-  "Stant A — Astorg": "Stand A — Astorg",
+  "Stant A — Oxoid": "Stand A — Oxoid",
   "Stant C — Atabay": "Stand C — Atabay",
   "Stant F — Deneyim": "Stand F — Experience",
   "Sticker": "Sticker",
@@ -1126,7 +1133,40 @@ export const EN_EXTRA: Record<string, string> = {
   "Bambu ve çelik kupa termos, yaklaşık 500 ml. İkram suyu bu kaba doldurulur.":
     "A bamboo and steel cup flask, about 500 ml. Hospitality water is poured into it.",
   "Tohumlu kraft kart 7×7 cm": "Seed kraft card 7×7 cm",
+  "Sponsorluk listesi": "Sponsorship list",
+  "Sponsorluğu al": "Take the sponsorship",
+  "Paketi al": "Take the package",
+  "Paketi kaydet": "Save the package",
+  "Paket sayısı": "Number of packages",
+  "Paketteki adet": "Pieces in the package",
+  "Paket fiyatı, KDV hariç (₺)": "Package price, excluding VAT (₺)",
+  "KDV dahil paket": "Package price including VAT",
+  "paket alındı": "packages taken",
+  "Paketi tanımlanmamış": "Package not defined yet",
+  "Paket fiyatı ve adedi henüz belirlenmedi.": "The package price and quantity have not been set yet.",
+  "Siparişi Greenstyle’a gönder": "Send the order to Greenstyle",
+  "Satın alma": "Purchase",
+  "Paket fiyatı ve paketteki adet sabittir; Sağlık Bakanlığı belirler. Paydaş kaç paket alacağını seçer. Satın almayı anlaşmalı firma Greenstyle yapar.":
+    "The package price and the number of pieces are fixed by the Ministry of Health. A stakeholder chooses how many packages to take. The contracted company, Greenstyle, places the purchase.",
+  "Bir paket sabit adet ve sabit fiyattır. Paydaş paket sayısını seçer. Malın siparişini anlaşmalı firma Greenstyle verir.":
+    "A package has a fixed quantity and a fixed price. The stakeholder chooses how many packages to take. Greenstyle, the contracted company, places the order.",
+  "Fiyat ve adedi kaydet": "Save price and quantity",
+  "Günü kaydet": "Save the day",
+  "Sponsoru açık kalem": "Item still open for a sponsor",
+  "Bu kalemin sponsorluğu doldu.": "This item’s sponsorship is full.",
+  "Dağıtım günü Sağlık Bakanlığı tarafından yazılacak.": "The Ministry of Health will set the distribution day.",
+  "Birim fiyat, KDV hariç (₺)": "Unit price, excluding VAT (₺)",
+  "KDV dahil birim": "Unit price including VAT",
+  "Liste toplamı": "List total",
+  "Alınacak adet": "Quantity to take",
+  "Greenstyle teklif 560 ve 561. Fiyat ve adedi Sağlık Bakanlığı girer. Paydaşlar sponsorluğu bu listeden alır. Dağıtım günü ve saatini Sağlık Bakanlığı yazar.":
+    "Greenstyle quotes 560 and 561. The Ministry of Health enters the price and quantity. Stakeholders take sponsorship from this list. The Ministry sets the distribution day and time.",
+  "Fiyat ve adedi Sağlık Bakanlığı girer. Paydaş, listedeki üründen istediği adedi sponsorluk olarak alır. Satın alınan ürünün hangi gün ve saatte dağıtılacağına Sağlık Bakanlığı karar verir.":
+    "The Ministry of Health enters the price and quantity. A stakeholder takes the quantity they want from the list. The Ministry decides the day and time the purchased items are handed out.",
+  "Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon paketini listeden kendiniz alırsınız; satın almayı Greenstyle yapar, dağıtım gününü Sağlık Bakanlığı belirler.":
+    "Submit your event and talk with a quantity and a description. You take a giveaway package from the list; Greenstyle places the purchase and the Ministry of Health sets the distribution day.",
   "Kraft tohum kartı, çam tohumlu. Kartın mesaj alanı motto için ayrılır.":
     "A kraft seed card with a pine seed. The message area is reserved for the motto.",
+  "Yeşil Alan kapalı": "Green Zone closed",
 };
 

@@ -4,6 +4,32 @@ import { jsonError, jsonOk } from "@/lib/api";
 import { CORE_KEYS } from "@/lib/ambassador";
 import { ensureAmbassadorForm } from "@/lib/ambassador-db";
 import { sendMail } from "@/lib/mail";
+import { broadcast } from "@/lib/realtime";
+
+function reviewUrl() {
+  const base = (process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://cop31saglik.com").replace(/\/$/, "");
+  return `${base}/elciler`;
+}
+
+async function notifyReviewers(app: { fullName: string; email: string; school: string; city: string }) {
+  const staff = await prisma.user.findMany({
+    where: { role: { in: ["SAGLIK", "ADMIN"] }, accountStatus: "Onaylandı" },
+  });
+  const href = reviewUrl();
+  const title = "Yeni iklim sağlık elçisi başvurusu";
+  const body = `${app.fullName}${app.city ? ` · ${app.city}` : ""} başvuru gönderdi.\nOkul: ${app.school || "—"}\nE-posta: ${app.email}\n\nKabul veya red: ${href}`;
+  await Promise.all(
+    staff.map(async (user) => {
+      await prisma.inboxItem.create({ data: { userId: user.id, title, body } });
+      try {
+        await sendMail(user.email, title, body);
+      } catch {
+        /* sendMail already records the failure */
+      }
+    })
+  );
+  broadcast({ type: "inbox" });
+}
 
 function asString(v: unknown) {
   if (Array.isArray(v)) return v.map(String).join(", ");
@@ -57,11 +83,16 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  await sendMail(
-    email,
-    "İklim Sağlık Elçisi başvurunuz alındı",
-    `Sayın ${created.fullName},\n\nCOP31 Türkiye — Sağlık Bakanlığı İklim Sağlık Elçisi başvurunuz alınmıştır. Kayıt kabul ve diğer bilgilendirmeler bu e-posta adresine gönderilecektir.\n\nT.C. Sağlık Bakanlığı · SGGM`
-  );
+  try {
+    await sendMail(
+      email,
+      "İklim Sağlık Elçisi başvurunuz alındı",
+      `Sayın ${created.fullName},\n\nCOP31 Türkiye — Sağlık Bakanlığı İklim Sağlık Elçisi başvurunuz alınmıştır. Kayıt kabul ve diğer bilgilendirmeler bu e-posta adresine gönderilecektir.\n\nT.C. Sağlık Bakanlığı · SGGM`
+    );
+  } catch {
+    /* sendMail already records the failure */
+  }
+  await notifyReviewers(created);
 
   return jsonOk({ ok: true, id: created.id }, 201);
 }

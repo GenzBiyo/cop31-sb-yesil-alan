@@ -77,6 +77,8 @@ export default function AmbassadorsAdminPage() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
   const [info, setInfo] = useState("");
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState("");
   const [activityForm, setActivityForm] = useState({
     title: "",
     dates: ["2026-11-09"] as string[],
@@ -98,23 +100,42 @@ export default function AmbassadorsAdminPage() {
 
   const accepted = (apps.data || []).filter((a) => a.status === "Kabul edildi" || a.status === "Yerleştirildi");
 
+  async function decideApp(app: Application, status: string, custom?: { note?: string; message?: string }) {
+    setBusyId(app.id);
+    setError("");
+    setInfo("");
+    try {
+      const result = await api<{ mailWarning?: string }>("/api/ambassador/applications", {
+        method: "PATCH",
+        body: JSON.stringify({
+          id: app.id,
+          status,
+          adminNote: custom?.note ?? app.adminNote,
+          message: custom?.message || undefined,
+          notify: true,
+        }),
+      });
+      setInfo(result.mailWarning || `${app.fullName} — ${status}. Bilgilendirme e-postası gönderildi.`);
+      setOpen(null);
+      await apps.reload();
+      await acts.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("Karar kaydedilemedi"));
+    } finally {
+      setBusyId("");
+    }
+  }
+
   async function decide(status: string) {
     if (!open) return;
-    await api("/api/ambassador/applications", {
-      method: "PATCH",
-      body: JSON.stringify({ id: open.id, status, adminNote: note, message: message || undefined, notify: true }),
-    });
-    setInfo(`${open.fullName} — ${status}. Bilgilendirme e-postası kuyruğa alındı.`);
-    setOpen(null);
-    await apps.reload();
-    await acts.reload();
+    await decideApp(open, status, { note, message });
   }
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="display text-4xl">{tx("İklim Sağlık Elçileri")}</h1>
-        <p className="text-[#57534e]"><Tx>Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.</Tx></p>
+        <p className="text-[#57534e]"><Tx>Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider.</Tx></p>
         <a className="text-sm text-[#0077C2] underline" href="/giris/elciler" target="_blank"><Tx>Açık başvuru formu</Tx></a>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -128,6 +149,7 @@ export default function AmbassadorsAdminPage() {
           </button>
         ))}
       </div>
+      {error ? <p className="text-sm text-[#E31C23]">{error}</p> : null}
       {info ? <p className="text-sm text-[#22A34A]">{info}</p> : null}
 
       {tab === "apps" ? (
@@ -161,7 +183,15 @@ export default function AmbassadorsAdminPage() {
                     <td>{a.englishLevel}<div className="text-xs">{a.otherLanguages}</div></td>
                     <td>{a.daysCount}<div className="text-xs">{a.availableDates}</div></td>
                     <td className="text-xs">{a.email}<br />{a.phone}</td>
-                    <td><span className={`badge ${a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? "ok" : a.status === "Reddedildi" ? "high" : "warn"}`}>{a.status}</span></td>
+                    <td>
+                      <span className={`badge ${a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? "ok" : a.status === "Reddedildi" ? "high" : "warn"}`}>{a.status}</span>
+                      {a.status === "Beklemede" || a.status === "Yedek" ? (
+                        <div className="flex flex-wrap gap-1 mt-2" onClick={(e) => e.stopPropagation()}>
+                          <button className="btn px-2 py-1 text-xs" disabled={busyId === a.id} onClick={() => void decideApp(a, "Kabul edildi")}><Tx>Kabul et</Tx></button>
+                          <button className="btn ghost px-2 py-1 text-xs" disabled={busyId === a.id} onClick={() => void decideApp(a, "Reddedildi")}><Tx>Reddet</Tx></button>
+                        </div>
+                      ) : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -331,9 +361,9 @@ export default function AmbassadorsAdminPage() {
           <label className="text-sm"><Tx>Öğrenciye gidecek mesaj (boşsa varsayılan metin)</Tx><textarea className="field mt-1" rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={tx("Kayıt kabul / red / bilgilendirme metni")} />
           </label>
           <div className="flex flex-wrap gap-2">
-            <button className="btn" onClick={() => decide("Kabul edildi")}>Kabul et ve bildir</button>
-            <button className="btn secondary" onClick={() => decide("Yedek")}>Yedek liste + bildir</button>
-            <button className="btn ghost" onClick={() => decide("Reddedildi")}>Reddet ve bildir</button>
+            <button className="btn" disabled={busyId === open.id} onClick={() => decide("Kabul edildi")}>Kabul et ve bildir</button>
+            <button className="btn secondary" disabled={busyId === open.id} onClick={() => decide("Yedek")}>Yedek liste + bildir</button>
+            <button className="btn ghost" disabled={busyId === open.id} onClick={() => decide("Reddedildi")}>Reddet ve bildir</button>
           </div>
         </div>
       ) : null}
@@ -354,6 +384,9 @@ function FormEditor({
   setFields: (v: Field[]) => void;
   onSave: () => Promise<void>;
 }) {
+  const { tx } = useI18n();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   return (
     <div className="space-y-4">
       <label className="text-sm block"><Tx>Formun başındaki not</Tx><textarea className="field mt-1" rows={6} value={intro} onChange={(e) => setIntro(e.target.value)} />
@@ -428,8 +461,21 @@ function FormEditor({
         >
           Alan ekle
         </button>
-        <button className="btn" onClick={() => void onSave()}>Formu kaydet</button>
+        <button
+          className="btn"
+          disabled={saving}
+          onClick={() => {
+            setSaving(true);
+            setSaveError("");
+            void onSave()
+              .catch((err) => setSaveError(err instanceof Error ? err.message : tx("Form kaydedilemedi")))
+              .finally(() => setSaving(false));
+          }}
+        >
+          {saving ? tx("Kaydediliyor…") : "Formu kaydet"}
+        </button>
       </div>
+      {saveError ? <p className="text-sm text-[#E31C23]">{saveError}</p> : null}
     </div>
   );
 }

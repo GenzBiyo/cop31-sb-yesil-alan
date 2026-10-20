@@ -798,7 +798,7 @@
   ],
   "companies": [
     {
-      "name": "Astorg (Thermo Fisher)",
+      "name": "Oxoid",
       "scope": "Global",
       "topic": "Antimicrobial Resistance",
       "context": "Addressing climate change and the increasing threat of antimicrobial resistance",
@@ -935,7 +935,7 @@
   ],
   "companiesTr": [
     {
-      "name": "Astorg (Thermo Fischer)",
+      "name": "Oxoid",
       "scope": "Global",
       "topic": "Mikrobiyal Direnç",
       "context": "iklim değişiklikleri ve artan Antibiyotik Dirençlilik ile mücadele",
@@ -1123,7 +1123,7 @@
     {
       "name": "Marc GATES",
       "role": "Global Director",
-      "organization": "Astorg (ThermaFischer)",
+      "organization": "Oxoid",
       "track": "High Level Sessions",
       "kind": "speaker",
       "note": "speakers will be provided"

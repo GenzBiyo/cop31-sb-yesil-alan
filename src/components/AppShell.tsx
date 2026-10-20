@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
@@ -52,6 +53,7 @@ type Me = {
   pendingCompliance?: number;
   pendingGameSponsors?: number;
   pendingSpeakers?: number;
+  pendingAmbassadors?: number;
   accountKind?: string;
   companyName?: string;
 };
@@ -83,7 +85,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "FIRMA"] },
   { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "FIRMA"] },
+  { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
@@ -92,6 +94,7 @@ const MINISTRY_ONLY = ["/todos", "/takvim", "/paydas-yanitlari"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { tx, t } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -146,9 +149,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">
       {menuOpen ? <button type="button" className="desk-backdrop" aria-label={tx("Kapat")} onClick={() => setMenuOpen(false)} /> : null}
       <aside className={`desk-aside bg-white text-[#0B1C33] px-3 py-5 border-r border-[#D4ECF6]${menuOpen ? " is-open" : ""}`}>
-        <a href="/dashboard" className="block px-2">
+        <Link href="/dashboard" prefetch={false} className="block px-2">
           <img src="/brand/cop31-turkiye.png" alt={tx("COP31 Türkiye Antalya")} className="w-[168px] h-auto" />
-        </a>
+        </Link>
         <p className="px-2 mt-3 text-[10px] tracking-[0.18em] uppercase text-[#0077C2]">{tx("T.C. Sağlık Bakanlığı")}</p>
         <p className="px-2 mt-1 text-sm font-semibold text-[#0077C2]">{tx("Hazırlık masası")}</p>
         <p className="px-2 mt-0.5 text-xs text-[#3E6A88]">{tx("Antalya · 9–20 Kasım 2026")}</p>
@@ -161,7 +164,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
-              <a key={item.href} href={item.href} className={`sidebar-link ${active ? "active" : ""}`}>
+              <Link key={item.href} href={item.href} prefetch={false} onMouseEnter={() => router.prefetch(item.href)} onFocus={() => router.prefetch(item.href)} className={`sidebar-link ${active ? "active" : ""}`}>
                 <Icon size={16} />
                 <span className="flex-1">{tx(item.label)}</span>
                 {item.href === "/mesajlar" && me && me.unread > 0 ? <span className="badge high">{me.unread}</span> : null}
@@ -173,7 +176,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.href === "/uygunluk" && me && (me.pendingCompliance || 0) > 0 ? <span className="badge warn">{me.pendingCompliance}</span> : null}
                 {item.href === "/oyun-sponsorluk" && me && (me.pendingGameSponsors || 0) > 0 ? <span className="badge warn">{me.pendingGameSponsors}</span> : null}
                 {item.href === "/konusmaci-yonetimi" && me && (me.pendingSpeakers || 0) > 0 ? <span className="badge warn">{me.pendingSpeakers}</span> : null}
-              </a>
+                {item.href === "/elciler" && me && (me.pendingAmbassadors || 0) > 0 ? <span className="badge warn">{me.pendingAmbassadors}</span> : null}
+              </Link>
             );
           })}
         </nav>
@@ -215,12 +219,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="text-xs tracking-[0.18em] uppercase text-[#00A3E0] truncate">{tx("Sağlık Pavilionu · Yeşil Alan")}</div>
             <div className="text-sm text-[#3E6A88] truncate">{tx("Sağlıklı İnsan, Sağlıklı Gezegen")}</div>
           </div>
-          <a href={me?.role === "SAGLIK" ? "/mesajlar" : "/anonslar"} className="relative">
+          <Link href={me?.role === "SAGLIK" ? "/mesajlar" : "/anonslar"} prefetch={false} className="relative">
             <Bell size={18} />
             {me && me.unread > 0 ? (
               <span className="absolute -top-2 -right-2 badge high">{me.unread}</span>
             ) : null}
-          </a>
+          </Link>
         </header>
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>

@@ -108,7 +108,7 @@ export default function ProfilePage() {
       <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">{tx("Etkinlik ve sunum")}</h2>
         <p className="text-sm text-[#57534e]">
-          {tx("Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon ve ikram desteği kural kitapçığındadır; hangi kalemi üstleneceğinizi yönetici atar.")}{" "}
+          {tx("Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon paketini listeden kendiniz alırsınız; satın almayı Greenstyle yapar, dağıtım gününü Sağlık Bakanlığı belirler.")}{" "}
           <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
         </p>
         <div className="grid md:grid-cols-4 gap-2">

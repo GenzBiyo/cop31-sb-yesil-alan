@@ -1,6 +1,6 @@
 "use client";
 
-import { PAVILION_STANDS, PAVILION_THEMES } from "@/lib/pavilion-program";
+import { PAVILION_CLOSED, PAVILION_STANDS, PAVILION_THEMES } from "@/lib/pavilion-program";
 import { useI18n } from "@/components/I18nProvider";
 
 const SLOTS = [
@@ -9,7 +9,7 @@ const SLOTS = [
   { start: "15:00", end: "18:00" },
 ];
 
-const STANDS = ["Stant 1", "Stant 2", "Stant 3", "Stant 4", "Stant 5", "Stant 6"];
+const STANDS = ["Stant 1", "Stant 2", "Stant 3", "Stant 4", "Stant 5"];
 
 function occupant(date: string, stand: string, start: string) {
   return PAVILION_STANDS.find((row) => row.date === date && row.stand === stand && row.start === start)?.name || "—";
@@ -17,7 +17,7 @@ function occupant(date: string, stand: string, start: string) {
 
 export function StandCalendar() {
   const { tx } = useI18n();
-  const dates = [...new Set(PAVILION_STANDS.map((row) => row.date))].sort();
+  const dates = Object.keys(PAVILION_THEMES).sort();
 
   return (
     <div className="space-y-4">
@@ -32,6 +32,7 @@ export function StandCalendar() {
           <section key={date} className="card p-4">
             <p className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{label}</p>
             <h2 className="display text-2xl mt-1">{tx(theme)}</h2>
+            {PAVILION_CLOSED.includes(date) ? <p className="mt-3 text-sm text-[#0077C2]">{tx("Yeşil Alan kapalı")}</p> : <>
             <div className="mt-3 space-y-3 md:hidden">
               {STANDS.map((stand) => (
                 <div key={stand} className="border border-[#DCE8F0] p-3">
@@ -71,6 +72,7 @@ export function StandCalendar() {
                 </tbody>
               </table>
             </div>
+            </>}
           </section>
         );
       })}

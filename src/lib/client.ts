@@ -117,7 +117,12 @@ export function useGameLive(reload: () => void, backupMs = 12000) {
     };
     connect();
     document.addEventListener("visibilitychange", onVis);
-    const backup = setInterval(() => kick(true), backupMs);
+    const backup = setInterval(() => {
+      if (!es || es.readyState === EventSource.CLOSED) {
+        connect();
+        kick(true);
+      }
+    }, backupMs);
     return () => {
       document.removeEventListener("visibilitychange", onVis);
       disconnect();
@@ -161,8 +166,10 @@ export function useProgramLive(reload: () => void) {
     connect();
     document.addEventListener("visibilitychange", onVis);
     const backup = window.setInterval(() => {
-      if (!es || es.readyState === EventSource.CLOSED) connect();
-      kick(true);
+      if (!es || es.readyState === EventSource.CLOSED) {
+        connect();
+        kick(true);
+      }
     }, 45000);
     return () => {
       document.removeEventListener("visibilitychange", onVis);
@@ -172,16 +179,44 @@ export function useProgramLive(reload: () => void) {
   }, []);
 }
 
+const REALTIME_TYPES = ["message", "qa", "announcement", "inbox", "panel", "todo", "agenda", "account", "game", "app"];
+type RealtimeListener = (type: string) => void;
+const realtimeListeners = new Set<RealtimeListener>();
+let realtimeSource: EventSource | null = null;
+
+function openRealtime() {
+  if (typeof window === "undefined" || realtimeSource || realtimeListeners.size === 0 || document.hidden) return;
+  const es = new EventSource("/api/realtime");
+  realtimeSource = es;
+  for (const type of REALTIME_TYPES) {
+    es.addEventListener(type, () => {
+      for (const listener of realtimeListeners) listener(type);
+    });
+  }
+}
+
+function closeRealtime() {
+  realtimeSource?.close();
+  realtimeSource = null;
+}
+
 export function useRealtime(onEvent: (type: string) => void) {
   const handlerRef = useRef(onEvent);
   handlerRef.current = onEvent;
   useEffect(() => {
-    const es = new EventSource("/api/realtime");
-    const handler = (type: string) => () => handlerRef.current(type);
-    ["message", "qa", "announcement", "inbox", "panel", "todo", "agenda", "account", "game", "app"].forEach((type) => {
-      es.addEventListener(type, handler(type));
-    });
-    return () => es.close();
+    const listener: RealtimeListener = (type) => handlerRef.current(type);
+    realtimeListeners.add(listener);
+    openRealtime();
+    const onVis = () => {
+      if (document.hidden) closeRealtime();
+      else openRealtime();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      realtimeListeners.delete(listener);
+      document.removeEventListener("visibilitychange", onVis);
+      if (realtimeListeners.size === 0) closeRealtime();
+    };
   }, []);
 }
 

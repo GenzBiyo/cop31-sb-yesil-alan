@@ -1,26 +1,31 @@
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/auth";
+import { canManage } from "@/lib/auth";
 import { jsonOk, withUser } from "@/lib/api";
-import { ensureGiveawayCatalog } from "@/lib/giveaways";
+import { CONTRACTED_SUPPLIER, ensureGiveawayCatalog } from "@/lib/giveaways";
 
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
   await ensureGiveawayCatalog();
-  const admin = isAdmin(user.role);
-  const [items, companies] = await Promise.all([
-    prisma.giveawayItem.findMany({
-      where: admin ? undefined : { published: true },
-      include: { company: { select: { id: true, name: true } } },
-      orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
-    }),
-    admin
-      ? prisma.company.findMany({
-          where: { status: "Onaylandı" },
-          select: { id: true, name: true },
-          orderBy: { name: "asc" },
-        })
-      : Promise.resolve([]),
-  ]);
-  return jsonOk({ items, companies, admin });
+  const staff = canManage(user.role);
+  const items = await prisma.giveawayItem.findMany({
+    where: staff ? { published: true } : { published: true },
+    include: {
+      pledges: {
+        include: { company: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
+  });
+  const visible = items.map((item) => {
+    const packagesTaken = item.pledges.reduce((sum, pledge) => sum + pledge.packages, 0);
+    const pledges = staff
+      ? item.pledges
+      : item.pledges
+          .filter((pledge) => pledge.companyId === user.companyId)
+          .map((pledge) => ({ ...pledge, company: { id: pledge.company.id, name: pledge.company.name } }));
+    return { ...item, packagesTaken, pledges };
+  });
+  return jsonOk({ items: visible, staff, companyId: user.companyId, supplier: CONTRACTED_SUPPLIER });
 }

@@ -4,28 +4,42 @@ import { useEffect, useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 
-type Company = { id: string; name: string };
+type Pledge = {
+  id: string;
+  quantity: number;
+  packages: number;
+  agreedPrice: number;
+  distributeDate: string;
+  distributeStart: string;
+  distributeEnd: string;
+  company: { id: string; name: string };
+};
 type Item = {
   id: string;
-  slug: string;
-  kind: string;
+  sku: string;
+  offerNo: string;
   title: string;
   detail: string;
+  printNote: string;
   quantity: number;
   unitPrice: number;
+  packageQty: number;
+  packagePrice: number;
+  vatRate: number;
   priceNote: string;
   imagePath: string;
-  sourceUrl: string;
-  published: boolean;
-  companyId: string | null;
-  company: Company | null;
+  packagesTaken: number;
+  pledges: Pledge[];
 };
-type Payload = { items: Item[]; companies: Company[]; admin: boolean };
+type Supplier = { name: string; email: string; phone: string };
+type Payload = { items: Item[]; staff: boolean; companyId: string | null; supplier: Supplier };
+
+const DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
 
 const RULES: { title: string; body: string }[] = [
   {
     title: "Kim destekler",
-    body: "Eşantiyon ve ikramlar etkinlik paydaşlarının desteğiyle hazırlanır. Hangi paydaşın hangi kalemi, kaç adet üstleneceğini yalnızca yönetici atar. Paydaş kendi sponsorluğunu seçemez ve adedi değiştiremez.",
+    body: "Sağlık Bakanlığı her ürün için sabit paket fiyatı ve sabit paket adedi belirler. Paydaş yalnızca kaç paket alacağını seçer. Ürünün satın almasını anlaşmalı firma Greenstyle yapar. Dağıtım günü ve saatini Sağlık Bakanlığı yazar.",
   },
   {
     title: "Uygun malzeme",
@@ -45,38 +59,59 @@ const RULES: { title: string; body: string }[] = [
   },
   {
     title: "Dağıtım yeri",
-    body: "Dağıtım, alan planındaki resepsiyon masasından ve soldaki bilgilendirme ekranının yanından yapılır. Kitapçıkta olmayan veya yönetici ataması bulunmayan kalem bu noktalardan çıkmaz.",
+    body: "Dağıtım, Sağlık Bakanlığının her sponsorluk için yazdığı gün ve saatte, resepsiyon masası ile bilgilendirme ekranının yanından yapılır. Günü belli olmayan kalem çıkmaz.",
   },
 ];
 
 export default function GiveawayPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Payload>("/api/giveaways");
-  const [drafts, setDrafts] = useState<Record<string, { companyId: string; quantity: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, { packagePrice: string; vatRate: string; packageQty: string }>>({});
+  const [claims, setClaims] = useState<Record<string, string>>({});
+  const [slots, setSlots] = useState<Record<string, { date: string; start: string; end: string }>>({});
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
 
   useEffect(() => {
     if (!data) return;
-    setDrafts(Object.fromEntries(data.items.map((item) => [item.id, { companyId: item.companyId || "", quantity: String(item.quantity) }])));
+    setDrafts(Object.fromEntries(data.items.map((item) => [item.id, {
+      packagePrice: item.packagePrice ? (item.packagePrice / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
+      vatRate: String(item.vatRate),
+      packageQty: item.packageQty ? String(item.packageQty) : "",
+    }])));
+    setClaims(Object.fromEntries(data.items.map((item) => [item.id, "1"])));
+    const next: Record<string, { date: string; start: string; end: string }> = {};
+    for (const item of data.items) {
+      for (const pledge of item.pledges) {
+        next[pledge.id] = { date: pledge.distributeDate, start: pledge.distributeStart, end: pledge.distributeEnd };
+      }
+    }
+    setSlots(next);
   }, [data]);
 
   if (!data) return <p>{tx("Yükleniyor…")}</p>;
-  const open = data.items.filter((item) => !item.companyId).length;
+  const open = data.items.filter((item) => item.packageQty < 1 || item.packagePrice < 1).length;
 
-  async function save(item: Item) {
-    const draft = drafts[item.id];
-    if (!draft) return;
-    setBusy(item.id);
+  function orderMail() {
+    if (!data) return;
+    const lines = data.items.flatMap((item) => {
+      const packages = item.pledges.reduce((sum, pledge) => sum + pledge.packages, 0);
+      if (!packages) return [];
+      const pieces = item.pledges.reduce((sum, pledge) => sum + pledge.quantity, 0);
+      return [`${item.title} (${item.sku}) — ${packages} paket, ${pieces} adet`];
+    });
+    const body = encodeURIComponent(`COP31 Sağlık Pavilionu sponsorluk siparişi\n\nSatın alma: ${data.supplier.name}\n\n${lines.join("\n") || "Henüz paket alınmadı."}\n`);
+    window.location.href = `mailto:${data.supplier.email}?subject=${encodeURIComponent("COP31 sponsorluk siparişi")}&body=${body}`;
+  }
+
+  async function run(key: string, title: string, path: string, body: unknown) {
+    setBusy(key);
     setError("");
     setSaved("");
     try {
-      await api(`/api/giveaways/${item.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ companyId: draft.companyId || null, quantity: Number(draft.quantity) }),
-      });
-      setSaved(item.title);
+      await api(path, { method: "PATCH", body: JSON.stringify(body) });
+      setSaved(title);
       await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kayıt alınamadı");
@@ -100,11 +135,12 @@ export default function GiveawayPage() {
           <em>{tx("Sağlıklı Gezegen")}</em>
         </p>
         <p className="booklet-lead">
-          {tx("Pavilyonda dağıtılacak eşantiyon ve ikramlar bu listeyle sınırlıdır. Örnek ürünler geri dönüşümlü malzemedendir. Desteği üstlenecek paydaşı yönetici belirler.")}
+          {tx("Paket fiyatı ve paketteki adet sabittir; Sağlık Bakanlığı belirler. Paydaş kaç paket alacağını seçer. Satın almayı anlaşmalı firma Greenstyle yapar.")}
         </p>
         <div className="no-print flex flex-wrap gap-2">
           <button type="button" className="btn ghost" onClick={() => window.print()}>{tx("Yazdır / PDF")}</button>
-          {data.admin ? <span className="badge warn">{tx("Atanmamış kalem")}: {open}</span> : null}
+          {data.staff ? <span className="badge warn">{tx("Paketi tanımlanmamış")}: {open}</span> : null}
+          {data.staff ? <button type="button" className="btn ghost" onClick={orderMail}>{tx("Siparişi Greenstyle’a gönder")}</button> : null}
         </div>
       </header>
 
@@ -121,74 +157,131 @@ export default function GiveawayPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="display text-3xl">{tx("Örnek ürünler")}</h2>
+        <h2 className="display text-3xl">{tx("Sponsorluk listesi")}</h2>
         <p className="text-sm text-[#3E6A88]">
-          {tx("Adet ve tutar ürün sayfasından alındı. Görsele, ada veya Satın al düğmesine basınca o ürünün satış sayfası açılır. Aralık varsa bütçe, yayımlanan en yüksek birim fiyattan hesaplanır. KDV hariçtir.")}
+          {tx("Bir paket sabit adet ve sabit fiyattır. Paydaş paket sayısını seçer. Malın siparişini anlaşmalı firma Greenstyle verir.")} {data.supplier.email}
         </p>
         <div className="booklet-grid">
           {data.items.map((item) => {
-            const draft = drafts[item.id] || { companyId: item.companyId || "", quantity: String(item.quantity) };
-            const dirty = draft.companyId !== (item.companyId || "") || Number(draft.quantity) !== item.quantity;
+            const draft = drafts[item.id] || {
+              packagePrice: item.packagePrice ? (item.packagePrice / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
+              vatRate: String(item.vatRate),
+              packageQty: item.packageQty ? String(item.packageQty) : "",
+            };
+            const ready = item.packageQty > 0 && item.packagePrice > 0;
+            const gross = ready ? Math.round(item.packagePrice * (100 + item.vatRate) / 100) : 0;
+            const wanted = Number(claims[item.id] || 0);
             return (
               <article key={item.id} className="booklet-card card">
-                {item.imagePath ? (
-                  <a href={item.sourceUrl} target="_blank" rel="noreferrer">
-                    <img src={item.imagePath} alt={tx(item.title)} className="booklet-photo" />
-                  </a>
-                ) : null}
+                {item.imagePath ? <img src={item.imagePath} alt={tx(item.title)} className="booklet-photo" /> : null}
                 <div className="p-4 space-y-2">
-                  <div className="flex justify-between gap-2">
-                    <span className="badge muted">{tx(item.kind === "ikram" ? "İkram" : "Eşantiyon")}</span>
-                    <strong>{Number(item.quantity).toLocaleString("tr-TR")} {tx("adet")}</strong>
+                  <div className="flex justify-between gap-2 text-xs">
+                    <span className="badge muted">{item.offerNo ? `${tx("Teklif")} ${item.offerNo} · ` : ""}{item.sku}</span>
+                    <strong>{item.packagesTaken.toLocaleString("tr-TR")} {tx("paket alındı")}</strong>
                   </div>
-                  <h3 className="display text-xl leading-tight">
-                    <a href={item.sourceUrl} target="_blank" rel="noreferrer">{tx(item.title)}</a>
-                  </h3>
+                  <h3 className="display text-xl leading-tight">{tx(item.title)}</h3>
                   <p className="text-sm text-[#3E6A88]">{tx(item.detail)}</p>
-                  <p className="text-sm">
-                    {item.unitPrice > 0 ? (
-                      <>
-                        <strong>{money(item.unitPrice)}</strong> / {tx("adet")}
-                        <span className="block">{tx("Toplam")} {money(item.unitPrice * item.quantity)}</span>
-                      </>
-                    ) : (
-                      <strong>{tx("Birim fiyat teklifle")}</strong>
-                    )}
-                  </p>
-                  {item.priceNote ? <p className="text-xs text-[#57534e]">{tx(item.priceNote)}</p> : null}
-                  <a className="btn" href={item.sourceUrl} target="_blank" rel="noreferrer">{tx("Satın al")}</a>
-                  <p className="text-sm">
-                    <span className="text-[#0077C2]">{tx("Destekleyen paydaş")}: </span>
-                    {item.company ? <strong>{item.company.name}</strong> : <span className="text-[#57534e]">{tx("Yönetici atayacak")}</span>}
-                  </p>
-                  {data.admin ? (
-                    <div className="booklet-admin space-y-2 pt-2 border-t border-[#D4ECF6]">
-                      <label className="text-xs block">
-                        {tx("Paydaş")}
-                        <select
-                          className="field mt-1"
-                          value={draft.companyId}
-                          onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, companyId: e.target.value } })}
-                        >
-                          <option value="">{tx("Atanmadı")}</option>
-                          {data.companies.map((company) => (
-                            <option key={company.id} value={company.id}>{company.name}</option>
-                          ))}
-                        </select>
+                  {item.printNote ? <p className="text-xs">{tx("Baskı")}: {tx(item.printNote)}</p> : null}
+                  {ready ? (
+                    <p className="text-sm">
+                      <strong>1 {tx("paket")} = {item.packageQty.toLocaleString("tr-TR")} {tx("adet")}</strong>
+                      <span className="block">{money(item.packagePrice)} · {tx("KDV")} %{item.vatRate}</span>
+                      <span className="block">{tx("KDV dahil paket")} {money(gross)}</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-[#57534e]">{tx("Paket fiyatı ve adedi henüz belirlenmedi.")}</p>
+                  )}
+                  <p className="text-xs text-[#57534e]">{tx("Satın alma")}: {data.supplier.name}</p>
+                  {data.staff ? (
+                    <div className="space-y-2 pt-2 border-t border-[#D4ECF6]">
+                      <label className="text-xs block">{tx("Paket fiyatı, KDV hariç (₺)")}
+                        <input className="field mt-1" value={draft.packagePrice} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, packagePrice: e.target.value } })} />
                       </label>
-                      <label className="text-xs block">
-                        {tx("Adet")}
-                        <input
-                          className="field mt-1"
-                          inputMode="numeric"
-                          value={draft.quantity}
-                          onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, quantity: e.target.value.replace(/[^\d]/g, "") } })}
-                        />
-                      </label>
-                      <button type="button" className="btn ghost" disabled={!dirty || busy === item.id} onClick={() => void save(item)}>
-                        {busy === item.id ? tx("Kaydediliyor…") : tx("Atamayı kaydet")}
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="text-xs block">{tx("KDV %")}
+                          <input className="field mt-1" inputMode="numeric" value={draft.vatRate} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, vatRate: e.target.value.replace(/[^\d]/g, "") } })} />
+                        </label>
+                        <label className="text-xs block">{tx("Paketteki adet")}
+                          <input className="field mt-1" inputMode="numeric" value={draft.packageQty} onChange={(e) => setDrafts({ ...drafts, [item.id]: { ...draft, packageQty: e.target.value.replace(/[^\d]/g, "") } })} />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        disabled={busy === item.id}
+                        onClick={() => void run(item.id, item.title, `/api/giveaways/${item.id}`, {
+                          packagePrice: draft.packagePrice,
+                          vatRate: Number(draft.vatRate),
+                          packageQty: Number(draft.packageQty),
+                        })}
+                      >
+                        {busy === item.id ? tx("Kaydediliyor…") : tx("Paketi kaydet")}
                       </button>
                     </div>
+                  ) : null}
+                  {data.companyId && ready ? (
+                    <div className="space-y-1 pt-2">
+                      <div className="flex gap-2 items-end">
+                        <label className="text-xs block flex-1">{tx("Paket sayısı")}
+                          <input className="field mt-1" inputMode="numeric" value={claims[item.id] ?? "1"} onChange={(e) => setClaims({ ...claims, [item.id]: e.target.value.replace(/[^\d]/g, "") })} />
+                        </label>
+                        <button
+                          type="button"
+                          className="btn"
+                          disabled={busy === `claim-${item.id}`}
+                          onClick={() => void run(`claim-${item.id}`, item.title, `/api/giveaways/${item.id}`, { action: "claim", packages: wanted })}
+                        >
+                          {tx("Paketi al")}
+                        </button>
+                      </div>
+                      {wanted > 0 ? <p className="text-xs">{wanted} {tx("paket")} = {(wanted * item.packageQty).toLocaleString("tr-TR")} {tx("adet")} · {money(gross * wanted)}</p> : null}
+                    </div>
+                  ) : null}
+                  {item.pledges.length > 0 ? (
+                    <ul className="space-y-2 pt-2 border-t border-[#D4ECF6] text-sm">
+                      {item.pledges.map((pledge) => {
+                        const slot = slots[pledge.id] || { date: pledge.distributeDate, start: pledge.distributeStart, end: pledge.distributeEnd };
+                        return (
+                          <li key={pledge.id} className="space-y-1">
+                            <div className="flex justify-between gap-2">
+                              <span><strong>{pledge.company.name}</strong> · {pledge.packages || 1} {tx("paket")} · {pledge.quantity.toLocaleString("tr-TR")} {tx("adet")} · {money(Math.round((pledge.agreedPrice || item.packagePrice) * (100 + item.vatRate) / 100) * (pledge.packages || 1))}</span>
+                              {!pledge.distributeDate ? (
+                                <button type="button" className="text-[#0077C2]" disabled={busy === pledge.id} onClick={() => void run(pledge.id, item.title, `/api/giveaways/${item.id}`, { action: "release", pledgeId: pledge.id })}>
+                                  {tx("Vazgeç")}
+                                </button>
+                              ) : null}
+                            </div>
+                            {pledge.distributeDate ? (
+                              <p className="text-xs text-[#0077C2]">{tx("Dağıtım")}: {pledge.distributeDate.slice(8)} {tx("Kasım")} · {pledge.distributeStart}{pledge.distributeEnd ? `–${pledge.distributeEnd}` : ""}</p>
+                            ) : data.staff ? null : <p className="text-xs text-[#57534e]">{tx("Dağıtım günü Sağlık Bakanlığı tarafından yazılacak.")}</p>}
+                            {data.staff ? (
+                              <div className="grid grid-cols-2 gap-1">
+                                <select className="field" value={slot.date} onChange={(e) => setSlots({ ...slots, [pledge.id]: { ...slot, date: e.target.value } })}>
+                                  <option value="">{tx("Gün")}</option>
+                                  {DAYS.map((day) => <option key={day} value={day}>{Number(day.slice(8))} {tx("Kasım")}</option>)}
+                                </select>
+                                <input className="field" type="time" value={slot.start} onChange={(e) => setSlots({ ...slots, [pledge.id]: { ...slot, start: e.target.value } })} />
+                                <input className="field" type="time" value={slot.end} onChange={(e) => setSlots({ ...slots, [pledge.id]: { ...slot, end: e.target.value } })} />
+                                <button
+                                  type="button"
+                                  className="btn ghost"
+                                  disabled={busy === `slot-${pledge.id}`}
+                                  onClick={() => void run(`slot-${pledge.id}`, item.title, `/api/giveaways/${item.id}`, {
+                                    action: "schedule",
+                                    pledgeId: pledge.id,
+                                    distributeDate: slot.date,
+                                    distributeStart: slot.start,
+                                    distributeEnd: slot.end,
+                                  })}
+                                >
+                                  {tx("Günü kaydet")}
+                                </button>
+                              </div>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
                   ) : null}
                 </div>
               </article>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Home } from "lucide-react";
 import { useI18n } from "@/components/I18nProvider";
@@ -43,9 +44,9 @@ export function PageNav() {
       <button type="button" onClick={goBack} aria-label={tx("Geri")} title={tx("Bir önceki sayfaya dön")}>
         <ArrowLeft size={17} />
       </button>
-      <a href="/" aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
+      <Link href="/" prefetch={false} aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
         <Home size={17} />
-      </a>
+      </Link>
     </nav>
   );
 }

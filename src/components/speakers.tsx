@@ -11,9 +11,9 @@ export type PublicSpeaker = {
   name: string;
   title: string;
   organization: string;
-  summary: string;
-  bio: string;
-  linkedin: string;
+  summary?: string;
+  bio?: string;
+  linkedin?: string;
   photoPath: string;
 };
 
@@ -36,15 +36,17 @@ export function useSpeakers() {
   return useApi<{ speakers: PublicSpeaker[] }>("/api/public/speakers");
 }
 
+function useRailSpeakers() {
+  return useApi<{ speakers: PublicSpeaker[] }>("/api/public/speakers?brief=1");
+}
+
 export function SpeakerRail() {
   const { tx } = useI18n();
-  const { data } = useSpeakers();
+  const { data } = useRailSpeakers();
   const items = useMemo(() => data?.speakers || [], [data]);
   const loop = useMemo(() => {
     if (!items.length) return [];
-    const base = [] as PublicSpeaker[];
-    while (base.length < 10) base.push(...items);
-    return [...base, ...base];
+    return [...items, ...items];
   }, [items]);
   const [open, setOpen] = useState(false);
   if (!items.length) return null;

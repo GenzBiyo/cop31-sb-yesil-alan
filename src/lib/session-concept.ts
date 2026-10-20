@@ -150,7 +150,7 @@ export const HIDDEN_ASSETS_CONCEPT: SessionConcept = {
   flow: "",
   titleEn:
     "Unlocking the Hidden Assets of Climate Action: Health, Agriculture and Economic Benefits of Cutting Super Pollutants",
-  organiser: "Astorg (Thermo Fisher)",
+  organiser: "Oxoid",
   partners: `Birleşmiş Milletler Çevre Programı (UNEP) İklim ve Temiz Hava Koalisyonu (CCAC)
 T.C. Sağlık Bakanlığı
 T.C. Tarım ve Orman Bakanlığı
@@ -207,7 +207,7 @@ Ana mesajların özeti
 Sağlığın Geliştirilmesi Genel Müdür Yardımcısı — T.C. Sağlık Bakanlığı
 T.C. Tarım ve Orman Bakanlığı temsilcisi — ilgili dairenin üst düzey temsilcisi, teyide bağlı
 UNEP İklim ve Temiz Hava Koalisyonu temsilcisi — Hidden Assets değerlendirmesi ve bütünleşik iklim ile temiz hava eyleminin sonuçları
-Direktör, Astorg / Thermo Fisher Scientific — iklim, sağlık, teknoloji ve inovasyonda özel sektör perspektifi
+Direktör, Oxoid — iklim, sağlık, teknoloji ve inovasyonda özel sektör perspektifi
 
 Teyide bağlı:
 Dünya Sağlık Örgütü temsilcisi

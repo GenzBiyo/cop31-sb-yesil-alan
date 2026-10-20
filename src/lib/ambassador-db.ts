@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AMBASSADOR_INTRO, DEFAULT_FIELDS } from "@/lib/ambassador";
+import { cancelSolaklar } from "@/lib/events-db";
 
 const PREVIOUS_INTRO_STARTS = ["Önemli not: Konaklama sağlanmamaktadır.", "COP31 Sağlık Elçileri Gönüllü Öğrenci Çağrısı"];
 
@@ -24,7 +25,19 @@ async function upgradeFields() {
   }
 }
 
-export async function ensureAmbassadorForm() {
+let seeding: Promise<void> | null = null;
+
+async function seedAmbassador() {
+  if (seeding) return seeding;
+  seeding = seedAmbassadorWork().catch((error) => {
+    seeding = null;
+    throw error;
+  });
+  return seeding;
+}
+
+async function seedAmbassadorWork() {
+  cancelSolaklar();
   const intro = await prisma.setting.findUnique({ where: { key: "ambassadorIntro" } });
   if (!intro) {
     await prisma.setting.create({ data: { key: "ambassadorIntro", value: AMBASSADOR_INTRO } });
@@ -86,15 +99,14 @@ export async function ensureAmbassadorForm() {
       ],
     });
   }
-  await prisma.ambassadorActivity.deleteMany({
-    where: {
-      OR: [
-        { title: { contains: "Solaklar" } },
-        { title: { contains: "Solak köy" } },
-        { location: { contains: "Solaklar" } },
-      ],
-    },
-  });
+}
+
+export async function ensureAmbassadorReady() {
+  await seedAmbassador();
+}
+
+export async function ensureAmbassadorForm() {
+  await seedAmbassador();
   return {
     intro: (await prisma.setting.findUnique({ where: { key: "ambassadorIntro" } }))?.value || AMBASSADOR_INTRO,
     fields: await prisma.formField.findMany({ where: { formKey: "ambassador" }, orderBy: { sortOrder: "asc" } }),

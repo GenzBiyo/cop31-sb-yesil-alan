@@ -26,7 +26,7 @@ type Stats = {
 export default function DashboardPage() {
   const { tx, t } = useI18n();
   const { data, loading } = useApi<Stats>("/api/stats");
-  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  const { data: me } = useApi<{ role: string; pendingAmbassadors?: number }>("/api/auth/me");
   if (loading || !data || !me) return <p>{tx("Yükleniyor…")}</p>;
   const sb = me.role === "SAGLIK";
   const pendingEvents = sb ? 0 : data.pendingProposals?.events || 0;
@@ -50,6 +50,17 @@ export default function DashboardPage() {
             <Link className="btn ghost" href="/sunumlar">{tx("Konuşmalar")}</Link>
             {sb ? null : <Link className="btn ghost" href="/etkinlikler">{tx("Etkinlikler")}</Link>}
           </div>
+        </div>
+      ) : null}
+      {(me.pendingAmbassadors || 0) > 0 ? (
+        <div className="card p-4 flex flex-wrap justify-between gap-3 items-center" style={{ borderLeft: "4px solid #F59E0B" }}>
+          <div>
+            <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">{tx("Elçi başvuruları")}</div>
+            <p className="text-sm mt-1">
+              {me.pendingAmbassadors} {tx("elçi başvurusu kabul veya red bekliyor.")}
+            </p>
+          </div>
+          <Link className="btn" href="/elciler">{tx("Başvurular")}</Link>
         </div>
       ) : null}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
