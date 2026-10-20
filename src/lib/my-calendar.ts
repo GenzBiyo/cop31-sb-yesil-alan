@@ -36,7 +36,7 @@ export async function companyCalendar(companyId: string) {
   const company = await prisma.company.findUnique({ where: { id: companyId } });
   if (!company) throw new Error("Firma bulunamadı");
 
-  const [slots, incoming, outgoing, panels, events, agenda, sponsorships, joins, submissions, plan] = await Promise.all([
+  const [slots, incoming, outgoing, panels, events, agenda, joins, submissions, plan] = await Promise.all([
     prisma.meetingSlot.findMany({ where: { companyId }, orderBy: [{ date: "asc" }, { startTime: "asc" }] }),
     prisma.meetingRequest.findMany({
       where: { withKind: "firma", withId: companyId, status: { in: [MEETING_PENDING, MEETING_ACCEPTED] } },
@@ -51,7 +51,6 @@ export async function companyCalendar(companyId: string) {
     }),
     prisma.pavilionEvent.findMany({ where: { companyId } }),
     prisma.agendaItem.findMany({ where: { companyId, panelId: null }, include: { day: { select: { date: true } } } }),
-    prisma.gameSponsorship.findMany({ where: { companyId }, include: { game: { select: { title: true } } } }),
     prisma.calendarJoin.findMany({ where: { companyId } }),
     prisma.companySubmission.findMany({ where: { companyId, type: { in: ["calendar", "etkinlik"] }, NOT: { eventDate: "" } } }),
     loadDayPlan(),
@@ -68,7 +67,7 @@ export async function companyCalendar(companyId: string) {
       endTime: "",
       kind: "katilim",
       title: "Pavilyonda katılım günü",
-      detail: company.booth ? `Stant ${company.booth}` : "",
+      detail: "",
       location: "Sağlık Pavilionu",
       status: "",
     });
@@ -176,6 +175,7 @@ export async function companyCalendar(companyId: string) {
 
   for (const ev of events) {
     if (!ev.date || REJECTED.has(ev.approvalStatus)) continue;
+    if (!["quiz", "wheel", "match", "kilo", "hatira"].includes(ev.type)) continue;
     out.push({
       id: `event-${ev.id}`,
       date: ev.date,
@@ -192,6 +192,7 @@ export async function companyCalendar(companyId: string) {
 
   for (const item of agenda) {
     if (!/panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(item.type)) continue;
+    if (/^stant$/i.test(item.type) || /^stand$/i.test(item.type)) continue;
     out.push({
       id: `agenda-${item.id}`,
       date: item.day.date,
@@ -203,22 +204,6 @@ export async function companyCalendar(companyId: string) {
       location: item.location,
       status: item.status,
       href: "/program",
-    });
-  }
-
-  for (const s of sponsorships) {
-    if (REJECTED.has(s.status)) continue;
-    out.push({
-      id: `sponsor-${s.id}`,
-      date: s.date,
-      startTime: s.startTime,
-      endTime: s.endTime,
-      kind: "sponsorluk",
-      title: `Oyun sponsorluğu: ${s.game.title}`,
-      detail: s.prize ? `Ödül: ${s.prize}${s.prizeQty ? ` × ${s.prizeQty}` : ""}` : "",
-      location: "Sağlık Pavilionu — Oyun alanı",
-      status: s.status,
-      href: "/oyun-sponsorluk",
     });
   }
 

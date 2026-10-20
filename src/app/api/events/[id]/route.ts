@@ -4,7 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { APPROVED, notifyCompanyDecision, PENDING, REJECTED } from "@/lib/proposals";
 import { broadcast } from "@/lib/realtime";
-import { isNormalType, isYouthType, slotByStart, validateEventSlot } from "@/lib/event-slots";
+import { isDigitalType, slotByStart, validateEventSlot } from "@/lib/event-slots";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
@@ -70,15 +70,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       ignoreId: id,
     });
     if (slotError) return jsonError(slotError);
-  } else if (body.type != null) {
-    const youthHour = String(existing.startTime) >= "17:00";
-    const nextType = String(body.type);
-    if (youthHour && !isYouthType(nextType)) {
-      return jsonError("17:00’den sonra Gençlik saati: yalnızca gençlik oyunları seçilebilir.");
-    }
-    if (!youthHour && !isNormalType(nextType)) {
-      return jsonError("Bu saatte yalnızca normal etkinlikler seçilebilir. Gençlik oyunları 17:00’den sonra.");
-    }
+  } else if (body.type != null && !isDigitalType(String(body.type))) {
+    return jsonError("Etkinlikler yalnızca dijital oyun olabilir.");
   }
   if (body.published !== undefined && canManage(user.role)) data.published = Boolean(body.published);
   if (body.config !== undefined) data.config = typeof body.config === "string" ? body.config : JSON.stringify(body.config);

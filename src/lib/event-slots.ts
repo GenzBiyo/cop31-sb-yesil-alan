@@ -18,8 +18,9 @@ export const HOUR_SLOTS: HourSlot[] = [
   { start: "18:00", end: "19:00", kind: "youth" },
 ];
 
-export const NORMAL_EVENT_TYPES = ["gift-qa", "quiz", "survey", "wheel", "interactive"] as const;
-export const YOUTH_EVENT_TYPES = ["quiz", "wheel", "match", "kilo", "hatira"] as const;
+export const DIGITAL_EVENT_TYPES = ["quiz", "wheel", "match", "kilo", "hatira"] as const;
+export const NORMAL_EVENT_TYPES = DIGITAL_EVENT_TYPES;
+export const YOUTH_EVENT_TYPES = DIGITAL_EVENT_TYPES;
 
 export type Occupied = { id?: string; date: string; startTime: string; endTime: string; approvalStatus?: string };
 
@@ -32,16 +33,20 @@ export function slotByStart(start: string) {
   return HOUR_SLOTS.find((s) => s.start === start) || null;
 }
 
+export function isDigitalType(type: string) {
+  return (DIGITAL_EVENT_TYPES as readonly string[]).includes(type);
+}
+
 export function isYouthType(type: string) {
-  return (YOUTH_EVENT_TYPES as readonly string[]).includes(type);
+  return isDigitalType(type);
 }
 
 export function isNormalType(type: string) {
-  return (NORMAL_EVENT_TYPES as readonly string[]).includes(type);
+  return isDigitalType(type);
 }
 
-export function typesForSlot(kind: SlotKind): string[] {
-  return kind === "youth" ? [...YOUTH_EVENT_TYPES] : [...NORMAL_EVENT_TYPES];
+export function typesForSlot(_kind?: SlotKind): string[] {
+  return [...DIGITAL_EVENT_TYPES];
 }
 
 function overlaps(ev: Occupied, slot: HourSlot) {
@@ -68,11 +73,6 @@ export function validateEventSlot(opts: {
   if (slot.end !== opts.endTime) return "Her slot 1 saattir.";
   const free = availableSlots(opts.date, opts.occupied, opts.ignoreId).some((s) => s.start === slot.start);
   if (!free) return "Bu slot dolu. Başka bir uygun saat seçin.";
-  if (slot.kind === "youth" && !isYouthType(opts.type)) {
-    return "17:00’den sonra Gençlik saati: yalnızca gençlik oyunları seçilebilir.";
-  }
-  if (slot.kind === "normal" && !isNormalType(opts.type)) {
-    return "Bu saatte yalnızca normal etkinlikler seçilebilir. Gençlik oyunları 17:00’den sonra.";
-  }
+  if (!isDigitalType(opts.type)) return "Etkinlikler yalnızca dijital oyun olabilir.";
   return null;
 }

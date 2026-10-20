@@ -5,7 +5,7 @@ import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { ensureEvents } from "@/lib/events-db";
 import { broadcast } from "@/lib/realtime";
 import { notifySbProposal, PENDING } from "@/lib/proposals";
-import { slotByStart, validateEventSlot } from "@/lib/event-slots";
+import { isDigitalType, slotByStart, validateEventSlot } from "@/lib/event-slots";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -15,9 +15,10 @@ export async function GET() {
     include: { _count: { select: { signups: true } } },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
+  const games = events.filter((e) => isDigitalType(e.type));
   const visible = canManage(user.role)
-    ? events
-    : events.filter((e) => {
+    ? games
+    : games.filter((e) => {
         if (e.companyId && e.companyId === user.companyId) return true;
         return e.published && e.approvalStatus !== PENDING && e.approvalStatus !== "Reddedildi";
       });
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     date: body.date || "2026-11-09",
     startTime,
     endTime,
-    type: body.type || "survey",
+    type: body.type || "quiz",
     occupied,
   });
   if (slotError) return jsonError(slotError);
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     data: {
       slug: `${slug}-${Date.now().toString(36).slice(-4)}`,
       title: body.title || "Yeni etkinlik",
-      type: body.type || "survey",
+      type: body.type || "quiz",
       companyName: body.companyName || company?.name || "",
       topic: body.topic || "",
       date: body.date || "2026-11-09",

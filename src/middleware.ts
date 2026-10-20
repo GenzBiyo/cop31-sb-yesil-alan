@@ -62,9 +62,19 @@ export async function middleware(req: NextRequest) {
   }
   const token = req.cookies.get(COOKIE)?.value;
   if (token) {
-    if (!pathname.startsWith("/api/") && !sbCanSee(pathname) && (await roleOf(token)) === "SAGLIK") {
+    const role = await roleOf(token);
+    if (pathname.startsWith("/oyun-sponsorluk") || pathname.startsWith("/api/game-sponsors")) {
+      if (role !== "ADMIN") {
+        if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });
+        const url = req.nextUrl.clone();
+        url.pathname = "/program";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+    }
+    if (!pathname.startsWith("/api/") && !sbCanSee(pathname) && role === "SAGLIK") {
       const url = req.nextUrl.clone();
-      url.pathname = "/dashboard";
+      url.pathname = "/program";
       url.search = "";
       return NextResponse.redirect(url);
     }

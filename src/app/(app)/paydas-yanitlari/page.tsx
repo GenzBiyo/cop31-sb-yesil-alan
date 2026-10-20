@@ -190,7 +190,6 @@ export default function StakeholderResponsesPage() {
     () => ({
       speakers: rows.filter((r) => r.speakerWilling).length,
       presentation: rows.filter((r) => r.presentation).length,
-      stand: rows.filter((r) => r.standWanted).length,
       interactive: rows.filter((r) => r.interactive.startsWith("Evet")).length,
       meetingHost: rows.filter((r) => r.meetingHost === "Evet").length,
       ministry: rows.filter((r) => r.ministryMeeting?.wanted === "Evet").length,
@@ -272,14 +271,13 @@ export default function StakeholderResponsesPage() {
       </header>
       {info ? <p className="card p-3 text-sm">{info}</p> : null}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2">
         {[
           ["Yanıt", rows.length],
           ["Toplam kişi", stats.people],
           ["Panel konuşmacısı", stats.speakers],
           ["15 dk sunum", stats.presentation],
-          ["Stand", stats.stand],
-          ["İnteraktif etkinlik", stats.interactive],
+          ["Dijital oyun", stats.interactive],
           ["Bakanlık 1-1", stats.ministry],
           ["Diğer toplantı", stats.meetingHost],
         ].map(([k, v]) => (
@@ -332,10 +330,7 @@ export default function StakeholderResponsesPage() {
               <div className="flex flex-wrap gap-1">
                 <Flag on={r.speakerWilling} label="Panel konuşmacısı" />
                 <Flag on={r.presentation} label="15 dk sunum" />
-                <Flag on={r.standWanted} label="Stand" />
-                {r.standWanted && r.standDays ? <span className="badge">{tx("Stand")}: {r.standDays}</span> : null}
-                {r.videoReady ? <span className="badge">{tx("Video")}: {tx(r.videoReady)}</span> : null}
-                {r.interactive ? <span className={`badge ${r.interactive.startsWith("Evet") ? "ok" : "muted"}`}>{tx("İnteraktif")}: {tx(r.interactive)}</span> : null}
+                {r.interactive ? <span className={`badge ${r.interactive.startsWith("Evet") ? "ok" : "muted"}`}>{tx("Dijital oyun")}: {tx(r.interactive)}</span> : null}
               </div>
               {r.speakers.length ? (
                 <div className="text-sm">
@@ -447,7 +442,7 @@ export default function StakeholderResponsesPage() {
                     <span className="text-[#57534e]">{firms.length} {tx("firma")} · {firms.reduce((n, r) => n + r.headcount, 0)} {tx("kişi")}</span>
                   </div>
                   <ul className="mt-1 text-xs space-y-0.5">
-                    {firms.map((r) => <li key={r.id}>{r.companyName}{r.standWanted ? ` · ${tx("stand")}` : ""}</li>)}
+                    {firms.map((r) => <li key={r.id}>{r.companyName}</li>)}
                   </ul>
                 </div>
               );

@@ -199,7 +199,7 @@ export function MeetingAvailability({ company, onCompanyChange }: { company: Com
             </select>
           </label>
           <label className="text-sm col-span-2 md:col-span-1">{tx("Yer")}
-            <input className="field mt-1" placeholder={tx("Örn. Firma standı")} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+            <input className="field mt-1" placeholder={tx("Örn. Toplantı alanı")} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
           </label>
         </div>
         <button className="btn" disabled={!form.dates.length}>{tx("Saatleri oluştur")}</button>

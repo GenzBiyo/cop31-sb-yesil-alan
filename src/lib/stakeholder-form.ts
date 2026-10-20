@@ -89,7 +89,7 @@ export const TIME_OF_DAY = ["Fark etmez", "Sabah", "Öğleden sonra"];
 export const MINISTRY_NAME = "T.C. Sağlık Bakanlığı";
 
 export const FORM_INTRO =
-  "Sağlık Bakanlığı Pavilyonu içerisinde 3 Kamu 3 Özel Sektör Paydaşları için toplamda 6 tane stand alanı bulunmaktadır. Her stand arkasında, firmaların videolarını döndüreceği, duvara monte 45 inch ekran bulunacaktır. 15 dakikalık firma sunumları 2,5m x 2,5m ana ekran önünde yapılacaktır. Pavilyon içerisinde 3 konuşmacı + 1 moderatör ile tematik konulara uygun panel oturumları gerçekleştirilecektir.";
+  "15 dakikalık firma sunumları ana ekran önünde yapılacaktır. Pavilyon içerisinde 3 konuşmacı + 1 moderatör ile tematik konulara uygun panel oturumları gerçekleştirilecektir. Etkinlikler dijital oyunlardır.";
 
 export function emptyInput(): StakeholderInput {
   return {

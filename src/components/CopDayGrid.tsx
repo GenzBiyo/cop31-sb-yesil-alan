@@ -27,7 +27,7 @@ function itemsAtHour(items: PlanItem[], hour: number) {
 const KIND: Record<PlanKind, { label: string; color: string; bg: string }> = {
   panel: { label: "Panel", color: "#6E3A44", bg: "#F3E6E8" },
   sunum: { label: "Sunum", color: "#2C5278", bg: "#E6F0F8" },
-  event: { label: "Etkinlik", color: "#245C42", bg: "#E5F2EB" },
+  event: { label: "Dijital oyun", color: "#245C42", bg: "#E5F2EB" },
   program: { label: "Program", color: "#3E5568", bg: "#E8EEF2" },
 };
 
@@ -37,7 +37,7 @@ const FILTERS: { id: ProgramFilter; label: string }[] = [
   { id: "all", label: "Tümü Göster" },
   { id: "panel", label: "Paneller" },
   { id: "sunum", label: "Konuşmalar" },
-  { id: "event", label: "Etkinlikler" },
+  { id: "event", label: "Dijital oyunlar" },
 ];
 
 export function planMatchesFilter(kind: PlanKind, filter: ProgramFilter) {

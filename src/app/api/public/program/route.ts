@@ -26,7 +26,7 @@ function warmReminders() {
 
 async function loadEvents() {
   return prisma.pavilionEvent.findMany({
-    where: { published: true },
+    where: { published: true, type: { in: ["quiz", "wheel", "match", "kilo", "hatira"] } },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
     select: eventSelect,
   });

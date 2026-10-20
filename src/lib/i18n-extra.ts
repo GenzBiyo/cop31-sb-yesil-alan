@@ -1192,5 +1192,28 @@ export const EN_EXTRA: Record<string, string> = {
   "Kapalı": "Closed",
   "9.00–19.00 arası her saat. Yeşil kutu boştur; dolu kutuda oturumun adı yazar.":
     "Every hour from 09:00 to 19:00. A green cell is free; a filled cell shows the session.",
+  "Dijital oyun": "Digital game",
+  "Dijital oyunlar": "Digital games",
+  "Dijital oyun önerin. Sağlık Bakanlığı onaylayınca QR açılır ve programa düşer.":
+    "Propose a digital game. The QR and the programme open after the Ministry of Health approves it.",
+  "Etkinlikler yalnızca dijital oyunlardır: soru-cevap, çark, hafıza, kilo karbon ve hatıra fotoğrafı. Her slot 1 saattir.":
+    "Events are digital games only: quiz, wheel, memory, kilo carbon and souvenir photo. Each slot is one hour.",
+  "Yeni mesaj": "New message",
+  "Yazışmalar": "Conversations",
+  "Birim olarak yaz": "Write as unit",
+  "Kişi veya birim ara": "Search a person or unit",
+  "Yazışma ara": "Search conversations",
+  "Onaylı paydaşlar ve Sağlık Bakanlığı birimleri birbirine yazar. Eski soru-cevaplar da bu kutudadır.":
+    "Approved stakeholders and Ministry of Health units can message each other. Earlier questions are in this box too.",
+  "Soldan bir yazışma seçin veya yeni mesaj açın.": "Choose a conversation on the left or start a new message.",
+  "İlk mesajı yazın.": "Write the first message.",
+  "Mesaj için paydaş kaydının onaylı olması gerekir.": "Messaging needs an approved stakeholder registration.",
+  "Sağlık Bakanlığı birimi": "Ministry of Health unit",
+  "Önceki yazışma": "Earlier conversation",
+  "Sunum ve dijital oyun": "Talk and digital game",
+  "Dijital oyun etkinliği yapmak istiyor musunuz?": "Do you want to run a digital game?",
+  "Dijital oyun sorunuzu yanıtlayın.": "Please answer the digital game question.",
+  "Program ve firma hazırlık paketi.": "Programme and company preparation pack.",
+  "Örn. Toplantı alanı": "E.g. meeting area",
 };
 

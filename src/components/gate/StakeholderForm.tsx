@@ -16,7 +16,6 @@ import {
   SLOT_TIMES,
   slotEnd,
   TIME_OF_DAY,
-  VIDEO_OPTIONS,
   type MinistryMeeting,
   type MeetingWish,
   type NamedPerson,
@@ -170,9 +169,9 @@ export function StakeholderForm() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError("");
-    const missing = ["speakerWilling", "presentation", "standWanted"].find((k) => !answered[k]);
+    const missing = ["speakerWilling", "presentation"].find((k) => !answered[k]);
     if (missing) return setError(tx("Lütfen tüm Evet / Hayır sorularını yanıtlayın."));
-    if (!form.videoReady || !form.interactive) return setError(tx("Video ve interaktif etkinlik sorularını yanıtlayın."));
+    if (!form.interactive) return setError(tx("Dijital oyun sorunuzu yanıtlayın."));
     setBusy(true);
     try {
       const res = await api<{ updated: boolean }>("/api/public/stakeholder-form", { method: "POST", body: JSON.stringify(form) });
@@ -261,22 +260,11 @@ export function StakeholderForm() {
         </section>
 
         <section className="space-y-3">
-          <h3 className="concept-kicker">{tx("Sunum ve stand")}</h3>
+          <h3 className="concept-kicker">{tx("Sunum ve dijital oyun")}</h3>
           <Question label="Ana ekran önü 15 dk firma proje sunumu istiyor musunuz?" required>
             <Choice options={["Evet", "Hayır"]} value={yn("presentation")} onChange={(v) => yesNo("presentation", v)} />
           </Question>
-          <Question label="Stand kullanımı istiyor musunuz?" required>
-            <Choice options={["Evet", "Hayır"]} value={yn("standWanted")} onChange={(v) => yesNo("standWanted", v)} />
-          </Question>
-          {form.standWanted ? (
-            <Question label="Stand kullanımını kaç gün istiyorsunuz?">
-              <input className="field max-w-[12rem]" placeholder={tx("Örn. 4 gün")} value={form.standDays} onChange={(e) => set({ standDays: e.target.value })} />
-            </Question>
-          ) : null}
-          <Question label="Stand kullanımı sırasında arkadaki ekranda döndüreceğiniz videonuz hazır mı?" required>
-            <Choice options={VIDEO_OPTIONS} value={form.videoReady} onChange={(videoReady) => set({ videoReady })} />
-          </Question>
-          <Question label="İnteraktif etkinlik yapmak istiyor musunuz?" required>
+          <Question label="Dijital oyun etkinliği yapmak istiyor musunuz?" required>
             <Choice options={INTERACTIVE_OPTIONS} value={form.interactive} onChange={(interactive) => set({ interactive })} />
           </Question>
         </section>

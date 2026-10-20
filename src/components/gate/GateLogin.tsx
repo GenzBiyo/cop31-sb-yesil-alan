@@ -20,7 +20,7 @@ function GateLoginForm({ heading }: { heading: string }) {
     try {
       await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
       const next = params.get("next");
-      const dest = next && next.startsWith("/") ? next : "/dashboard";
+      const dest = next && next.startsWith("/") ? next : "/program";
       window.location.assign(dest);
     } catch (err) {
       setError(err instanceof Error ? err.message : tx("Giriş başarısız"));

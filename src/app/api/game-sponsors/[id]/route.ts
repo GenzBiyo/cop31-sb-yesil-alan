@@ -26,6 +26,7 @@ async function load(id: string) {
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  if (user.role !== "ADMIN") return jsonError("Yalnızca admin erişebilir", 403);
   const { id } = await ctx.params;
   const row = await load(id);
   if (!row) return jsonError("Kayıt yok", 404);
@@ -86,6 +87,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 export async function DELETE(_req: NextRequest, ctx: Ctx) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  if (user.role !== "ADMIN") return jsonError("Yalnızca admin erişebilir", 403);
   const { id } = await ctx.params;
   const row = await load(id);
   if (!row) return jsonError("Kayıt yok", 404);

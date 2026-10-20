@@ -8,7 +8,6 @@ import { useI18n, Tx } from "@/components/I18nProvider";
 import { COP_DAY_OPTIONS } from "@/lib/cop-days";
 import {
   availableSlots,
-  isYouthType,
   slotByStart,
   typesForSlot,
   type Occupied,
@@ -35,11 +34,8 @@ type Ev = {
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  "gift-qa": "Hediyeli soru-cevap",
   quiz: "Soru-cevap",
-  survey: "İnteraktif anket",
   wheel: "Dijital çark",
-  interactive: "İnteraktif deneyim",
   match: "Hafıza / eşleştirme",
   kilo: "Kilo karbon",
   hatira: "Hatıra fotoğrafı",
@@ -73,7 +69,7 @@ export default function EventsAdminPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     title: "",
-    type: "survey",
+    type: "quiz",
     companyName: "",
     topic: "",
     date: "2026-11-09",
@@ -100,9 +96,7 @@ export default function EventsAdminPage() {
   function slotLabel(start: string) {
     const slot = slotByStart(start);
     if (!slot) return start;
-    return slot.kind === "youth"
-      ? `${slot.start}–${slot.end} · ${tx("Gençlik saati")}`
-      : `${slot.start}–${slot.end}`;
+    return `${slot.start}–${slot.end}`;
   }
 
   function applySlot(next: { date?: string; startTime?: string; type?: string }) {
@@ -259,8 +253,8 @@ export default function EventsAdminPage() {
         <h1 className="display text-4xl">{tx("Etkinlikler")}</h1>
         <p className="text-[#57534e]">
           {isFirma
-            ? tx("Etkinlik önerin. Sağlık Bakanlığı onaylayınca QR açılır ve programa düşer.")
-            : tx("Slotlar 1 saattir. 16:00’a kadar normal etkinlik; 17:00’den sonra yalnızca gençlik oyunları.")}
+            ? tx("Dijital oyun önerin. Sağlık Bakanlığı onaylayınca QR açılır ve programa düşer.")
+            : tx("Etkinlikler yalnızca dijital oyunlardır: soru-cevap, çark, hafıza, kilo karbon ve hatıra fotoğrafı. Her slot 1 saattir.")}
         </p>
       </div>
         <button type="button" className={showForm ? "btn ghost" : "btn"} onClick={() => setShowForm((v) => !v)}>
@@ -343,7 +337,7 @@ export default function EventsAdminPage() {
                     setOpenId((id) => (id === ev.id ? null : ev.id));
                   }}
                 >
-                  <div className="session-kicker text-xs">{tx(TYPE_LABEL[ev.type] || ev.type)} · {formatDate(ev.date)} · {ev.startTime}–{ev.endTime}{isYouthType(ev.type) || slotByStart(ev.startTime)?.kind === "youth" ? ` · ${tx("Gençlik saati")}` : ""}</div>
+                  <div className="session-kicker text-xs">{tx(TYPE_LABEL[ev.type] || ev.type)} · {formatDate(ev.date)} · {ev.startTime}–{ev.endTime}</div>
                   <div className="display text-2xl">{ev.title}</div>
                   <div className="session-meta text-sm">{ev.companyName} · {ev.location} · {ev._count?.signups || 0} kayıt</div>
                 </button>

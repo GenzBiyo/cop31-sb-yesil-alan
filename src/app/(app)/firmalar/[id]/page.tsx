@@ -44,7 +44,6 @@ function CompanyEditor({ id }: { id: string }) {
         <Field label="Konu" value={data.topic} onSave={(topic) => patch(id, { topic }, reload)} />
         <Field label="Katılım tarihleri" value={data.participationDates} onSave={(participationDates) => patch(id, { participationDates }, reload)} />
         <Field label="Katkı" value={data.contribution} onSave={(contribution) => patch(id, { contribution }, reload)} />
-        <Field label="Stant" value={data.booth} onSave={(booth) => patch(id, { booth }, reload)} />
         <Field label="Durum" value={data.status} onSave={(status) => patch(id, { status }, reload)} />
         <Field label="İletişim e-posta" value={data.contactEmail} onSave={(contactEmail) => patch(id, { contactEmail }, reload)} />
         <label className="text-sm md:col-span-2"><Tx>Bağlam</Tx><textarea className="field mt-1" defaultValue={data.context} onBlur={(e) => patch(id, { context: e.target.value }, reload)} />

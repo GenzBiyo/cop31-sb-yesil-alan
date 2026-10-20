@@ -7,9 +7,7 @@ import { useI18n } from "@/components/I18nProvider";
 const DOCS = [
   { slug: "program", title: "Pavilion programı", text: "12 günlük takvim, etkinlikler ve konuşmalar." },
   { slug: "etkinlikler", title: "Etkinlikler ve paneller", text: "Panel başlıkları, paydaşlar, panelist ve moderatör listesi." },
-  { slug: "pavilion-kurallar", title: "Pavilyon kullanım kuralları", text: "Paydaş katılım, stant, ekran, eşantiyon, ikram ve marka kuralları." },
-  { slug: "alan-plani", title: "Alan planı", text: "Sağlık Bakanlığı pavilyonu: perspektif ve ön görünüş. 50 m²." },
-  { slug: "firma-dokuman", title: "Firma hazırlık dökümanı", text: "Akreditasyon, kurallar, teslim tarihleri ve teknik ihtiyaçlar." },
+  { slug: "firma-dokuman", title: "Firma hazırlık dökümanı", text: "Akreditasyon, teslim tarihleri ve teknik ihtiyaçlar." },
 ];
 
 export default function DocsPage() {
@@ -22,7 +20,7 @@ export default function DocsPage() {
   return (
     <div className="space-y-4">
       <h1 className="display text-4xl">{tx("PDF dökümanlar")}</h1>
-      <p className="text-[#57534e]">{tx("Program, kurallar, alan planı ve firma hazırlık paketi.")}</p>
+      <p className="text-[#57534e]">{tx("Program ve firma hazırlık paketi.")}</p>
       <div className="grid md:grid-cols-2 gap-3">
         {DOCS.map((d) => (
           <div key={d.slug} className="card p-5">

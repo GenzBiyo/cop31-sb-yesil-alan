@@ -170,7 +170,6 @@ export async function pdfCompanyKit(companyId?: string): Promise<Buffer> {
     doc.fontSize(9).fillColor("#333").text(`${company.scope} · ${company.topic}`);
     doc.text(`Katılım: ${company.participationDates}`);
     doc.text(`Katkı: ${company.contribution}`);
-    doc.text(`Stant: ${company.booth || "atanacak"}`);
     doc.moveDown();
     doc.fontSize(11).fillColor("#0077C2").text("Size atanan kurallar");
     for (const r of company.rules) {
@@ -182,17 +181,6 @@ export async function pdfCompanyKit(companyId?: string): Promise<Buffer> {
   } else {
     doc.fontSize(10).text("Bu paket tüm firma yetkilileri için ortak hazırlık rehberidir.");
   }
-  doc.moveDown();
-  doc.fontSize(11).fillColor("#0077C2").text("Pavilion kuralları");
-  const rules = [
-    "Blue Zone akreditasyonu olmadan sahaya girilemez.",
-    "Tek kullanımlık plastik kullanılmaz; sıfır atık protokolü geçerlidir.",
-    "Görsel kimlikte T.C. Sağlık Bakanlığı ve COP31 logoları birlikte kullanılır.",
-    "Ses seviyesi bitişik oturumları etkilemeyecek düzeyde tutulur.",
-    "Canlı yayın ve fotoğraf için protokol ekibinden onay alınır.",
-    "Kurulum 2–8 Kasım, söküm 20–23 Kasım penceresindedir.",
-  ];
-  for (const r of rules) doc.fontSize(9).fillColor("#1a1a1a").text(`• ${r}`);
   doc.end();
   return done;
 }

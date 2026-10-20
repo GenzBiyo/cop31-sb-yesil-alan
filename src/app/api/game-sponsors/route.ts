@@ -18,7 +18,7 @@ import {
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (user.role === "FIRMA" && !user.companyId) return jsonError("Firma hesabı gerekli", 403);
+  if (user.role !== "ADMIN") return jsonError("Yalnızca admin erişebilir", 403);
   const manager = canManage(user.role);
   await ensureSampleGames();
 
@@ -51,9 +51,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  if (user.role !== "ADMIN") return jsonError("Yalnızca admin erişebilir", 403);
   const manager = canManage(user.role);
-  if (!manager && user.role !== "FIRMA") return jsonError("Yetkiniz yok", 403);
-  if (!manager && !user.companyId) return jsonError("Firma hesabı gerekli", 403);
 
   const body = await req.json();
   const companyId = manager ? String(body.companyId || "") : user.companyId!;

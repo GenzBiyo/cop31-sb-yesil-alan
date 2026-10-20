@@ -134,7 +134,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
                 <em>{tx("Sağlıklı gezegen")}</em>
               </h1>
               {inApp ? (
-                <a href={next && next.startsWith("/") ? next : "/dashboard"} className="climate-return">
+                <a href={next && next.startsWith("/") ? next : "/program"} className="climate-return">
                   {next?.startsWith("/sunucu") ? tx("Sunucu ekranına dön →") : tx("Hazırlık masasına dön →")}
                 </a>
               ) : null}

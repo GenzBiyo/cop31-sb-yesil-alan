@@ -61,7 +61,7 @@ export default function CompliancePage() {
               <div>
                 <div className="text-xs tracking-[0.14em] uppercase text-[#0077C2]">{tx(TYPE_LABEL[item.type] || item.type)} · {item.quantity}</div>
                 <h2 className="display text-2xl">{item.title}</h2>
-                <p className="text-sm text-[#57534e]">{item.company.name}{item.company.booth ? ` · Stant ${item.company.booth}` : ""}</p>
+                <p className="text-sm text-[#57534e]">{item.company.name}</p>
               </div>
               <span className={`badge ${item.status === "Uygun" ? "ok" : item.status === "Uygun değil" ? "high" : "warn"}`}>{tx(item.status)}</span>
             </div>

@@ -25,13 +25,6 @@ const DEMO_TAGS = [
     message:
       "Ana sahneye geldiniz. Açık oturumda sorunuzu Soru sekmesinden iletin; sahneye alındığında telefonunuza haber düşer.",
   },
-  {
-    code: "STAND",
-    title: "Sağlık standı",
-    location: "Sağlık Pavilionu — Stand",
-    message:
-      "Sağlıklı insan, sağlıklı gezegen. Bu standın mesajı telefonunuza düştü. Bildirimleri açarsanız salon anonsları da buraya gelir.",
-  },
 ];
 
 let vapidPromise: Promise<{ publicKey: string; privateKey: string }> | null = null;

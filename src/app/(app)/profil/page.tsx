@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import { ImageUp } from "lucide-react";
 import { api, useApi } from "@/lib/client";
 import { useI18n, Tx } from "@/components/I18nProvider";
-import { PavilionRulesDialog } from "@/components/PavilionRules";
 import { accountKind } from "@/lib/account-kinds";
 import { ParticipationDays } from "@/components/ParticipationDays";
 import { DelegationEditor, SpeakerRequest, type FormHint } from "@/components/CompanyPeople";
@@ -41,7 +40,6 @@ export default function ProfilePage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Company[]>("/api/companies");
   const company = data?.[0];
-  const [rulesOpen, setRulesOpen] = useState(false);
   const [sub, setSub] = useState({ type: "calendar", title: "", payload: "", eventDate: "" });
   const [item, setItem] = useState({ type: "etkinlik", title: "", quantity: "", payload: "" });
   const [formError, setFormError] = useState("");
@@ -50,19 +48,17 @@ export default function ProfilePage() {
   const compliance = company.submissions.filter((row) => COMPLIANCE.some((kind) => kind.id === row.type));
   return (
     <div className="space-y-5">
-      <PavilionRulesDialog open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <div className="flex justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">{tx(kind.label)} · {tx("profil")}</p>
           <h1 className="display text-4xl">{company.name}</h1>
           <p className="text-[#57534e]">
-            {kind.firmTools ? `${company.scope} · Stant ${company.booth || "atanacak"} · ` : ""}{tx(company.status)}
+            {kind.firmTools ? `${company.scope} · ` : ""}{tx(company.status)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 items-start">
           <Link className="btn secondary" href="/takvimim">{tx("Takvimimi gör")}</Link>
           <Link className="btn ghost" href="/toplantilar">{tx("Toplantılarım")}</Link>
-          {kind.firmTools ? <button type="button" className="btn" onClick={() => setRulesOpen(true)}>{tx("Pavilyon Kullanım Kuralları")}</button> : null}
         </div>
       </div>
       <ProfileEditor key={company.id} company={company} reload={reload} />

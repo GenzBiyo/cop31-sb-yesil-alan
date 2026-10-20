@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { pdfProgram, pdfEvents, pdfSpace, pdfCompanyKit, pdfPavilionRules } from "@/lib/pdf";
+import { pdfProgram, pdfEvents, pdfCompanyKit } from "@/lib/pdf";
 import { jsonError, withUser } from "@/lib/api";
-import { readPavilionRules } from "@/lib/pavilion-rules";
 
 function uploadedPrep() {
   const file = path.join(process.cwd(), "public", "uploads", "docs", "firma-hazirlik.pdf");
@@ -21,15 +20,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   } else if (slug === "etkinlikler") {
     buf = await pdfEvents();
     name = "COP31-SB-etkinlikler";
-  } else if (slug === "alan-plani") {
-    buf = await pdfSpace();
-    name = "COP31-SB-alan-plani";
   } else if (slug === "firma-dokuman") {
     buf = uploadedPrep() || (await pdfCompanyKit(user.companyId || undefined));
     name = "COP31-SB-firma-hazirlik";
-  } else if (slug === "pavilion-kurallar") {
-    buf = await pdfPavilionRules(await readPavilionRules());
-    name = "COP31-SB-pavilyon-kullanim-kurallari";
   } else {
     return jsonError("Bilinmeyen döküman", 404);
   }

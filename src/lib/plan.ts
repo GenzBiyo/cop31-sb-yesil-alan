@@ -1,5 +1,7 @@
 import { prisma } from "./prisma";
 import { COP_DATES, copDayMeta } from "./cop-days";
+import { hideNonDigitalEvents } from "./events-db";
+import { isDigitalType } from "./event-slots";
 import type { PlanDay, PlanItem, PlanKind } from "./plan-types";
 
 export type { PlanDay, PlanItem, PlanKind } from "./plan-types";
@@ -28,6 +30,7 @@ function peopleLine(parts: { role: string; person: { name: string } }[]) {
 }
 
 export async function loadDayPlan(): Promise<PlanDay[]> {
+  await hideNonDigitalEvents();
   const [days, panels, events] = await Promise.all([
     prisma.thematicDay.findMany({
       include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },
@@ -64,7 +67,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
   }
 
   for (const ev of events) {
-    if (!ev.date) continue;
+    if (!ev.date || !isDigitalType(ev.type)) continue;
     const list = byDate.get(ev.date) || [];
     list.push({
       id: `event-${ev.id}`,
@@ -82,6 +85,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
   for (const day of days) {
     for (const item of day.agenda) {
       if (item.panelId || !isShownAgendaType(item.type)) continue;
+      if (/^stant$/i.test(item.type) || /^stand$/i.test(item.type)) continue;
       const list = byDate.get(day.date) || [];
       list.push({
         id: `agenda-${item.id}`,

@@ -183,7 +183,6 @@ export default function FirmsPage() {
               <th>{tx("Konu")}</th>
               <th>{tx("Tarih")}</th>
               <th>{tx("Katkı")}</th>
-              <th>{tx("Stant")}</th>
               <th>{tx("Durum")}</th>
               <th>{tx("Kurallar")}</th>
               <th></th>
@@ -199,7 +198,6 @@ export default function FirmsPage() {
                   <td>{c.topic || "—"}</td>
                   <td>{c.participationDates}</td>
                   <td className="max-w-xs">{c.contribution}</td>
-                  <td>{c.booth || "—"}</td>
                   <td><span className={`badge ${c.status === "Onaylandı" ? "ok" : "warn"}`}>{tx(c.status)}</span></td>
                   <td>{done}/{c.rules.length}</td>
                   <td>

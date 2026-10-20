@@ -62,36 +62,62 @@ async function cancelSolaklarWork() {
   });
 }
 
+const DIGITAL_TYPES = ["quiz", "wheel", "match", "kilo", "hatira"];
+const digitalFlag = globalThis as unknown as { digitalEventsReady?: boolean };
+
+export async function hideNonDigitalEvents() {
+  if (digitalFlag.digitalEventsReady) return;
+  const done = await prisma.setting.findUnique({ where: { key: "eventsDigitalOnly" } });
+  if (!done) {
+    await prisma.pavilionEvent.updateMany({
+      where: { NOT: { type: { in: DIGITAL_TYPES } } },
+      data: { published: false },
+    });
+    await prisma.agendaItem.deleteMany({
+      where: {
+        OR: [{ type: "Stant" }, { type: "Stand" }, { title: { startsWith: "Stant " } }, { title: { startsWith: "Stand " } }],
+      },
+    });
+    await prisma.pavilionTag.updateMany({ where: { code: "STAND" }, data: { active: false } });
+    await prisma.setting.upsert({
+      where: { key: "eventsDigitalOnly" },
+      update: { value: "1" },
+      create: { key: "eventsDigitalOnly", value: "1" },
+    });
+  }
+  digitalFlag.digitalEventsReady = true;
+}
+
 const eventsFlag = globalThis as unknown as { eventsReady?: boolean };
 
 export async function ensureEvents() {
   cancelSolaklar();
-  if (eventsFlag.eventsReady) return;
-  const catalogCount = await prisma.pavilionEvent.count();
-  if (catalogCount >= EVENT_CATALOG.length) {
+  if (!eventsFlag.eventsReady) {
+    const catalogCount = await prisma.pavilionEvent.count();
+    if (catalogCount < EVENT_CATALOG.length) {
+      for (const e of EVENT_CATALOG) {
+        const existing = await prisma.pavilionEvent.findUnique({ where: { slug: e.slug } });
+        if (existing) continue;
+        await prisma.pavilionEvent.create({
+          data: {
+            slug: e.slug,
+            title: e.title,
+            type: e.type,
+            companyName: e.companyName,
+            topic: e.topic,
+            date: e.date,
+            startTime: e.startTime,
+            endTime: e.endTime,
+            location: e.location,
+            description: e.description,
+            gift: e.gift,
+            config: JSON.stringify(e.config),
+            published: DIGITAL_TYPES.includes(e.type),
+          },
+        });
+      }
+    }
     eventsFlag.eventsReady = true;
-    return;
   }
-  for (const e of EVENT_CATALOG) {
-    const existing = await prisma.pavilionEvent.findUnique({ where: { slug: e.slug } });
-    if (existing) continue;
-    await prisma.pavilionEvent.create({
-      data: {
-        slug: e.slug,
-        title: e.title,
-        type: e.type,
-        companyName: e.companyName,
-        topic: e.topic,
-        date: e.date,
-        startTime: e.startTime,
-        endTime: e.endTime,
-        location: e.location,
-        description: e.description,
-        gift: e.gift,
-        config: JSON.stringify(e.config),
-        published: true,
-      },
-    });
-  }
-  eventsFlag.eventsReady = true;
+  await hideNonDigitalEvents();
 }

@@ -10,13 +10,10 @@ import {
   ClipboardList,
   FileDown,
   FileSpreadsheet,
-  ScrollText,
   ClipboardCheck,
   Gift,
-  LayoutDashboard,
   LogOut,
   Menu,
-  Map,
   MessageSquare,
   Mic2,
   Presentation,
@@ -59,7 +56,6 @@ type Me = {
 };
 
 const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; firmTools?: boolean }[] = [
-  { href: "/dashboard", label: "Özet", icon: LayoutDashboard, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/todos", label: "Hazırlık to-do", icon: ClipboardList, roles: ["ADMIN", "SAGLIK"] },
   { href: "/takvim", label: "Hazırlık takvimi", icon: CalendarDays, roles: ["ADMIN", "SAGLIK"] },
   { href: "/program", label: "COP31 gündem", icon: Sparkles, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
@@ -77,15 +73,12 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "FIRMA"], firmTools: true },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
   { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN"] },
-  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN", "FIRMA"], firmTools: true },
+  { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN"] },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/soru-cevap", label: "Soru-cevap", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/anonslar", label: "Anonslar", icon: Bell, roles: ["ADMIN", "FIRMA"] },
-  { href: "/alan-plani", label: "Alan planı", icon: Map, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/dokumanlar", label: "PDF dökümanlar", icon: FileDown, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/esantiyon", label: "Eşantiyon ve İkram", icon: Gift, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
-  { href: "/kurallar", label: "Pavilyon kuralları", icon: ScrollText, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck, roles: ["ADMIN"] },
 ];
 
@@ -123,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (me && me.role === "FIRMA" && MINISTRY_ONLY.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-      window.location.replace("/dashboard");
+      window.location.replace("/program");
     }
   }, [me, pathname]);
 
@@ -148,7 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">
       {menuOpen ? <button type="button" className="desk-backdrop" aria-label={tx("Kapat")} onClick={() => setMenuOpen(false)} /> : null}
       <aside className={`desk-aside bg-white text-[#0B1C33] px-3 py-5 border-r border-[#D4ECF6]${menuOpen ? " is-open" : ""}`}>
-        <Link href="/dashboard" prefetch={false} className="block px-2">
+        <Link href="/program" prefetch={false} className="block px-2">
           <img src="/brand/cop31-turkiye.png" alt={tx("COP31 Türkiye Antalya")} className="w-[168px] h-auto" />
         </Link>
         <p className="px-2 mt-3 text-[10px] tracking-[0.18em] uppercase text-[#0077C2]">{tx("T.C. Sağlık Bakanlığı")}</p>
@@ -167,7 +160,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Icon size={16} />
                 <span className="flex-1">{tx(item.label)}</span>
                 {item.href === "/mesajlar" && me && me.unread > 0 ? <span className="badge high">{me.unread}</span> : null}
-                {item.href === "/soru-cevap" && me && me.openQa > 0 ? <span className="badge warn">{me.openQa}</span> : null}
                 {item.href === "/hesaplar" && me && (me.pendingAccounts || 0) > 0 ? <span className="badge high">{me.pendingAccounts}</span> : null}
                 {item.href === "/paneller" && me && (me.pendingPanels || 0) > 0 ? <span className="badge warn">{me.pendingPanels}</span> : null}
                 {item.href === "/sunumlar" && me && (me.pendingTalks || 0) > 0 ? <span className="badge warn">{me.pendingTalks}</span> : null}
