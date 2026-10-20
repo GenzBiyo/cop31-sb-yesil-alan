@@ -79,36 +79,10 @@ export default function ProfilePage() {
       <DelegationEditor key={`d-${company.delegation}`} company={company} reload={reload} />
       <SpeakerRequest company={company} />
       {kind.firmTools ? (<>
-      <section className="card p-4">
-        <h2 className="display text-2xl">Size atanan kurallar</h2>
-        <ul className="mt-3 space-y-3">
-          {company.rules.map((r) => (
-            <li key={r.id} className="flex justify-between gap-3 border-b border-[#DCE8F0] pb-2">
-              <div>
-                <div className="font-semibold">{r.title}</div>
-                <div className="text-sm text-[#57534e]">{r.body}</div>
-                <div className="text-xs">Son tarih {r.dueDate || "—"}</div>
-              </div>
-              <select
-                className="field w-40"
-                value={r.status}
-                onChange={async (e) => {
-                  await api("/api/rules", { method: "POST", body: JSON.stringify({ action: "status", id: r.id, status: e.target.value }) });
-                  await reload();
-                }}
-              >
-                <option>Bekliyor</option>
-                <option>Devam Ediyor</option>
-                <option><Tx>Tamamlandı</Tx></option>
-              </select>
-            </li>
-          ))}
-        </ul>
-      </section>
       <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">{tx("Etkinlik ve sunum")}</h2>
         <p className="text-sm text-[#57534e]">
-          {tx("Etkinlik ve sunumunuzu adet ve tanımla onaya sunun. Eşantiyon paketini listeden kendiniz alırsınız; satın almayı Greenstyle yapar, dağıtım gününü Sağlık Bakanlığı belirler.")}{" "}
+          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}{" "}
           <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
         </p>
         <div className="grid md:grid-cols-4 gap-2">

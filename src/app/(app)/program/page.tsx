@@ -172,7 +172,6 @@ export default function ProgramPage() {
           <a className="btn" href="/api/pdf/program">{tx("Program PDF")}</a>
           <a className="btn secondary" href="/api/calendar">{tx("ICS indir")}</a>
           <a className="btn ghost" href="/p" target="_blank"><Tx>Açık program</Tx></a>
-          <a className="btn secondary" href="/stant-takvimi">{tx("Stand takvimi")}</a>
           <button className="btn ghost" onClick={copySubscribe}>{copied ? tx("URL kopyalandı") : tx("Google’a abone URL")}</button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
-import { useI18n, Tx } from "@/components/I18nProvider";
+import { Tx } from "@/components/I18nProvider";
 
-import { use, useState } from "react";
+import { use } from "react";
 import { api, useApi } from "@/lib/client";
 
 type Company = {
@@ -29,9 +29,7 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
 }
 
 function CompanyEditor({ id }: { id: string }) {
-  const { tx } = useI18n();
   const { data, reload } = useApi<Company>(`/api/companies/${id}`);
-  const [rule, setRule] = useState({ title: "", body: "", dueDate: "" });
   if (!data) return <p><Tx>Yükleniyor…</Tx></p>;
   return (
     <div className="space-y-5">
@@ -52,31 +50,6 @@ function CompanyEditor({ id }: { id: string }) {
         <label className="text-sm md:col-span-2"><Tx>Bağlam</Tx><textarea className="field mt-1" defaultValue={data.context} onBlur={(e) => patch(id, { context: e.target.value }, reload)} />
         </label>
       </div>
-      <section className="card p-4">
-        <h2 className="display text-2xl">Atanan kurallar</h2>
-        <ul className="mt-3 space-y-3">
-          {data.rules.map((r) => (
-            <li key={r.id} className="border-b border-[#DCE8F0] pb-2">
-              <div className="flex justify-between gap-2">
-                <strong>{r.title}</strong>
-                <span className={`badge ${r.status === "Tamamlandı" ? "ok" : "warn"}`}>{r.status}</span>
-              </div>
-              <p className="text-sm text-[#57534e]">{r.body}</p>
-              <p className="text-xs">Son tarih: {r.dueDate || "—"}</p>
-            </li>
-          ))}
-        </ul>
-        <div className="grid md:grid-cols-3 gap-2 mt-4">
-          <input className="field" placeholder={tx("Kural başlığı")} value={rule.title} onChange={(e) => setRule({ ...rule, title: e.target.value })} />
-          <input className="field" type="date" value={rule.dueDate} onChange={(e) => setRule({ ...rule, dueDate: e.target.value })} />
-          <button className="btn" onClick={async () => {
-            await api("/api/rules", { method: "POST", body: JSON.stringify({ action: "assign", companyId: id, ...rule }) });
-            setRule({ title: "", body: "", dueDate: "" });
-            await reload();
-          }}>Kural ata</button>
-          <textarea className="field md:col-span-3" placeholder={tx("Açıklama")} value={rule.body} onChange={(e) => setRule({ ...rule, body: e.target.value })} />
-        </div>
-      </section>
       <section className="card p-4">
         <h2 className="display text-2xl"><Tx>Firma kayıtları (takvim / başvuru)</Tx></h2>
         <ul className="mt-3 space-y-2">

@@ -39,7 +39,7 @@ const DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padSt
 const RULES: { title: string; body: string }[] = [
   {
     title: "Kim destekler",
-    body: "Sağlık Bakanlığı her ürün için sabit paket fiyatı ve sabit paket adedi belirler. Paydaş yalnızca kaç paket alacağını seçer. Ürünün satın almasını anlaşmalı firma Greenstyle yapar. Dağıtım günü ve saatini Sağlık Bakanlığı yazar.",
+    body: "Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.",
   },
   {
     title: "Uygun malzeme",
@@ -135,7 +135,10 @@ export default function GiveawayPage() {
           <em>{tx("Sağlıklı Gezegen")}</em>
         </p>
         <p className="booklet-lead">
-          {tx("Paket fiyatı ve paketteki adet sabittir; Sağlık Bakanlığı belirler. Paydaş kaç paket alacağını seçer. Satın almayı anlaşmalı firma Greenstyle yapar.")}
+          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}
+        </p>
+        <p className="text-sm font-semibold text-[#0B1C33]">
+          {data.supplier.name} · <a className="text-[#0077C2] underline" href={`mailto:${data.supplier.email}`}>{data.supplier.email}</a> · <a className="text-[#0077C2] underline" href={`tel:${data.supplier.phone.replace(/\s/g, "")}`}>{data.supplier.phone}</a>
         </p>
         <div className="no-print flex flex-wrap gap-2">
           <button type="button" className="btn ghost" onClick={() => window.print()}>{tx("Yazdır / PDF")}</button>
@@ -159,7 +162,7 @@ export default function GiveawayPage() {
       <section className="space-y-3">
         <h2 className="display text-3xl">{tx("Sponsorluk listesi")}</h2>
         <p className="text-sm text-[#3E6A88]">
-          {tx("Bir paket sabit adet ve sabit fiyattır. Paydaş paket sayısını seçer. Malın siparişini anlaşmalı firma Greenstyle verir.")} {data.supplier.email}
+          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}
         </p>
         <div className="booklet-grid">
           {data.items.map((item) => {

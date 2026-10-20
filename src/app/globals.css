@@ -317,7 +317,34 @@ table.data td {
     box-shadow: 8px 0 30px rgba(0, 40, 80, 0.18);
   }
   .card { max-width: 100%; overflow-x: auto; }
-  .sidebar-link { padding: 0.7rem 0.75rem; }
+  .sidebar-link { padding: 0.7rem 0.75rem; font-size: 1.05rem; }
+}
+@media (max-width: 760px) {
+  body { font-size: 17px; line-height: 1.5; }
+  .text-xs,
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+  .text-sm { font-size: 1.05rem; line-height: 1.45; }
+  .tracking-\[0\.12em\],
+  .tracking-\[0\.14em\],
+  .tracking-\[0\.16em\],
+  .tracking-\[0\.18em\],
+  .tracking-\[0\.2em\],
+  .tracking-\[0\.22em\] { letter-spacing: 0.04em; }
+  .display.text-4xl { font-size: 2rem; line-height: 1.15; }
+  .display.text-3xl { font-size: 1.6rem; line-height: 1.2; }
+  .display.text-2xl { font-size: 1.4rem; line-height: 1.25; }
+  .btn { font-size: 1rem; padding: 0.7rem 1rem; }
+  .badge { font-size: 0.8rem; letter-spacing: 0.02em; }
+  .field { font-size: 16px; padding: 0.7rem 0.75rem; }
+  .hour-board { font-size: 0.9rem; }
+  .cop-day-slot { font-size: 0.95rem; }
+  .booklet-lead { font-size: 1.05rem; line-height: 1.5; }
+  header .truncate { white-space: normal; }
 }
 @media (min-width: 1024px) {
   .desk-backdrop { display: none; }
