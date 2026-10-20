@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, ExternalLink, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, Pencil, Plus, X } from "lucide-react";
 import { api, useApi, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { SpeakerAvatar } from "@/components/speakers";
@@ -135,8 +135,14 @@ export default function SpeakerAdminPage() {
 
   async function remove(s: Speaker) {
     if (!confirm(tx("Bu konuşmacı silinsin mi?"))) return;
-    await api(`/api/speakers/${s.id}`, { method: "DELETE" });
-    await reload();
+    setError("");
+    try {
+      await api(`/api/speakers/${s.id}`, { method: "DELETE" });
+      if (editing?.id === s.id) closeForm();
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("İşlem yapılamadı"));
+    }
   }
 
   if (!me || !data) return <p>{tx("Yükleniyor…")}</p>;
@@ -226,6 +232,7 @@ export default function SpeakerAdminPage() {
                 <button className="btn" onClick={() => void patch(s, { review: "approve", reviewNote: notes[s.id] || "" })}>{tx("Onayla")}</button>
                 <button className="btn ghost" onClick={() => void patch(s, { review: "reject", reviewNote: notes[s.id] || "" })}>{tx("Reddet")}</button>
                 <button className="btn ghost" onClick={() => openEdit(s)} title={tx("Düzenle")}><Pencil size={14} /></button>
+                <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void remove(s)}>{tx("Sil")}</button>
               </div>
             </div>
           ))}
@@ -279,10 +286,10 @@ export default function SpeakerAdminPage() {
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
                       {canEdit(s) ? (
-                        <>
-                          <button className="btn ghost px-2" onClick={() => openEdit(s)} title={tx("Düzenle")}><Pencil size={14} /></button>
-                          <button className="btn ghost px-2" onClick={() => void remove(s)} title={tx("Sil")}><Trash2 size={14} /></button>
-                        </>
+                        <button className="btn ghost px-2" onClick={() => openEdit(s)} title={tx("Düzenle")}><Pencil size={14} /></button>
+                      ) : null}
+                      {manager || canEdit(s) ? (
+                        <button className="btn ghost" style={{ color: "#E31C23" }} onClick={() => void remove(s)}>{tx("Sil")}</button>
                       ) : null}
                     </div>
                   </td>
