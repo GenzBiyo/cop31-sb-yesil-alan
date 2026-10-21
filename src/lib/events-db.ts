@@ -1,5 +1,4 @@
 import { prisma } from "./prisma";
-import { EVENT_CATALOG } from "./event-catalog";
 import { renameAstorgToOxoid } from "./oxoid";
 
 const solaklarFlag = globalThis as unknown as { solaklarCancelled?: boolean };
@@ -89,37 +88,47 @@ export async function hideNonDigitalEvents() {
   digitalFlag.digitalEventsReady = true;
 }
 
-const eventsFlag = globalThis as unknown as { eventsReady?: boolean };
+const clearedFlag = globalThis as unknown as { eventsTalksCleared?: boolean };
+
+/** Drops saved events and talks once. Later additions stay. Panels stay. */
+export async function clearEventsAndTalks() {
+  if (clearedFlag.eventsTalksCleared) return;
+  const done = await prisma.setting.findUnique({ where: { key: "eventsTalksCleared" } });
+  if (done) {
+    clearedFlag.eventsTalksCleared = true;
+    return;
+  }
+  const talks = await prisma.panel.findMany({ where: { kind: "sunum" }, select: { id: true } });
+  const talkIds = talks.map((row) => row.id);
+  await prisma.eventSignup.deleteMany();
+  await prisma.pavilionEvent.deleteMany();
+  if (talkIds.length) {
+    await prisma.agendaItem.deleteMany({ where: { panelId: { in: talkIds } } });
+    await prisma.panelPerson.deleteMany({ where: { panelId: { in: talkIds } } });
+    await prisma.panelMessage.deleteMany({ where: { panelId: { in: talkIds } } });
+    await prisma.panel.deleteMany({ where: { id: { in: talkIds } } });
+    await prisma.calendarJoin.deleteMany({ where: { itemKey: { in: talkIds.map((id) => `panel-${id}`) } } });
+  }
+  const agenda = await prisma.agendaItem.findMany({ select: { id: true, type: true } });
+  const looseIds = agenda
+    .filter((row) => /sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(row.type) && !/panel/i.test(row.type))
+    .map((row) => row.id);
+  if (looseIds.length) {
+    await prisma.agendaItem.deleteMany({ where: { id: { in: looseIds } } });
+    await prisma.calendarJoin.deleteMany({ where: { itemKey: { in: looseIds.map((id) => `agenda-${id}`) } } });
+  }
+  await prisma.calendarJoin.deleteMany({ where: { itemKey: { startsWith: "event-" } } });
+  await prisma.setting.upsert({
+    where: { key: "eventsTalksCleared" },
+    update: { value: "1" },
+    create: { key: "eventsTalksCleared", value: "1" },
+  });
+  clearedFlag.eventsTalksCleared = true;
+}
 
 export async function ensureEvents() {
   cancelSolaklar();
   await renameAstorgToOxoid();
-  if (!eventsFlag.eventsReady) {
-    const catalogCount = await prisma.pavilionEvent.count();
-    if (catalogCount < EVENT_CATALOG.length) {
-      for (const e of EVENT_CATALOG) {
-        const existing = await prisma.pavilionEvent.findUnique({ where: { slug: e.slug } });
-        if (existing) continue;
-        await prisma.pavilionEvent.create({
-          data: {
-            slug: e.slug,
-            title: e.title,
-            type: e.type,
-            companyName: e.companyName,
-            topic: e.topic,
-            date: e.date,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            location: e.location,
-            description: e.description,
-            gift: e.gift,
-            config: JSON.stringify(e.config),
-            published: DIGITAL_TYPES.includes(e.type),
-          },
-        });
-      }
-    }
-    eventsFlag.eventsReady = true;
-  }
+  await clearEventsAndTalks();
   await hideNonDigitalEvents();
 }

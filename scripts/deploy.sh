@@ -93,6 +93,7 @@ if ! start_app; then
   exit 1
 fi
 pm2 save
+npx tsx scripts/clear-events-talks.ts
 rm -f /tmp/cop31-deploying
 
 if ! systemctl is-enabled pm2-root.service >/dev/null 2>&1; then
