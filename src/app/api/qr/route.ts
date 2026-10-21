@@ -15,6 +15,8 @@ function preferHttps(origin: string) {
       "www.cop31saglik.com",
       "cop31saglik.gov.tr",
       "www.cop31saglik.gov.tr",
+      "cop31saglik.com.tr",
+      "www.cop31saglik.com.tr",
     ]);
     if (official.has(url.hostname)) {
       url.protocol = "https:";

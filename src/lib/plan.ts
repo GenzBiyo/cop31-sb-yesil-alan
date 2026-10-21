@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { COP_DATES, copDayMeta } from "./cop-days";
 import { hideNonDigitalEvents } from "./events-db";
 import { isDigitalType } from "./event-slots";
+import { memoGet, memoSet } from "./memo";
 import type { PlanDay, PlanItem, PlanKind } from "./plan-types";
 
 export type { PlanDay, PlanItem, PlanKind } from "./plan-types";
@@ -30,19 +31,39 @@ function peopleLine(parts: { role: string; person: { name: string } }[]) {
 }
 
 export async function loadDayPlan(): Promise<PlanDay[]> {
+  const cached = memoGet<PlanDay[]>("day-plan", 20000);
+  if (cached) return cached;
   await hideNonDigitalEvents();
   const [days, panels, events] = await Promise.all([
     prisma.thematicDay.findMany({
-      include: { agenda: { orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }] } },
       orderBy: { date: "asc" },
+      select: {
+        date: true,
+        themeTr: true,
+        agenda: {
+          orderBy: [{ startTime: "asc" }, { sortOrder: "asc" }],
+          select: { id: true, panelId: true, type: true, title: true, startTime: true, endTime: true, location: true },
+        },
+      },
     }),
     prisma.panel.findMany({
-      include: { participants: { include: { person: { select: { name: true } } } } },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      select: {
+        id: true,
+        kind: true,
+        date: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        location: true,
+        status: true,
+        participants: { select: { role: true, person: { select: { name: true } } } },
+      },
     }),
     prisma.pavilionEvent.findMany({
       where: { published: true },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      select: { id: true, date: true, type: true, title: true, startTime: true, endTime: true, location: true, companyName: true },
     }),
   ]);
 
@@ -103,7 +124,9 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
 
   const themeByDate = new Map(days.map((d) => [d.date, d.themeTr]));
 
-  return COP_DATES.map((date) => {
+  return memoSet(
+    "day-plan",
+    COP_DATES.map((date) => {
     const meta = copDayMeta(date);
     const rank: Record<PlanKind, number> = { panel: 0, sunum: 1, event: 2, program: 3 };
     const items = [...(byDate.get(date) || [])]
@@ -124,5 +147,6 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
       day: meta.day,
       items: unique,
     };
-  });
+  }),
+  );
 }

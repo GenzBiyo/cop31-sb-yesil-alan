@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Users, X } from "lucide-react";
 import { useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
@@ -36,13 +36,18 @@ export function useSpeakers() {
   return useApi<{ speakers: PublicSpeaker[] }>("/api/public/speakers");
 }
 
-function useRailSpeakers() {
-  return useApi<{ speakers: PublicSpeaker[] }>("/api/public/speakers?brief=1");
+function useRailSpeakers(enabled: boolean) {
+  return useApi<{ speakers: PublicSpeaker[] }>(enabled ? "/api/public/speakers?brief=1" : null);
 }
 
 export function SpeakerRail() {
   const { tx } = useI18n();
-  const { data } = useRailSpeakers();
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setEnabled(true), 1200);
+    return () => window.clearTimeout(id);
+  }, []);
+  const { data } = useRailSpeakers(enabled);
   const items = useMemo(() => data?.speakers || [], [data]);
   const loop = useMemo(() => {
     if (!items.length) return [];

@@ -5,10 +5,13 @@ import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { ensureEvents } from "@/lib/events-db";
 import { ensureAgendaSlots, nudgeReminders } from "@/lib/agenda";
+import { memoGet, memoSet } from "@/lib/memo";
 
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  const cached = memoGet<unknown>("days-list", 20000);
+  if (cached) return jsonOk(cached);
   await ensureEvents();
   await ensureAgendaSlots();
   nudgeReminders();
@@ -21,7 +24,7 @@ export async function GET() {
     },
     orderBy: { date: "asc" },
   });
-  return jsonOk(days);
+  return jsonOk(memoSet("days-list", days));
 }
 
 export async function PATCH(req: NextRequest) {

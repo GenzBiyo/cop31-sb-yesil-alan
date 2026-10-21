@@ -35,7 +35,7 @@ async function loadEvents() {
 export async function GET(req: NextRequest) {
   const eventsOnly = req.nextUrl.searchParams.get("part") === "events";
   const key = eventsOnly ? "public-program-events" : "public-program";
-  const cached = memoGet<unknown>(key, 8000);
+  const cached = memoGet<unknown>(key, 20000);
   if (cached) {
     warmReminders();
     return jsonOk(cached, 200, FRESH);

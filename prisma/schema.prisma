@@ -180,6 +180,8 @@ model Panel {
   proposedById String         @default("")
   participants PanelPerson[]
   messages     PanelMessage[]
+
+  @@index([date, startTime])
 }
 
 model Person {
@@ -229,6 +231,8 @@ model Thread {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   messages    ChatMessage[]
+
+  @@index([type, status])
 }
 
 model ChatMessage {
@@ -238,6 +242,8 @@ model ChatMessage {
   authorId  String
   body      String
   createdAt DateTime @default(now())
+
+  @@index([threadId])
 }
 
 model Announcement {
@@ -257,6 +263,8 @@ model InboxItem {
   body           String
   read           Boolean  @default(false)
   createdAt      DateTime @default(now())
+
+  @@index([userId, read])
 }
 
 model SpaceZone {

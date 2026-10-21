@@ -6,12 +6,16 @@ import { PageNav } from "@/components/PageNav";
 
 const sans = Source_Sans_3({
   subsets: ["latin", "latin-ext"],
+  weight: ["400", "600"],
+  display: "swap",
   variable: "--font-sans",
 });
 
 const display = Cormorant_Garamond({
   subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
+  weight: ["600"],
+  display: "swap",
+  preload: false,
   variable: "--font-display",
 });
 

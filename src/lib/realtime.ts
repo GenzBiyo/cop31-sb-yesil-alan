@@ -11,8 +11,15 @@ export type RealtimeEvent = {
 };
 
 export function broadcast(event: RealtimeEvent) {
-  if (event.type === "agenda" || event.type === "panel") memoClearPrefix("public-program");
+  if (event.type === "agenda" || event.type === "panel") {
+    memoClearPrefix("public-program");
+    memoClearPrefix("day-plan");
+    memoClearPrefix("days-list");
+  }
   if (event.type === "speaker") memoClearPrefix("public-speakers");
+  if (event.type === "message" || event.type === "qa" || event.type === "inbox" || event.type === "account" || event.type === "announcement") {
+    memoClearPrefix("me:");
+  }
   const chunk = `event: ${event.type}\ndata: ${JSON.stringify(event.payload ?? {})}\n\n`;
   for (const listener of listeners) listener(chunk);
   if (event.type === "game") {

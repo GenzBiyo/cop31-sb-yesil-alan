@@ -16,6 +16,9 @@ export async function GET() {
     await clearSessionCookie();
     return jsonError("Oturum yok", 401);
   }
+  const meKey = `me:${session.id}`;
+  const cachedMe = memoGet<Record<string, unknown>>(meKey, 8000);
+  if (cachedMe) return jsonOk(cachedMe);
   await renameAstorgToOxoid();
   const staff = session.role === "ADMIN" || session.role === "SAGLIK";
   const heavyKey = `me-heavy:${session.id}:${session.role}`;
@@ -63,19 +66,21 @@ export async function GET() {
         ),
   ]);
   const { pendingAccounts, proposals, pendingCompliance, pendingGameSponsors, pendingSpeakers, pendingAmbassadors } = counts;
-  return jsonOk({
-    ...session,
-    accountKind: session.role === "FIRMA" ? account.company?.kind || "firma" : "",
-    companyName: account.company?.name || "",
-    unread,
-    openQa,
-    pendingAccounts,
-    pendingPanels: proposals.panels,
-    pendingTalks: proposals.talks,
-    pendingEvents: proposals.events,
-    pendingCompliance,
-    pendingGameSponsors,
-    pendingSpeakers,
-    pendingAmbassadors,
-  });
+  return jsonOk(
+    memoSet(meKey, {
+      ...session,
+      accountKind: session.role === "FIRMA" ? account.company?.kind || "firma" : "",
+      companyName: account.company?.name || "",
+      unread,
+      openQa,
+      pendingAccounts,
+      pendingPanels: proposals.panels,
+      pendingTalks: proposals.talks,
+      pendingEvents: proposals.events,
+      pendingCompliance,
+      pendingGameSponsors,
+      pendingSpeakers,
+      pendingAmbassadors,
+    }),
+  );
 }

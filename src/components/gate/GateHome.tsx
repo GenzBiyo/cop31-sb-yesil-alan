@@ -68,16 +68,24 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
     if (n && n.startsWith("/")) setNext(n);
     const origin = window.location.origin;
     const local = /localhost|127\.0\.0\.1/i.test(origin);
-    setQrSrc(`/api/qr?path=${encodeURIComponent("/u")}${local ? "" : `&origin=${encodeURIComponent(origin)}`}`);
-    if (screen) return;
-    fetch("/api/auth/me")
-      .then((r) => {
-        if (r.ok) {
-          setInApp(true);
-          if (n && n.startsWith("/")) window.location.replace(n);
-        }
-      })
-      .catch(() => undefined);
+    const qr = window.setTimeout(() => {
+      setQrSrc(`/api/qr?path=${encodeURIComponent("/u")}${local ? "" : `&origin=${encodeURIComponent(origin)}`}`);
+    }, 700);
+    if (screen) return () => window.clearTimeout(qr);
+    const me = window.setTimeout(() => {
+      fetch("/api/auth/me")
+        .then((r) => {
+          if (r.ok) {
+            setInApp(true);
+            if (n && n.startsWith("/")) window.location.replace(n);
+          }
+        })
+        .catch(() => undefined);
+    }, 1600);
+    return () => {
+      window.clearTimeout(qr);
+      window.clearTimeout(me);
+    };
   }, [screen]);
 
   function href(path: string, guest?: boolean) {
