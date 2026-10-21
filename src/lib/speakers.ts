@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { SPEAKER_CATALOG } from "@/lib/speaker-catalog";
+import { renameAstorgToOxoid } from "@/lib/oxoid";
 
 export const SPEAKER_PENDING = "Onay bekliyor";
 export const SPEAKER_APPROVED = "Onaylandı";
@@ -28,6 +29,7 @@ const SEED = [
 
 /** Seeds the first speakers once; later deletions are not undone. */
 export async function ensureSpeakers() {
+  await renameAstorgToOxoid();
   const seeded = await prisma.setting.findUnique({ where: { key: SEEDED_KEY } });
   if (!seeded) {
     if ((await prisma.speaker.count()) === 0) {

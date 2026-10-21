@@ -27,7 +27,7 @@ export const SPEAKER_CATALOG: { name: string; title: string; organization: strin
   {
     "name": "Marc Gates",
     "title": "Global Director",
-    "organization": "Oxoid (Thermo Fisher)"
+    "organization": "Oxoid"
   },
   {
     "name": "Mehmet Üvez",

@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { EVENT_CATALOG } from "./event-catalog";
+import { renameAstorgToOxoid } from "./oxoid";
 
 const solaklarFlag = globalThis as unknown as { solaklarCancelled?: boolean };
 
@@ -92,6 +93,7 @@ const eventsFlag = globalThis as unknown as { eventsReady?: boolean };
 
 export async function ensureEvents() {
   cancelSolaklar();
+  await renameAstorgToOxoid();
   if (!eventsFlag.eventsReady) {
     const catalogCount = await prisma.pavilionEvent.count();
     if (catalogCount < EVENT_CATALOG.length) {

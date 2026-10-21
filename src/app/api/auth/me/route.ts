@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { pendingProposalCounts } from "@/lib/proposals";
 import { memoGet, memoSet } from "@/lib/memo";
+import { renameAstorgToOxoid } from "@/lib/oxoid";
 
 export async function GET() {
   const session = await readSession();
@@ -15,6 +16,7 @@ export async function GET() {
     await clearSessionCookie();
     return jsonError("Oturum yok", 401);
   }
+  await renameAstorgToOxoid();
   const staff = session.role === "ADMIN" || session.role === "SAGLIK";
   const heavyKey = `me-heavy:${session.id}:${session.role}`;
   const heavy = memoGet<{
