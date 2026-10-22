@@ -38,7 +38,7 @@ const SPONSOR_CONTACT = {
   questionsPhone: "+905324574539",
   paymentEmail: "hande.uysal@ekspoturk.com",
 };
-const SPONSOR_NOTE = "İletişim:\nSorular için : umut.agyuz@saglik.gov.tr / +905324574539\nÖdemeler için : hande.uysal@ekspoturk.com";
+const SPONSOR_NOTE = "İletişim:\nSorular için : umut.agyuz@saglik.gov.tr / +905324574539\nÖdemeler ve fatura için : hande.uysal@ekspoturk.com";
 
 const DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
 
@@ -226,7 +226,7 @@ export default function GiveawayPage() {
             <a className="text-[#0077C2] underline" href={`tel:${SPONSOR_CONTACT.questionsPhone}`}>{SPONSOR_CONTACT.questionsPhone}</a>
           </span>
           <span className="block">
-            {tx("Ödemeler için :")}{" "}
+            {tx("Ödemeler ve fatura için :")}{" "}
             <a className="text-[#0077C2] underline" href={`mailto:${SPONSOR_CONTACT.paymentEmail}`}>{SPONSOR_CONTACT.paymentEmail}</a>
           </span>
         </p>
@@ -354,7 +354,7 @@ export default function GiveawayPage() {
                   ) : (
                     <p className="text-sm text-[#57534e]">{tx("Paket fiyatı ve adedi henüz belirlenmedi.")}</p>
                   )}
-                  <p className="text-xs text-[#57534e]">{tx("Ödemeler için :")} {SPONSOR_CONTACT.paymentEmail}</p>
+                  <p className="text-xs text-[#57534e]">{tx("Ödemeler ve fatura için :")} {SPONSOR_CONTACT.paymentEmail}</p>
                   {data.staff ? (
                     <div className="space-y-2 pt-2 border-t border-[#D4ECF6]">
                       <label className="text-xs block">{tx("Paket fiyatı, KDV hariç (₺)")}
