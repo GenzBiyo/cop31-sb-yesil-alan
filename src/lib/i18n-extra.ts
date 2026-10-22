@@ -1048,6 +1048,7 @@ export const EN_EXTRA: Record<string, string> = {
   "COP31 Yeşil Alan · T.C. Sağlık Bakanlığı Pavilyonu · Antalya 9–20 Kasım 2026":
     "COP31 Green Zone · Ministry of Health Pavilion · Antalya 9–20 November 2026",
   "Eşantiyon ve İkram Kural Kitapçığı": "Giveaway and hospitality rule booklet",
+  "Eşantiyon ve İkram Destekleri": "Giveaway and hospitality support",
   "Sağlıklı İnsan": "Healthy people",
   "Sağlıklı Gezegen": "Healthy planet",
   "Pavilyonda dağıtılacak eşantiyon ve ikramlar bu listeyle sınırlıdır. Örnek ürünler geri dönüşümlü malzemedendir. Desteği üstlenecek paydaşı yönetici belirler.":

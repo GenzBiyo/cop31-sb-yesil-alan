@@ -211,7 +211,7 @@ export default function GiveawayPage() {
           <img src="/brand/cop31-turkiye.png" alt={tx("COP31 Türkiye Antalya")} className="booklet-cop" />
         </div>
         <p className="booklet-kicker">{tx("COP31 Yeşil Alan · T.C. Sağlık Bakanlığı Pavilyonu · Antalya 9–20 Kasım 2026")}</p>
-        <h1 className="display booklet-title">{tx("Eşantiyon ve İkram Kural Kitapçığı")}</h1>
+        <h1 className="display booklet-title">{tx("Eşantiyon ve İkram Destekleri")}</h1>
         <p className="booklet-motto">
           {tx("Sağlıklı İnsan")}
           <br />
