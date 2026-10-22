@@ -78,7 +78,7 @@ export default function ProfilePage() {
       <section className="card p-4 space-y-3">
         <h2 className="display text-2xl">{tx("Etkinlik ve sunum")}</h2>
         <p className="text-sm text-[#57534e]">
-          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}{" "}
+          {tx("Sorular için umut.agyuz@saglik.gov.tr +905324574539. Ödemeler için hande.uysal@ekspoturk.com ve umut.agyuz@saglik.gov.tr.")}{" "}
           <a className="text-[#0077C2] underline" href="/esantiyon">{tx("Eşantiyon ve İkram")}</a>
         </p>
         <div className="grid md:grid-cols-4 gap-2">

@@ -1163,6 +1163,11 @@ export const EN_EXTRA: Record<string, string> = {
   "Paket adı gerekli": "A package name is required",
   "Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.":
     "Purchases are made by the company contracted by the Ministry. For the sponsorship package you choose, contact that company and transfer the amount to them.",
+  "Sorular için umut.agyuz@saglik.gov.tr +905324574539. Ödemeler için hande.uysal@ekspoturk.com ve umut.agyuz@saglik.gov.tr.":
+    "Questions: umut.agyuz@saglik.gov.tr, +905324574539. Payments: hande.uysal@ekspoturk.com and umut.agyuz@saglik.gov.tr.",
+  "Sorular için": "For questions",
+  "Ödemeler için": "For payments",
+  "Ödeme notunu gönder": "Send the payment note",
   "Paket fiyatı ve paketteki adet sabittir; Sağlık Bakanlığı belirler. Paydaş kaç paket alacağını seçer. Satın almayı anlaşmalı firma Greenstyle yapar.":
     "The package price and the number of pieces are fixed by the Ministry of Health. A stakeholder chooses how many packages to take. The contracted company, Greenstyle, places the purchase.",
   "Bir paket sabit adet ve sabit fiyattır. Paydaş paket sayısını seçer. Malın siparişini anlaşmalı firma Greenstyle verir.":

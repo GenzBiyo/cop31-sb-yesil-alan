@@ -31,15 +31,21 @@ type Item = {
   packagesTaken: number;
   pledges: Pledge[];
 };
-type Supplier = { name: string; email: string; phone: string };
-type Payload = { items: Item[]; staff: boolean; companyId: string | null; supplier: Supplier };
+type Payload = { items: Item[]; staff: boolean; companyId: string | null };
+
+const SPONSOR_CONTACT = {
+  questionsEmail: "umut.agyuz@saglik.gov.tr",
+  questionsPhone: "+905324574539",
+  paymentEmails: ["hande.uysal@ekspoturk.com", "umut.agyuz@saglik.gov.tr"],
+};
+const SPONSOR_NOTE = "Sorular için umut.agyuz@saglik.gov.tr +905324574539. Ödemeler için hande.uysal@ekspoturk.com ve umut.agyuz@saglik.gov.tr.";
 
 const DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
 
 const RULES: { title: string; body: string }[] = [
   {
     title: "Kim destekler",
-    body: "Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.",
+    body: SPONSOR_NOTE,
   },
   {
     title: "Uygun malzeme",
@@ -114,8 +120,8 @@ export default function GiveawayPage() {
       const pieces = item.pledges.reduce((sum, pledge) => sum + pledge.quantity, 0);
       return [`${item.title} (${item.sku}) — ${packages} paket, ${pieces} adet`];
     });
-    const body = encodeURIComponent(`COP31 Sağlık Pavilionu sponsorluk siparişi\n\nSatın alma: ${data.supplier.name}\n\n${lines.join("\n") || "Henüz paket alınmadı."}\n`);
-    window.location.href = `mailto:${data.supplier.email}?subject=${encodeURIComponent("COP31 sponsorluk siparişi")}&body=${body}`;
+    const body = encodeURIComponent(`COP31 Sağlık Pavilionu sponsorluk siparişi\n\n${lines.join("\n") || "Henüz paket alınmadı."}\n`);
+    window.location.href = `mailto:${SPONSOR_CONTACT.paymentEmails.join(",")}?subject=${encodeURIComponent("COP31 sponsorluk ödemesi")}&body=${body}`;
   }
 
   async function createPackage() {
@@ -211,16 +217,25 @@ export default function GiveawayPage() {
           <br />
           <em>{tx("Sağlıklı Gezegen")}</em>
         </p>
-        <p className="booklet-lead">
-          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}
-        </p>
+        <p className="booklet-lead">{tx(SPONSOR_NOTE)}</p>
         <p className="text-sm font-semibold text-[#0B1C33]">
-          {data.supplier.name} · <a className="text-[#0077C2] underline" href={`mailto:${data.supplier.email}`}>{data.supplier.email}</a> · <a className="text-[#0077C2] underline" href={`tel:${data.supplier.phone.replace(/\s/g, "")}`}>{data.supplier.phone}</a>
+          {tx("Sorular için")}{" "}
+          <a className="text-[#0077C2] underline" href={`mailto:${SPONSOR_CONTACT.questionsEmail}`}>{SPONSOR_CONTACT.questionsEmail}</a>
+          {" · "}
+          <a className="text-[#0077C2] underline" href={`tel:${SPONSOR_CONTACT.questionsPhone}`}>{SPONSOR_CONTACT.questionsPhone}</a>
+          <br />
+          {tx("Ödemeler için")}{" "}
+          {SPONSOR_CONTACT.paymentEmails.map((email, index) => (
+            <span key={email}>
+              {index > 0 ? " · " : null}
+              <a className="text-[#0077C2] underline" href={`mailto:${email}`}>{email}</a>
+            </span>
+          ))}
         </p>
         <div className="no-print flex flex-wrap gap-2">
           <button type="button" className="btn ghost" onClick={() => window.print()}>{tx("Yazdır / PDF")}</button>
           {data.staff ? <span className="badge warn">{tx("Paketi tanımlanmamış")}: {open}</span> : null}
-          {data.staff ? <button type="button" className="btn ghost" onClick={orderMail}>{tx("Siparişi Greenstyle’a gönder")}</button> : null}
+          {data.staff ? <button type="button" className="btn ghost" onClick={orderMail}>{tx("Ödeme notunu gönder")}</button> : null}
         </div>
       </header>
 
@@ -244,7 +259,7 @@ export default function GiveawayPage() {
           ) : null}
         </div>
         <p className="text-sm text-[#3E6A88]">
-          {tx("Satın almalar bakanlığın anlaşmalı olduğu firma tarafından yapılacaktır. Seçtiğiniz sponsorluk paketi için ilgili tutarı bakanlığın anlaşmalı olduğu firma ile iletişime geçerek firmaya aktarabilirsiniz.")}
+          {tx(SPONSOR_NOTE)}
         </p>
         {data.staff && creating ? (
           <form className="card p-4 grid md:grid-cols-2 gap-2" onSubmit={(e) => { e.preventDefault(); void createPackage(); }}>
@@ -343,7 +358,7 @@ export default function GiveawayPage() {
                   ) : (
                     <p className="text-sm text-[#57534e]">{tx("Paket fiyatı ve adedi henüz belirlenmedi.")}</p>
                   )}
-                  <p className="text-xs text-[#57534e]">{tx("Satın alma")}: {data.supplier.name}</p>
+                  <p className="text-xs text-[#57534e]">{tx("Ödemeler için")} {SPONSOR_CONTACT.paymentEmails.join(" · ")}</p>
                   {data.staff ? (
                     <div className="space-y-2 pt-2 border-t border-[#D4ECF6]">
                       <label className="text-xs block">{tx("Paket fiyatı, KDV hariç (₺)")}

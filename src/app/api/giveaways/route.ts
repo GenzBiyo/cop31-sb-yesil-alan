@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
-import { CONTRACTED_SUPPLIER, ensureGiveawayCatalog, packageSlug, saveGiveawayImage, tlToKurus } from "@/lib/giveaways";
+import { ensureGiveawayCatalog, packageSlug, saveGiveawayImage, tlToKurus } from "@/lib/giveaways";
 
 export const runtime = "nodejs";
 
@@ -28,9 +28,10 @@ export async function GET() {
       : item.pledges
           .filter((pledge) => pledge.companyId === user.companyId)
           .map((pledge) => ({ ...pledge, company: { id: pledge.company.id, name: pledge.company.name } }));
-    return { ...item, packagesTaken, pledges };
+    const { sourceUrl: _sourceUrl, ...rest } = item;
+    return { ...rest, packagesTaken, pledges };
   });
-  return jsonOk({ items: visible, staff, companyId: user.companyId, supplier: CONTRACTED_SUPPLIER });
+  return jsonOk({ items: visible, staff, companyId: user.companyId });
 }
 
 export async function POST(req: NextRequest) {

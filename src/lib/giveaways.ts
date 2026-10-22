@@ -20,7 +20,7 @@ export type GiveawaySeed = {
   sortOrder: number;
 };
 
-/** Greenstyle teklif 560 ve 561. Sağlık Bakanlığı fiyat ve adedi sonradan değiştirir. */
+/** Sağlık Bakanlığı fiyat ve adedi sonradan değiştirir. */
 export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
   {
     slug: "gs-8700-tek-renk",
@@ -33,7 +33,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 10000,
     unitPrice: 2890,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat. Sağlık Bakanlığı adet ve fiyatı güncelleyebilir.",
+    priceNote: "KDV hariç birim fiyat. Sağlık Bakanlığı adet ve fiyatı güncelleyebilir.",
     imagePath: "/giveaways/hambez.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/hambez-canta-35x40cm/",
     sortOrder: 10,
@@ -49,7 +49,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 50,
     unitPrice: 65700,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "",
     sourceUrl: "",
     sortOrder: 20,
@@ -65,7 +65,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 20,
     unitPrice: 127500,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "",
     sourceUrl: "",
     sortOrder: 30,
@@ -81,7 +81,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 100,
     unitPrice: 41400,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/bambu-termos.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/6141-bambu-termos/",
     sortOrder: 40,
@@ -97,7 +97,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 1000,
     unitPrice: 940,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 560. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/kursun.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/4832-tohumlu-kursun-kalem/",
     sortOrder: 50,
@@ -113,7 +113,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 8000,
     unitPrice: 1740,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/bitki.webp",
     sourceUrl: "https://greenstyle.com.tr/urun/bitki-yetistirme-kiti/",
     sortOrder: 60,
@@ -129,7 +129,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 3000,
     unitPrice: 3290,
     vatRate: 10,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat. Bu kalemde KDV %10.",
+    priceNote: "KDV hariç birim fiyat. Bu kalemde KDV %10.",
     imagePath: "/giveaways/hambez.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/hambez-canta-35x40cm/",
     sortOrder: 70,
@@ -145,7 +145,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 5000,
     unitPrice: 2140,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/tukenmez.webp",
     sourceUrl: "https://greenstyle.com.tr/urun/4835-tohumlu-tukenmez-kalem/",
     sortOrder: 80,
@@ -161,7 +161,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 10000,
     unitPrice: 950,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/kursun.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/4832-tohumlu-kursun-kalem/",
     sortOrder: 90,
@@ -177,7 +177,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 200,
     unitPrice: 27500,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/usb.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/8615-ahsap-usb-bellek/",
     sortOrder: 100,
@@ -193,7 +193,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 100,
     unitPrice: 63500,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/bambu-kupa.png",
     sourceUrl: "https://greenstyle.com.tr/urun/bambu-celik-kupa-termos/",
     sortOrder: 110,
@@ -209,7 +209,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 20000,
     unitPrice: 455,
     vatRate: 20,
-    priceNote: "Greenstyle teklif 561. KDV hariç birim fiyat.",
+    priceNote: "KDV hariç birim fiyat.",
     imagePath: "/giveaways/tohum-kart.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/tohumlu-kart-kraft-7x7cm-cam/",
     sortOrder: 120,
@@ -225,7 +225,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 20,
     unitPrice: 106750,
     vatRate: 20,
-    priceNote: "Greenstyle 3077. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/saat-3077.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/bambu-kablosuz-sarjli-masa-saati-3077/",
     sortOrder: 130,
@@ -241,7 +241,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 10,
     unitPrice: 219500,
     vatRate: 20,
-    priceNote: "Greenstyle 3068. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/hoparlor-3068.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/3068-5i-1-arada-kablosuz-sarjli-bluetooth-hoparlor/",
     sortOrder: 140,
@@ -257,7 +257,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     quantity: 100,
     unitPrice: 82900,
     vatRate: 20,
-    priceNote: "Greenstyle 8013. KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
+    priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/speaker-8013.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/8013-bluetooth-speaker/",
     sortOrder: 150,
@@ -280,8 +280,22 @@ const LEGACY_SLUGS = [
 const QUOTE_FLAG = "giveawayQuote561";
 let quoteReady = false;
 
+function plainPriceNote(note: string) {
+  return note.replace(/^Greenstyle(?:\s+teklif)?\s+\S+\.\s*/i, "").trim();
+}
+
 export async function ensureGiveawayCatalog() {
   if (quoteReady) return;
+  const branded = await prisma.giveawayItem.findMany({
+    where: { priceNote: { contains: "Greenstyle" } },
+    select: { id: true, priceNote: true },
+  });
+  for (const row of branded) {
+    const priceNote = plainPriceNote(row.priceNote);
+    if (priceNote !== row.priceNote) {
+      await prisma.giveawayItem.update({ where: { id: row.id }, data: { priceNote } });
+    }
+  }
   const flag = await prisma.setting.findUnique({ where: { key: QUOTE_FLAG }, select: { key: true } });
   if (!flag) {
     for (const item of GIVEAWAY_CATALOG) {
@@ -322,12 +336,6 @@ export async function ensureGiveawayCatalog() {
   }
   quoteReady = true;
 }
-
-export const CONTRACTED_SUPPLIER = {
-  name: "Greenstyle",
-  email: "info@greenstyle.com.tr",
-  phone: "+90 216 606 76 66",
-};
 
 export async function saveGiveawayImage(file: File) {
   if (file.size > 5 * 1024 * 1024) throw new Error("Fotoğraf en fazla 5 MB olabilir");
