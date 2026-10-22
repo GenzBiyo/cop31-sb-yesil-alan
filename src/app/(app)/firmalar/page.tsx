@@ -15,6 +15,7 @@ type Company = {
   kind?: string;
   scope: string;
   topic: string;
+  context: string;
   contribution: string;
   participationDates: string;
   status: string;
@@ -224,7 +225,8 @@ export default function FirmsPage() {
                   </div>
                   <div className="display text-2xl mt-1">{c.name}</div>
                   {contact ? <div className="text-sm text-[#57534e]">{contact}</div> : null}
-                  {c.topic || c.contribution ? <div className="text-sm mt-1">{c.topic || c.contribution}</div> : null}
+                  {c.context ? <p className="text-sm mt-1 whitespace-pre-line">{c.context}</p> : null}
+                  {c.topic || c.contribution ? <div className="text-sm mt-1 text-[#57534e]">{[c.topic, c.contribution].filter(Boolean).join(" · ")}</div> : null}
                 </div>
               </div>
             );
@@ -236,6 +238,7 @@ export default function FirmsPage() {
           <thead>
             <tr>
               <th>{tx("Firma")}</th>
+              <th>{tx("Kurum tanıtımı")}</th>
               <th>{tx("Kapsam")}</th>
               <th>{tx("Konu")}</th>
               <th>{tx("Tarih")}</th>
@@ -251,6 +254,7 @@ export default function FirmsPage() {
               return (
                 <tr key={c.id}>
                   <td><Link className="text-[#0077C2]" href={`/firmalar/${c.id}`}>{c.name}</Link></td>
+                  <td className="max-w-sm whitespace-pre-line">{c.context || "—"}</td>
                   <td>{c.scope}</td>
                   <td>{c.topic || "—"}</td>
                   <td>{c.participationDates}</td>

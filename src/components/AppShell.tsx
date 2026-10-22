@@ -61,7 +61,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/program", label: "COP31 gündem", icon: Sparkles, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
-  { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN"] },
+  { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN", "SAGLIK"] },
   { href: "/paydas-yanitlari", label: "Paydaş formu", icon: FileSpreadsheet, roles: ["ADMIN", "SAGLIK"] },
   { href: "/hesaplar", label: "Kullanıcı yönetimi", icon: UserPlus, roles: ["ADMIN"] },
   { href: "/profil", label: "Profilim", icon: Building2, roles: ["FIRMA"] },

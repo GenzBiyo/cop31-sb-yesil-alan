@@ -41,13 +41,16 @@ function CompanyEditor({ id }: { id: string }) {
         <a className="btn" href="/api/pdf/firma-dokuman"><Tx>Hazırlık PDF</Tx></a>
       </div>
       <div className="grid md:grid-cols-2 gap-3 card p-4">
-        <Field label="Konu" value={data.topic} onSave={(topic) => patch(id, { topic }, reload)} />
+        <Field label="Ana konu / tema" value={data.topic} onSave={(topic) => patch(id, { topic }, reload)} />
         <Field label="Katılım tarihleri" value={data.participationDates} onSave={(participationDates) => patch(id, { participationDates }, reload)} />
-        <Field label="Katkı" value={data.contribution} onSave={(contribution) => patch(id, { contribution }, reload)} />
+        <Area label="Kurum tanıtımı" value={data.context} onSave={(context) => patch(id, { context }, reload)} />
+        <Area label="Pavilyona katkınız" value={data.contribution} onSave={(contribution) => patch(id, { contribution }, reload)} />
+        <Field label="Web sitesi" value={data.website} onSave={(website) => patch(id, { website }, reload)} />
         <Field label="Durum" value={data.status} onSave={(status) => patch(id, { status }, reload)} />
-        <Field label="İletişim e-posta" value={data.contactEmail} onSave={(contactEmail) => patch(id, { contactEmail }, reload)} />
-        <label className="text-sm md:col-span-2"><Tx>Bağlam</Tx><textarea className="field mt-1" defaultValue={data.context} onBlur={(e) => patch(id, { context: e.target.value }, reload)} />
-        </label>
+        <Field label="Yetkili adı soyadı" value={data.contactName} onSave={(contactName) => patch(id, { contactName }, reload)} />
+        <Field label="Yetkili e-posta" value={data.contactEmail} onSave={(contactEmail) => patch(id, { contactEmail }, reload)} />
+        <Field label="Telefon" value={data.contactPhone} onSave={(contactPhone) => patch(id, { contactPhone }, reload)} />
+        <Area label="Notlar" value={data.notes} onSave={(notes) => patch(id, { notes }, reload)} />
       </div>
       <section className="card p-4">
         <h2 className="display text-2xl"><Tx>Firma kayıtları (takvim / başvuru)</Tx></h2>
@@ -68,8 +71,16 @@ function CompanyEditor({ id }: { id: string }) {
 
 function Field({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
   return (
-    <label className="text-sm">{label}
-      <input className="field mt-1" defaultValue={value} onBlur={(e) => onSave(e.target.value)} />
+    <label className="text-sm"><Tx>{label}</Tx>
+      <input key={value} className="field mt-1" defaultValue={value} onBlur={(e) => { if (e.target.value !== value) onSave(e.target.value); }} />
+    </label>
+  );
+}
+
+function Area({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
+  return (
+    <label className="text-sm md:col-span-2"><Tx>{label}</Tx>
+      <textarea key={value} className="field mt-1" rows={4} defaultValue={value} onBlur={(e) => { if (e.target.value !== value) onSave(e.target.value); }} />
     </label>
   );
 }
