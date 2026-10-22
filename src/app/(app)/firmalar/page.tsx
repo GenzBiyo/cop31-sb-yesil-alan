@@ -2,21 +2,33 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { accountKind } from "@/lib/account-kinds";
+
+type CompanyUser = { id: string; email: string; name: string; accountStatus: string };
 
 type Company = {
   id: string;
   name: string;
+  kind?: string;
   scope: string;
   topic: string;
-  participationDates: string;
   contribution: string;
+  participationDates: string;
   status: string;
   booth: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   rules: { status: string }[];
-  users?: { id: string; email: string; name: string; accountStatus: string }[];
+  users?: CompanyUser[];
 };
+
+function isPending(company: Company) {
+  return company.status === "Beklemede" || (company.users || []).some((user) => user.accountStatus === "Beklemede");
+}
 
 const SCOPES = ["Local", "Global", "Startup", "UN", "Diğer"];
 const EMPTY = {
@@ -39,6 +51,26 @@ export default function FirmsPage() {
   const [loginName, setLoginName] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginNote, setLoginNote] = useState("");
+
+  async function approveCompany(company: Company) {
+    setError("");
+    setBusy(true);
+    try {
+      const waiting = (company.users || []).filter((user) => user.accountStatus !== "Onaylandı");
+      if (waiting.length) {
+        for (const user of waiting) {
+          await api(`/api/admin/users/${user.id}`, { method: "PATCH", body: JSON.stringify({ accountStatus: "Onaylandı" }) });
+        }
+      } else {
+        await api(`/api/companies/${company.id}`, { method: "PATCH", body: JSON.stringify({ status: "Onaylandı" }) });
+      }
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("Firma onaylanamadı"));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function removeCompany(company: Company) {
     if (!confirm(tx("Bu firmayı listeden çıkarmak istiyor musunuz? Kurallar ve kayıtlar da silinir."))) return;
@@ -174,6 +206,31 @@ export default function FirmsPage() {
         {loginNote ? <p className="text-sm text-[#22A34A]">{loginNote}</p> : null}
         {error ? <p className="text-sm text-[#E31C23]">{error}</p> : null}
       </section>
+      {(data || []).some(isPending) ? (
+        <section className="space-y-2">
+          <h2 className="display text-2xl">{tx("Onay bekleyen")}</h2>
+          {(data || []).filter(isPending).map((c) => {
+            const person = c.users?.[0];
+            const contact = [person?.name || c.contactName, person?.email || c.contactEmail, c.contactPhone].filter(Boolean).join(" · ");
+            return (
+              <div key={c.id} className="card p-4 flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-[240px] flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="badge muted">{tx(accountKind(c.kind).label)}</span>
+                    <span className="badge warn">{tx("Onay bekliyor")}</span>
+                    <button type="button" className="btn" disabled={busy} onClick={() => void approveCompany(c)}>
+                      <Check size={14} />{tx("Onayla")}
+                    </button>
+                  </div>
+                  <div className="display text-2xl mt-1">{c.name}</div>
+                  {contact ? <div className="text-sm text-[#57534e]">{contact}</div> : null}
+                  {c.topic || c.contribution ? <div className="text-sm mt-1">{c.topic || c.contribution}</div> : null}
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      ) : null}
       <div className="table-wrap">
         <table className="data">
           <thead>
@@ -198,7 +255,16 @@ export default function FirmsPage() {
                   <td>{c.topic || "—"}</td>
                   <td>{c.participationDates}</td>
                   <td className="max-w-xs">{c.contribution}</td>
-                  <td><span className={`badge ${c.status === "Onaylandı" ? "ok" : "warn"}`}>{tx(c.status)}</span></td>
+                  <td>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`badge ${c.status === "Onaylandı" ? "ok" : "warn"}`}>{tx(c.status === "Beklemede" ? "Onay bekliyor" : c.status)}</span>
+                      {isPending(c) ? (
+                        <button type="button" className="btn" disabled={busy} onClick={() => void approveCompany(c)}>
+                          <Check size={14} />{tx("Onayla")}
+                        </button>
+                      ) : null}
+                    </div>
+                  </td>
                   <td>{done}/{c.rules.length}</td>
                   <td>
                     <button

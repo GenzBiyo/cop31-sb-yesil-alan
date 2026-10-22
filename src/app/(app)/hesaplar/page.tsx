@@ -267,6 +267,9 @@ export default function UserAdminPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="badge muted">{tx(typeLabel(a))}</span>
                     <span className={`badge ${BADGE[a.accountStatus] || ""}`}>{tx(a.accountStatus === "Beklemede" ? "Onay bekliyor" : a.accountStatus === "Onaylandı" ? "Aktif" : a.accountStatus)}</span>
+                    {a.accountStatus === "Beklemede" ? (
+                      <button type="button" className="btn" onClick={() => void setAccountStatus(a, "Onaylandı")}><Check size={14} />{tx("Onayla")}</button>
+                    ) : null}
                     {isSelf ? <span className="badge">{tx("Siz")}</span> : null}
                   </div>
                   <div className="display text-2xl mt-1">{a.company?.name || a.name}</div>
@@ -280,10 +283,7 @@ export default function UserAdminPage() {
                 </div>
                 <div className="flex flex-wrap gap-2 items-start">
                   {a.accountStatus === "Beklemede" ? (
-                    <>
-                      <button type="button" className="btn" onClick={() => void setAccountStatus(a, "Onaylandı")}><Check size={14} />{tx("Onayla")}</button>
-                      <button type="button" className="btn ghost" onClick={() => void setAccountStatus(a, "Reddedildi")}><X size={14} />{tx("Reddet")}</button>
-                    </>
+                    <button type="button" className="btn ghost" onClick={() => void setAccountStatus(a, "Reddedildi")}><X size={14} />{tx("Reddet")}</button>
                   ) : null}
                   {a.accountStatus === "Onaylandı" && !isSelf ? (
                     <button type="button" className="btn ghost" onClick={() => confirm(tx("Hesap askıya alınsın mı? Kullanıcı giriş yapamaz.")) && void setAccountStatus(a, "Askıda")}>

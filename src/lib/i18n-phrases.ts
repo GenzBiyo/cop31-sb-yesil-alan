@@ -29,6 +29,7 @@ export const EN: Record<string, string> = {
   "Hazırlanıyor…": "Preparing…",
   "Hazırlanamadı": "Could not prepare",
   "Onayla": "Approve",
+  "Firma onaylanamadı": "Could not approve the organisation",
   "Onay bekliyor": "Awaiting approval",
   "Pavilyon kuralları": "Pavilion rules",
   "Pavilyon Kullanım Kuralları": "Pavilion use rules",
