@@ -42,7 +42,7 @@ const GATES = [
     src: "/gate/gate-startup.webp",
     kicker: "05 · Etkileşim",
     title: "Oyun alanı",
-    body: "Duvara yansıtılan yarışmalar. Karekod, rumuz, 15 saniyelik soru-cevap.",
+    body: "Duvara yansıtılan yarışmalar. Karekodu okut, telefonunda oyna.",
     guest: true,
   },
   {

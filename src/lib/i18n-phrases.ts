@@ -121,6 +121,8 @@ export const EN: Record<string, string> = {
   "Oyun alanı": "Play area",
   "Duvara yansıtılan yarışmalar. Karekod, rumuz, 15 saniyelik soru-cevap.":
     "Contests on the wall screen. QR code, nickname, 15-second Q&A.",
+  "Duvara yansıtılan yarışmalar. Karekodu okut, telefonunda oyna.":
+    "Contests on the wall screen. Scan the QR and play on your phone.",
   "06 · Açık alan": "06 · Open area",
   "Giriş yapmadan devam et": "Continue without signing in",
   "Açık program ve QR etkinlikler. Hesap gerekmez.":
@@ -171,6 +173,8 @@ export const EN: Record<string, string> = {
   "Etkileşim alanı": "Interaction area",
   "Duvar ekranı, karekod, rumuz. Admin onaylayınca oyuncu olursun.":
     "Wall screen, QR, nickname. You become a player when an admin approves you.",
+  "Duvar ekranı ve karekod. Okutan telefonunda hemen oynar.":
+    "Wall screen and QR. Whoever scans plays at once on the phone.",
   "Elçi olmak": "Become an ambassador",
   "Öğrenciyseniz gönüllü kapısından başvurun.": "If you are a student, apply at the volunteer gate.",
   "Şimdi açık etkinlikler": "Events open now",
@@ -321,6 +325,8 @@ export const EN: Record<string, string> = {
   "İklim ve Sağlık — Soru Cevap": "Climate and Health — Q&A",
   "Karekodu okut, rumuzunu seç. Admin onaylayınca duvarda görünürsün. Beş soruda iklimin sağlıkla bağını kur.":
     "Scan the QR, pick a nickname. After admin approval you appear on the wall. Link climate and health in five questions.",
+  "Karekodu okut, telefonunda oyna. Beş soruda iklimin sağlıkla bağını kur.":
+    "Scan the QR and play on your phone. Link climate and health in five questions.",
   "Birinci ödül: COP31 Sağlık Pavilionu iklim-sağlık hediye seti (matara + bez çanta)":
     "First prize: COP31 Health Pavilion climate-health gift set (flask + tote)",
   "Sağlık Pavilionu — Etkileşim alanı": "Health Pavilion — Interaction area",
@@ -358,6 +364,8 @@ export const EN: Record<string, string> = {
   "Hediyeli Çark": "Prize Wheel",
   "Karekodu okut, rumuzunu seç. Onaylanınca Çevir’e bas; çark dönünce Durdur ile yavaş yavaş dursun.":
     "Scan the QR, pick a nickname. Once approved, tap Spin; Stop slows the wheel.",
+  "Karekodu okut, Çevir’e bas. Çark dönünce Durdur ile yavaş yavaş dursun.":
+    "Scan the QR and tap Spin. Stop slows the wheel.",
   "Pavilion hediyeleri: bez çanta, matara, rozet, tohum kartı, iklim defteri":
     "Pavilion gifts: tote, flask, pin, seed card, climate notebook",
   "Bez çanta": "Tote bag",

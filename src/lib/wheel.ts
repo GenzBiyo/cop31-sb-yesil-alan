@@ -26,7 +26,7 @@ export type WheelMotion = {
 export const SAMPLE_WHEEL = {
   slug: "hediye-carki",
   title: "Hediyeli Çark",
-  description: "Karekodu okut, rumuzunu seç. Onaylanınca Çevir’e bas; çark dönünce Durdur ile yavaş yavaş dursun.",
+  description: "Karekodu okut, Çevir’e bas. Çark dönünce Durdur ile yavaş yavaş dursun.",
   gift: "Pavilion hediyeleri: bez çanta, matara, rozet, tohum kartı, iklim defteri",
   location: "Sağlık Pavilionu — Etkileşim alanı",
   slices: [

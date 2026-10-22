@@ -32,7 +32,7 @@ export const SAMPLE_QUIZ = {
   slug: "iklim-saglik-soru-cevap",
   title: "İklim ve Sağlık — Soru Cevap",
   description:
-    "Karekodu okut, rumuzunu seç. Admin onaylayınca duvarda görünürsün. Beş soruda iklimin sağlıkla bağını kur.",
+    "Karekodu okut, telefonunda oyna. Beş soruda iklimin sağlıkla bağını kur.",
   gift: "Birinci ödül: COP31 Sağlık Pavilionu iklim-sağlık hediye seti (matara + bez çanta)",
   location: "Sağlık Pavilionu — Etkileşim alanı",
   teams: ["Yeşil Yaprak", "Mavi Nefes", "Toprak Kalp", "Güneş Kalbi"],
@@ -193,6 +193,7 @@ export async function ensureSampleGames() {
   const existing = await prisma.game.count({ where: { slug: { in: needed } } });
   if (existing >= needed.length) {
     await syncSampleQuizQuestions();
+    await syncSampleDescriptions();
     sampleFlag.sampleQuizReadyV3 = true;
     return null;
   }
@@ -290,8 +291,20 @@ export async function ensureSampleGames() {
   await ensureHatiraGame();
   await syncWheelSliceColors();
   await syncSampleQuizQuestions();
+  await syncSampleDescriptions();
   sampleFlag.sampleQuizReadyV3 = true;
   return quiz;
+}
+
+async function syncSampleDescriptions() {
+  await prisma.game.updateMany({
+    where: { slug: SAMPLE_QUIZ.slug },
+    data: { description: SAMPLE_QUIZ.description },
+  });
+  await prisma.game.updateMany({
+    where: { slug: SAMPLE_WHEEL.slug },
+    data: { description: SAMPLE_WHEEL.description },
+  });
 }
 
 async function syncWheelSliceColors() {
