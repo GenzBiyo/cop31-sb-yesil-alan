@@ -15,6 +15,7 @@ export const THEME_TR: Record<string, string> = {
 
 export const SHEET_TODOS = "1hmBcT-7ZsZXS0pTfviN8DcqdkICLUcqD";
 export const SHEET_COMPANIES = "10uW2ZbzkW7x3DDwEBbWwo1jrjxxx3kAWcoopAeGU1JI";
+export const SHEET_AGENDA = "1L8aqI4_y7ewFLInurbcq_ulbS5TI3HX1";
 
 export const DEMO_PASSWORD = "Cop31!2026";
 

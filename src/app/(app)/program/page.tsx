@@ -113,6 +113,8 @@ export default function ProgramPage() {
   const [programFilter, setProgramFilter] = useState<ProgramFilter>("all");
   const [board, setBoard] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncNote, setSyncNote] = useState("");
   const publicOrigin = usePublicOrigin();
 
   useEffect(() => {
@@ -142,6 +144,22 @@ export default function ProgramPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function syncAgenda() {
+    if (!confirm(tx("COP31 gündem takvimi Google Sheets’ten güncellensin mi?"))) return;
+    setSyncing(true);
+    setSyncNote("");
+    try {
+      const res = await api<{ sessions: number }>("/api/agenda/sync", { method: "POST", body: "{}" });
+      setSyncNote(`${tx("Takvim güncellendi.")} ${res.sessions}`);
+      await reload();
+      await reloadPlan();
+    } catch (err) {
+      setSyncNote(err instanceof Error ? err.message : tx("Takvim güncellenemedi"));
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   function editItem(item: PlanItem) {
     if (item.id.startsWith("panel-")) {
       const id = item.id.slice("panel-".length);
@@ -169,12 +187,18 @@ export default function ProgramPage() {
           <button type="button" className={board ? "btn" : "btn ghost"} onClick={() => setBoard((on) => !on)}>
             {board ? tx("Gün kutuları") : tx("Büyük takvim")}
           </button>
+          {isAdmin ? (
+            <button type="button" className="btn" disabled={syncing} onClick={() => void syncAgenda()}>
+              {syncing ? tx("Hazırlanıyor…") : tx("Takvimi güncelle")}
+            </button>
+          ) : null}
           <a className="btn" href="/api/pdf/program">{tx("Program PDF")}</a>
           <a className="btn secondary" href="/api/calendar">{tx("ICS indir")}</a>
           <a className="btn ghost" href="/p" target="_blank"><Tx>Açık program</Tx></a>
           <button className="btn ghost" onClick={copySubscribe}>{copied ? tx("URL kopyalandı") : tx("Google’a abone URL")}</button>
         </div>
       </div>
+      {syncNote ? <p className="text-sm text-[#0077C2]">{syncNote}</p> : null}
       <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
       {board ? (
         <>
