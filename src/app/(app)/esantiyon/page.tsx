@@ -36,9 +36,9 @@ type Payload = { items: Item[]; staff: boolean; companyId: string | null };
 const SPONSOR_CONTACT = {
   questionsEmail: "umut.agyuz@saglik.gov.tr",
   questionsPhone: "+905324574539",
-  paymentEmails: ["hande.uysal@ekspoturk.com", "umut.agyuz@saglik.gov.tr"],
+  paymentEmail: "hande.uysal@ekspoturk.com",
 };
-const SPONSOR_NOTE = "Sorular için umut.agyuz@saglik.gov.tr +905324574539. Ödemeler için hande.uysal@ekspoturk.com ve umut.agyuz@saglik.gov.tr.";
+const SPONSOR_NOTE = "İletişim:\nSorular için : umut.agyuz@saglik.gov.tr / +905324574539\nÖdemeler için : hande.uysal@ekspoturk.com";
 
 const DAYS = Array.from({ length: 12 }, (_, i) => `2026-11-${String(9 + i).padStart(2, "0")}`);
 
@@ -121,7 +121,7 @@ export default function GiveawayPage() {
       return [`${item.title} (${item.sku}) — ${packages} paket, ${pieces} adet`];
     });
     const body = encodeURIComponent(`COP31 Sağlık Pavilionu sponsorluk siparişi\n\n${lines.join("\n") || "Henüz paket alınmadı."}\n`);
-    window.location.href = `mailto:${SPONSOR_CONTACT.paymentEmails.join(",")}?subject=${encodeURIComponent("COP31 sponsorluk ödemesi")}&body=${body}`;
+    window.location.href = `mailto:${SPONSOR_CONTACT.paymentEmail}?subject=${encodeURIComponent("COP31 sponsorluk ödemesi")}&body=${body}`;
   }
 
   async function createPackage() {
@@ -217,20 +217,18 @@ export default function GiveawayPage() {
           <br />
           <em>{tx("Sağlıklı Gezegen")}</em>
         </p>
-        <p className="booklet-lead">{tx(SPONSOR_NOTE)}</p>
-        <p className="text-sm font-semibold text-[#0B1C33]">
-          {tx("Sorular için")}{" "}
-          <a className="text-[#0077C2] underline" href={`mailto:${SPONSOR_CONTACT.questionsEmail}`}>{SPONSOR_CONTACT.questionsEmail}</a>
-          {" · "}
-          <a className="text-[#0077C2] underline" href={`tel:${SPONSOR_CONTACT.questionsPhone}`}>{SPONSOR_CONTACT.questionsPhone}</a>
-          <br />
-          {tx("Ödemeler için")}{" "}
-          {SPONSOR_CONTACT.paymentEmails.map((email, index) => (
-            <span key={email}>
-              {index > 0 ? " · " : null}
-              <a className="text-[#0077C2] underline" href={`mailto:${email}`}>{email}</a>
-            </span>
-          ))}
+        <p className="booklet-lead text-sm font-semibold text-[#0B1C33]">
+          <span className="block">{tx("İletişim:")}</span>
+          <span className="block">
+            {tx("Sorular için :")}{" "}
+            <a className="text-[#0077C2] underline" href={`mailto:${SPONSOR_CONTACT.questionsEmail}`}>{SPONSOR_CONTACT.questionsEmail}</a>
+            {" / "}
+            <a className="text-[#0077C2] underline" href={`tel:${SPONSOR_CONTACT.questionsPhone}`}>{SPONSOR_CONTACT.questionsPhone}</a>
+          </span>
+          <span className="block">
+            {tx("Ödemeler için :")}{" "}
+            <a className="text-[#0077C2] underline" href={`mailto:${SPONSOR_CONTACT.paymentEmail}`}>{SPONSOR_CONTACT.paymentEmail}</a>
+          </span>
         </p>
         <div className="no-print flex flex-wrap gap-2">
           <button type="button" className="btn ghost" onClick={() => window.print()}>{tx("Yazdır / PDF")}</button>
@@ -246,7 +244,7 @@ export default function GiveawayPage() {
         {RULES.map((rule) => (
           <article key={rule.title} className="card p-4">
             <h2 className="display text-2xl">{tx(rule.title)}</h2>
-            <p className="text-sm text-[#3E6A88] mt-2">{tx(rule.body)}</p>
+            <p className="text-sm text-[#3E6A88] mt-2 whitespace-pre-line">{tx(rule.body)}</p>
           </article>
         ))}
       </section>
@@ -258,9 +256,7 @@ export default function GiveawayPage() {
             <button type="button" className="btn" onClick={() => setCreating((on) => !on)}>{creating ? tx("Formu kapat") : tx("Yeni paket ekle")}</button>
           ) : null}
         </div>
-        <p className="text-sm text-[#3E6A88]">
-          {tx(SPONSOR_NOTE)}
-        </p>
+        <p className="text-sm text-[#3E6A88] whitespace-pre-line">{tx(SPONSOR_NOTE)}</p>
         {data.staff && creating ? (
           <form className="card p-4 grid md:grid-cols-2 gap-2" onSubmit={(e) => { e.preventDefault(); void createPackage(); }}>
             <label className="text-sm">{tx("Paket adı")} *
@@ -358,7 +354,7 @@ export default function GiveawayPage() {
                   ) : (
                     <p className="text-sm text-[#57534e]">{tx("Paket fiyatı ve adedi henüz belirlenmedi.")}</p>
                   )}
-                  <p className="text-xs text-[#57534e]">{tx("Ödemeler için")} {SPONSOR_CONTACT.paymentEmails.join(" · ")}</p>
+                  <p className="text-xs text-[#57534e]">{tx("Ödemeler için :")} {SPONSOR_CONTACT.paymentEmail}</p>
                   {data.staff ? (
                     <div className="space-y-2 pt-2 border-t border-[#D4ECF6]">
                       <label className="text-xs block">{tx("Paket fiyatı, KDV hariç (₺)")}

@@ -1165,6 +1165,11 @@ export const EN_EXTRA: Record<string, string> = {
     "Purchases are made by the company contracted by the Ministry. For the sponsorship package you choose, contact that company and transfer the amount to them.",
   "Sorular için umut.agyuz@saglik.gov.tr +905324574539. Ödemeler için hande.uysal@ekspoturk.com ve umut.agyuz@saglik.gov.tr.":
     "Questions: umut.agyuz@saglik.gov.tr, +905324574539. Payments: hande.uysal@ekspoturk.com and umut.agyuz@saglik.gov.tr.",
+  "İletişim:\nSorular için : umut.agyuz@saglik.gov.tr / +905324574539\nÖdemeler için : hande.uysal@ekspoturk.com":
+    "Contact:\nQuestions: umut.agyuz@saglik.gov.tr / +905324574539\nPayments: hande.uysal@ekspoturk.com",
+  "İletişim:": "Contact:",
+  "Sorular için :": "Questions:",
+  "Ödemeler için :": "Payments:",
   "Sorular için": "For questions",
   "Ödemeler için": "For payments",
   "Ödeme notunu gönder": "Send the payment note",
