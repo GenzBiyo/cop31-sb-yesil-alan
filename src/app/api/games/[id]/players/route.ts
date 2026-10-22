@@ -15,11 +15,29 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   });
   if (!player) return jsonError("Oyuncu yok", 404);
   const action = String(body.action || "");
+  if (action === "drop") {
+    const game = await prisma.game.findUnique({
+      where: { id },
+      select: { winnerPlayerId: true, lockedTeamId: true },
+    });
+    if (game && (game.winnerPlayerId === player.id || game.lockedTeamId === player.id)) {
+      await prisma.game.update({
+        where: { id },
+        data: {
+          ...(game.winnerPlayerId === player.id ? { winnerPlayerId: null, awardedAt: null } : {}),
+          ...(game.lockedTeamId === player.id ? { lockedTeamId: "" } : {}),
+        },
+      });
+    }
+    await prisma.gamePlayer.delete({ where: { id: player.id } });
+    touchGame(true);
+    return jsonOk({ id: player.id, nickname: player.nickname, status: "dropped" });
+  }
   if (action !== "approve" && action !== "reject") return jsonError("Geçersiz işlem");
   const updated = await prisma.gamePlayer.update({
     where: { id: player.id },
     data: { status: action === "approve" ? "approved" : "rejected" },
   });
-    touchGame(true);
+  touchGame(true);
   return jsonOk({ id: updated.id, nickname: updated.nickname, status: updated.status });
 }

@@ -12,7 +12,7 @@ export const TEAM_COLORS = ["#22A34A", "#00A3E0", "#0077C2", "#E31C23", "#0f766e
 
 export const GAME_STATUS: Record<string, string> = {
   draft: "Taslak",
-  lobby: "Lobi — rumuz onayı",
+  lobby: "Lobi",
   live: "Canlı",
   closed: "Kapandı",
 };

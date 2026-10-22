@@ -19,7 +19,7 @@ type GameCard = {
 };
 
 const STATUS: Record<string, string> = {
-  lobby: "Lobi açık — rumuz seç",
+  lobby: "Lobi açık — karekodu okut",
   live: "Oynanıyor",
   closed: "Bitti — sıralama",
 };
@@ -37,7 +37,7 @@ export default function GamesHubPage() {
       live={live}
       kicker="COP31 Türkiye · Sağlık Pavilionu"
       title={tx("Etkileşim alanı")}
-      lead="Her oyunun duvar ekranı ayrıdır. Karekodu okutunca rumuz giriş sayfası açılır."
+      lead="Her oyunun duvar ekranı ayrıdır. Karekodu okutunca oyun telefonunuzda açılır."
     >
       <p className="-mt-2 text-sm">
         <Link href="/" className="underline underline-offset-4 text-[#0077C2]">{tx("← Kapılara dön")}</Link>

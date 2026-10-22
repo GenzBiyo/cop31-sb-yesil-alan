@@ -86,6 +86,7 @@ export const EN: Record<string, string> = {
   "Firma etkinlik, ikram ve eşantiyon kayıtlarını adet ve tanımla sunar. Yalnızca Uygun kararı alanlar pavilyonda dağıtılabilir veya ikram edilebilir.":
     "Companies submit events, catering and giveaways with quantity and description. Only cleared items may be distributed or served in the pavilion.",
   "Reddet": "Reject",
+  "Düşür": "Remove",
   "Admin": "Admin",
   "Sağlık Bakanlığı": "Ministry of Health",
   "Firma": "Company",
@@ -177,6 +178,24 @@ export const EN: Record<string, string> = {
   "COP31 Türkiye · Sağlık Pavilionu": "COP31 Türkiye · Health Pavilion",
   "Her oyunun duvar ekranı ayrıdır. Karekodu okutunca rumuz giriş sayfası açılır.":
     "Each game has its own wall screen. Scan the QR to open the nickname page.",
+  "Her oyunun duvar ekranı ayrıdır. Karekodu okutunca oyun telefonunuzda açılır.":
+    "Each game has its own wall screen. Scan the QR and the game opens on the phone.",
+  "Lobi açık — karekodu okut": "Lobby open — scan the code",
+  "Karekodu okutun. Oyun telefonunuzda açılır.": "Scan the QR. The game opens on the phone.",
+  "Karekodu okuttunuz. Oyun telefonunuzda açılır.": "You scanned the code. The game opens on your phone.",
+  "Oyun açılıyor…": "Opening the game…",
+  "Rumuz yok. Okutan hemen oynar.": "No nickname. Whoever scans plays at once.",
+  "Oyunları yönet": "Manage games",
+  "Sunucu ekranı": "Host screen",
+  "Turu düzenle": "Edit the round",
+  "Karekodu okutan telefonunda hemen oynar. Rumuz ve onay yok.": "Whoever scans plays at once on their phone. No nickname and no approval.",
+  "Oyun yönetimi": "Game controls",
+  "Karekodu okut, telefonunda oyna": "Scan the code and play on your phone",
+  "Sunucu oyunu başlatınca soru gelir.": "The question appears when the host starts the game.",
+  "Sunucu hafızayı veya eşleştirmeyi başlatınca kartlar gelir.": "The cards appear when the host starts memory or matching.",
+  "Çevir’e basın. Çark dönünce Durdur ile yavaşlar.": "Press Spin. When the wheel turns, Stop slows it down.",
+  "Döndür’e basın. Kapaklar döner, kalan parça çalar.": "Press Spin. The covers turn and the remaining track plays.",
+  "Admin sonraki turu başlatsın. Karekod açık, telefonunuzda oynarsınız.": "The host should start the next round. The QR is open; you play on your phone.",
   "Alan girişi karekodu": "Area entry QR",
   "Ziyaretçi bu kodu okutunca açık oyunlara düşer. Yeni soru-cevaplar da burada görünür.":
     "Visitors who scan this code land on open games. New quizzes appear here too.",

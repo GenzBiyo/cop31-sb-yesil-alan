@@ -19,6 +19,23 @@ import { EventCreditStrip } from "@/components/game/EventCreditStrip";
 import type { HatiraLogos, HatiraPublic } from "@/lib/hatira";
 import { useI18n, Tx } from "@/components/I18nProvider";
 
+function useIsAdmin() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    let stop = false;
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => {
+        if (!stop && (me?.role === "ADMIN" || me?.role === "SAGLIK")) setOn(true);
+      })
+      .catch(() => undefined);
+    return () => {
+      stop = true;
+    };
+  }, []);
+  return on;
+}
+
 type Person = { id: string; nickname: string; teamName: string };
 type Wall = {
   slug: string;
@@ -59,6 +76,7 @@ type Wall = {
 
 function Wall({ slug }: { slug: string }) {
   const { tx, t } = useI18n();
+  const admin = useIsAdmin();
   const { data, reload, error } = useApi<Wall>(`/api/public/games/${slug}`);
   const origin = usePublicOrigin();
   const [left, setLeft] = useState(0);
@@ -118,6 +136,7 @@ function Wall({ slug }: { slug: string }) {
       <section className="p-6 md:p-10 flex flex-col">
         <p className="text-xs tracking-[0.28em] uppercase opacity-70 flex items-center gap-3">
           {wall.location} · {tx("duvar ekranı")}
+          {admin ? <a className="wall-admin" href={`/sunucu/${wall.slug}`}>{tx("Admin yönetim")}</a> : null}
           {wall.phase === "asking" || wall.wheelMode === "coast" || wall.wheelMode === "stop" ? (
             <span className="game-live">{tx("CANLI")}</span>
           ) : null}
@@ -162,7 +181,7 @@ function Wall({ slug }: { slug: string }) {
                   : tx("Hafıza: iki kart açın, aynı konsepti bulun.")
                 : wall.phase === "closed"
                   ? tx("Turlar bitti. En yüksek puan birinci.")
-                  : tx("Karekodu okutun. Admin rumuzu onaylayınca telefonunuzda kartlar açılır.")}
+                  : tx("Karekodu okutun. Oyun telefonunuzda açılır.")}
             </p>
             {wall.phase === "asking" ? (
               <div>
@@ -258,7 +277,7 @@ function Wall({ slug }: { slug: string }) {
           </div>
         ) : wall.phase === "lobby" || wall.currentIndex < 0 ? (
           <div className="mt-10 flex-1">
-            <p className="text-2xl text-[#C8EEFA]">{tx("Karekodu okutun, rumuz seçin. Admin onaylayınca ekranda görünürsünüz.")}</p>
+            <p className="text-2xl text-[#C8EEFA]">{tx("Karekodu okutun. Oyun telefonunuzda açılır.")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               {players.length === 0 ? <p className="text-[#C8EEFA]">{tx("Henüz onaylı oyuncu yok.")}</p> : null}
               {players.map((p) => (
@@ -306,7 +325,7 @@ function Wall({ slug }: { slug: string }) {
           </div>
         ) : (
           <div className="mt-10 flex-1">
-            <p className="text-2xl text-[#C8EEFA]">{tx("Admin sonraki turu başlatsın. Karekod açık, rumuzlar burada görünür.")}</p>
+            <p className="text-2xl text-[#C8EEFA]">{tx("Admin sonraki turu başlatsın. Karekod açık, telefonunuzda oynarsınız.")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               {players.length === 0 ? <p className="text-[#C8EEFA]">{tx("Henüz onaylı oyuncu yok.")}</p> : null}
               {players.map((p) => (
@@ -325,7 +344,7 @@ function Wall({ slug }: { slug: string }) {
         </div>
         <p className="text-center text-sm tracking-[0.16em] uppercase">{tx("Katılmak için okut")}</p>
         <p className="text-center text-xs opacity-80 break-all">{origin ? `${origin}/oyun/${wall.slug}/katil` : tx("Karekod yükleniyor")}</p>
-        <p className="text-center text-xs opacity-80">{isHatira ? tx("Selfie çek, hazırla, gönder") : isKilo ? tx("Cinsiyet, yaş, boy, kilo gir") : tx("Rumuz seç → admin onaylar → oyuncu olursun")}</p>
+        <p className="text-center text-xs opacity-80">{isHatira ? tx("Selfie çek, hazırla, gönder") : isKilo ? tx("Cinsiyet, yaş, boy, kilo gir") : tx("Karekodu okut, telefonunda oyna")}</p>
         {!isKilo && !isHatira ? (
         <div className="w-full mt-4">
           <div className="text-xs tracking-[0.16em] uppercase opacity-70">{tx("Puanlar")}</div>

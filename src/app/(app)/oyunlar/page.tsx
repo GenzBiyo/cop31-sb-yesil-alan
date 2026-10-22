@@ -116,12 +116,12 @@ export default function GamesAdminPage() {
                     : `${g._count.questions} soru · ${g._count.players} oyuncu · ${g._count.teams} takım`}
                 {g.players[0] ? ` · 1. ${g.players[0].nickname}` : ""}
               </div>
-              <div className="mt-2 flex gap-3">
-                <Link className="text-sm text-[#0077C2] underline" href={`/oyunlar/${g.id}`}>
-                  {g.type === "wheel" ? "Dilimleri düzenle" : g.type === "plak" ? "Parçaları düzenle" : g.type === "match" || g.type === "kilo" || g.type === "hatira" ? "Tur ayarı" : "Soruları düzenle"}
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Link className="btn" href={`/oyunlar/${g.id}`}>
+                  {g.type === "wheel" ? "Dilimleri düzenle" : g.type === "plak" ? "Parçaları düzenle" : g.type === "match" || g.type === "kilo" || g.type === "hatira" ? "Turu düzenle" : "Soruları düzenle"}
                 </Link>
-                <a className="text-sm underline" href={`/oyun/${g.slug}`} target="_blank" rel="noreferrer"><Tx>Duvar ekranı</Tx></a>
-                <Link className="text-sm underline" href={`/sunucu/${g.slug}`}><Tx>Admin yönetim</Tx></Link>
+                <Link className="btn ghost" href={`/sunucu/${g.slug}`}><Tx>Sunucu ekranı</Tx></Link>
+                <a className="btn ghost" href={`/oyun/${g.slug}`} target="_blank" rel="noreferrer"><Tx>Duvar ekranı</Tx></a>
               </div>
             </div>
           </div>

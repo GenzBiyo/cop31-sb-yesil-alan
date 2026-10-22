@@ -163,6 +163,29 @@ button, input, select, textarea { font: inherit; }
   background: linear-gradient(165deg, #00B4F0 0%, #0077C2 55%, #00A86B 130%) !important;
 }
 
+.host-bar { padding-right: 11.5rem; }
+.host-desk {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+@media (min-width: 900px) {
+  .host-desk { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+}
+.host-admin {
+  position: sticky;
+  top: 6.5rem;
+  align-self: start;
+}
+.wall-admin {
+  color: #EEF8FD;
+  border: 1px solid #C8EEFA;
+  padding: 0.2rem 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -1547,6 +1570,23 @@ table.data td {
   font-size: 0.85rem;
   padding: 0.2rem 0.55rem;
   animation: score-rise 0.4s ease both;
+}
+.score-drop {
+  flex: none;
+  border: 1px solid #0077C2;
+  background: #fff;
+  color: #0077C2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  cursor: pointer;
+}
+.scoreboard.is-dark .score-drop {
+  background: transparent;
+  color: #EEF8FD;
+  border-color: #C8EEFA;
 }
 @keyframes score-rise {
   from { opacity: 0; transform: translateY(16px); }

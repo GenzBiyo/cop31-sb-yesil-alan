@@ -72,7 +72,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/etkinlikler", label: "Etkinlikler", icon: Gamepad2, roles: ["ADMIN", "FIRMA"], firmTools: true },
   { href: "/sponsorlar", label: "Sponsorlar", icon: BadgeCheck, roles: ["ADMIN"] },
-  { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN"] },
+  { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy, roles: ["ADMIN", "SAGLIK"] },
   { href: "/oyun-sponsorluk", label: "Oyun sponsorlukları", icon: Handshake, roles: ["ADMIN"] },
   { href: "/katilimcilar", label: "Katılımcılar", icon: Users, roles: ["ADMIN", "SAGLIK"] },
   { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare, roles: ["ADMIN", "SAGLIK", "FIRMA"] },

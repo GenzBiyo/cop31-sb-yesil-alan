@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { api, useApi, useGameLive } from "@/lib/client";
 import { TimerRing } from "@/components/game/Board";
 import { QuestionVideo } from "@/components/game/QuestionMedia";
@@ -99,11 +99,11 @@ function MatchPhone({
 function Join({ slug }: { slug: string }) {
   const { tx, t } = useI18n();
   const { data, error, reload } = useApi<Payload>(`/api/public/games/${slug}?play=1`);
-  const [nickname, setNickname] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [left, setLeft] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
+  const joining = useRef(false);
 
   useGameLive(reload, 12000);
 
@@ -145,20 +145,18 @@ function Join({ slug }: { slug: string }) {
     }
   }
 
-  async function join(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
+  useEffect(() => {
+    if (!data || data.type === "kilo" || data.type === "hatira") return;
+    if (data.me?.status === "approved" || joining.current) return;
+    joining.current = true;
     setMsg("");
-    try {
-      await api(`/api/public/games/${slug}/join`, { method: "POST", body: JSON.stringify({ nickname }) });
-      setNickname("");
-      await reload();
-    } catch (err) {
-      setMsg(err instanceof Error ? err.message : "Giriş alınamadı");
-    } finally {
-      setBusy(false);
-    }
-  }
+    void api(`/api/public/games/${slug}/join`, { method: "POST", body: "{}" })
+      .then(() => reload())
+      .catch((err) => {
+        joining.current = false;
+        setMsg(err instanceof Error ? err.message : "Oyun açılamadı");
+      });
+  }, [data, slug, reload]);
 
   async function answer(choice: number) {
     if (!data?.question || busy || data.me?.answered || picked != null) return;
@@ -217,36 +215,19 @@ function Join({ slug }: { slug: string }) {
       kicker="COP31 · Etkileşim"
       title={data.title}
       sponsor={data.sponsor}
-      lead="Rumuzunu yaz. Admin onaylayınca duvarda görünürsün."
+      lead="Karekodu okuttunuz. Oyun telefonunuzda açılır."
     >
       <div className="space-y-4">
-        {!data.me || status === "rejected" ? (
-          <form className="game-panel space-y-3" onSubmit={(e) => void join(e)}>
-            {status === "rejected" ? (
-              <div className="p-3 text-sm" style={{ background: "#FAD4D6" }}>
-                {tx("Rumuzun onaylanmadı.")} <strong>{tx("Rumuzu değiştir")}</strong> {tx("ve yeniden gönder.")}
-              </div>
-            ) : null}
-            <h2 className="display text-2xl">{tx("Rumuz seç")}</h2>
-            <input className="field" placeholder={tx("Rumuz (ör. Zeytin)")} value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={20} required />
-            <button className="btn w-full justify-center" disabled={busy}>{busy ? tx("Gönderiliyor…") : status === "rejected" ? tx("Yeni rumuz gönder") : tx("Katıl")}</button>
-          </form>
-        ) : null}
-
-        {status === "pending" ? (
+        {status !== "approved" ? (
           <div className="game-panel">
-            <h2 className="display text-3xl">{data.me?.nickname}</h2>
-            <p className="mt-2">{tx("Admin rumuzunu onaylasın bekleniyor. Duvar ekranında henüz görünmezsin.")}</p>
+            <h2 className="display text-2xl">{tx("Oyun açılıyor…")}</h2>
+            {msg ? <p className="mt-2">{tx(msg)}</p> : <p className="mt-2">{tx("Rumuz yok. Okutan hemen oynar.")}</p>}
           </div>
         ) : null}
 
         {status === "approved" ? (
           <>
-            <div className="game-panel flex justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-[0.14em] text-[#0077C2]">{tx("Oyuncu")}</div>
-                <div className="display text-3xl">{data.me?.nickname}</div>
-              </div>
+            <div className="game-panel flex justify-end">
               <div className="text-right">
                 <div className="text-xs text-[#57534e]">{tx("Puan")}</div>
                 <div className="display text-4xl text-[#0077C2]">{data.me?.score}</div>
@@ -256,12 +237,12 @@ function Join({ slug }: { slug: string }) {
             {data.phase === "lobby" ? (
               <div className="game-panel">
                 {data.type === "wheel"
-                  ? tx("Onaylandın. Çevir’e bas; çark dönünce Durdur ile yavaş yavaş dursun. Duvar ekranı da aynı dönüşü gösterir.")
+                  ? tx("Çevir’e basın. Çark dönünce Durdur ile yavaşlar.")
                   : data.type === "plak"
-                    ? tx("Onaylandın. Döndür’e bas. Kapaklar döner, kalan parça çalar.")
+                    ? tx("Döndür’e basın. Kapaklar döner, kalan parça çalar.")
                   : data.type === "match"
-                    ? tx("Onaylandın. Sunucu hafızayı veya eşleştirmeyi başlatınca kartlar gelir.")
-                    : tx("Onaylandın. Sunucu oyunu başlatınca soru gelir.")}
+                    ? tx("Sunucu hafızayı veya eşleştirmeyi başlatınca kartlar gelir.")
+                    : tx("Sunucu oyunu başlatınca soru gelir.")}
               </div>
             ) : null}
             {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" && data.phase === "closed" ? (

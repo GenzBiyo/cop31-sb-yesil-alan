@@ -87,10 +87,15 @@ function Host({ slug }: { slug: string }) {
   const wheel = describeWheel(data || {});
   const wheelAngle = useWheelMotion(wheel);
 
-  async function moderate(playerId: string, action: "approve" | "reject") {
+  async function moderate(playerId: string, action: "approve" | "reject" | "drop") {
     if (!data) return;
-    await api(`/api/games/${data.id}/players`, { method: "POST", body: JSON.stringify({ playerId, action }) });
-    await reload();
+    setMsg("");
+    try {
+      await api(`/api/games/${data.id}/players`, { method: "POST", body: JSON.stringify({ playerId, action }) });
+      await reload(true);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Rumuz düşürülemedi");
+    }
   }
 
   async function run(action: string, extra: Record<string, unknown> = {}) {
@@ -144,13 +149,14 @@ function Host({ slug }: { slug: string }) {
 
   return (
     <main className="on-dark cop-wall min-h-screen text-[#EEF8FD]">
-      <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 px-5 py-4" style={{ background: "#00A3E0" }}>
+      <header className="host-bar sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 px-5 py-4" style={{ background: "#00A3E0" }}>
         <div>
           <a href={`/oyunlar/${data.id}`} className="text-xs underline" style={{ color: "#EEF8FD" }}>← {isWheel ? "Dilimleri düzenle" : isMatch || isKilo || isHatira ? "Tur ayarı" : "Soru düzenle"}</a>
           <a href={`/oyun/${data.slug}`} className="text-xs underline ml-3" style={{ color: "#EEF8FD" }} target="_blank"><Tx>Duvar ekranı</Tx></a>
+          <a href={`/oyunlar`} className="btn ml-3">{tx("Oyunları yönet")}</a>
           <h1 className="display text-3xl mt-1">{data.title}</h1>
           <p className="text-xs tracking-[0.16em] uppercase opacity-80">
-            Sunucu · {data.phase} · {isWheel ? `${(data.slices || []).length} dilim` : isHatira ? "hatıra" : isKilo ? "kilo karbon" : isMatch ? (data.currentIndex === 1 ? "eşleştirme" : data.currentIndex === 0 ? "hafıza" : "lobi") : `soru ${qn}/${data.questions.length}`}
+            {tx("Sunucu")} · {data.phase} · {isWheel ? `${(data.slices || []).length} dilim` : isHatira ? "hatıra" : isKilo ? "kilo karbon" : isMatch ? (data.currentIndex === 1 ? "eşleştirme" : data.currentIndex === 0 ? "hafıza" : "lobi") : `soru ${qn}/${data.questions.length}`}
             {data.paused ? " · DURDU" : ""}
           </p>
         </div>
@@ -212,8 +218,8 @@ function Host({ slug }: { slug: string }) {
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-4 p-5">
-        <section className="space-y-4">
+      <div className="host-desk">
+        <section className="min-w-0 space-y-4">
           {boardMode ? (
             <div className="p-6" style={{ background: "#EEF8FD", color: "#1c1917" }}>
               <h2 className="display text-4xl">{data.phase === "closed" ? tx("Yarışma bitti") : tx("Puan tablosu")}</h2>
@@ -221,7 +227,7 @@ function Host({ slug }: { slug: string }) {
                 <p className="mt-2 text-sm">{tx("Yeniden başlat deyince puanlar sıfırlanır, 5 soru baştan açılır. Rumuzlar kalır.")}</p>
               ) : null}
               <div className="mt-4">
-                <Scoreboard players={data.board.players} teams={data.board.teams} />
+                <Scoreboard players={data.board.players} teams={data.board.teams} onDrop={(id) => void moderate(id, "drop")} />
               </div>
             </div>
           ) : (
@@ -346,37 +352,40 @@ function Host({ slug }: { slug: string }) {
               <NameList title={tx("Yanlış")} tone="bad" people={data.results.wrong} />
               <NameList title={tx("Yanıtlamayan")} tone="muted" people={data.results.unanswered} />
               <h3 className="display text-2xl mt-4">{tx("Puan tablosu")}</h3>
-              <Scoreboard players={data.board.players} teams={data.board.teams} />
+              <Scoreboard players={data.board.players} teams={data.board.teams} onDrop={(id) => void moderate(id, "drop")} />
             </div>
           ) : null}
           {msg ? <p className="text-[#C8EEFA]">{msg}</p> : null}
         </section>
 
-        <aside className="space-y-3">
+        <aside id="admin-yonetim" className="host-admin space-y-3">
+          <div className="px-1 text-xs tracking-[0.16em] uppercase">{tx("Oyun yönetimi")}</div>
           <div className="p-3 text-center" style={{ background: "#EEF8FD" }}>
             <QrImage path={`/oyun/${data.slug}/katil`} alt="Oyuncu QR" size={160} />
             <p className="text-xs text-[#57534e] mt-2">{tx("Telefon giriş karekodu")}</p>
           </div>
+          {isHatira ? (
           <div className="p-3" style={{ background: "#0088C8" }}>
-            <div className="text-xs tracking-[0.16em] uppercase opacity-70">{isHatira ? tx("Hatıra onayları") : tx("Rumuz onayları")} · {(data.pending || []).length}</div>
+            <div className="text-xs tracking-[0.16em] uppercase opacity-70">{tx("Hatıra onayları")} · {(data.pending || []).length}</div>
             <div className="mt-2 space-y-2">
-              {(data.pending || []).length === 0 ? <p className="text-sm opacity-70">{isHatira ? tx("Bekleyen hatıra yok.") : tx("Bekleyen rumuz yok.")}</p> : null}
+              {(data.pending || []).length === 0 ? <p className="text-sm opacity-70">{tx("Bekleyen hatıra yok.")}</p> : null}
               {(data.pending || []).map((p) => (
-                <div key={p.id} className="flex items-center justify-between gap-2">
+                <div key={p.id} className="flex flex-wrap items-center justify-between gap-2">
                   {p.photoPath ? <img src={p.photoPath} alt={p.nickname} className="hatira-thumb" /> : null}
-                  <span className="font-semibold flex-1">{p.nickname}</span>
-                  <span className="flex gap-1">
+                  <span className="font-semibold flex-1 min-w-0 break-words">{p.nickname}</span>
+                  <span className="flex flex-none gap-1">
                     <button className="btn" onClick={() => void moderate(p.id, "approve")}>{tx("Onayla")}</button>
-                    <button className="btn ghost" onClick={() => void moderate(p.id, "reject")}>{tx("Reddet")}</button>
+                    <button className="btn ghost" onClick={() => void moderate(p.id, "drop")}>{tx("Düşür")}</button>
                   </span>
                 </div>
               ))}
             </div>
           </div>
+          ) : null}
           <div className="p-3" style={{ background: "#0088C8" }}>
             <div className="text-xs tracking-[0.16em] uppercase opacity-70">{tx("Puanlar")}</div>
             <div className="mt-3">
-              <Scoreboard players={data.board.players} variant="compact" tone="dark" />
+              <Scoreboard players={data.board.players} variant="compact" tone="dark" onDrop={(id) => void moderate(id, "drop")} />
             </div>
           </div>
         </aside>

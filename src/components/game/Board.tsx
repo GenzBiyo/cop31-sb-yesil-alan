@@ -73,12 +73,15 @@ function RaceRow({
   max,
   delay,
   dark,
+  onDrop,
 }: {
   player: Player;
   max: number;
   delay: number;
   dark?: boolean;
+  onDrop?: (id: string) => void;
 }) {
+  const { tx } = useI18n();
   const pct = max > 0 ? Math.max(8, Math.round((player.score / max) * 100)) : 8;
   const bar = player.rank === 1 ? "#00A3E0" : player.rank === 2 ? "#8f97a3" : player.rank === 3 ? "#c17a3a" : player.teamColor || "#0077C2";
   return (
@@ -91,6 +94,11 @@ function RaceRow({
             <Count n={player.score} />
             <span className="score-pts-label"> pn</span>
           </span>
+          {onDrop ? (
+            <button type="button" className="score-drop" onClick={() => onDrop(player.id)}>
+              {tx("Düşür")}
+            </button>
+          ) : null}
         </div>
         <div className="score-track" style={{ background: dark ? "rgba(244,239,230,0.12)" : "#D8F0FA" }}>
           <div className="score-fill" style={{ width: `${pct}%`, background: bar, animationDelay: `${delay + 80}ms` }}>
@@ -140,11 +148,13 @@ export function Scoreboard({
   teams,
   variant = "full",
   tone = "light",
+  onDrop,
 }: {
   players: Player[];
   teams?: Team[];
   variant?: "full" | "compact";
   tone?: "light" | "dark";
+  onDrop?: (id: string) => void;
 }) {
   const { tx } = useI18n();
   const max = Math.max(1, ...players.map((p) => p.score), ...(teams || []).map((t) => t.score));
@@ -182,7 +192,7 @@ export function Scoreboard({
 
       <div className="score-race">
         {players.map((p, i) => (
-          <RaceRow key={p.id} player={p} max={max} delay={i * 55} dark={dark} />
+          <RaceRow key={p.id} player={p} max={max} delay={i * 55} dark={dark} onDrop={onDrop} />
         ))}
       </div>
     </div>

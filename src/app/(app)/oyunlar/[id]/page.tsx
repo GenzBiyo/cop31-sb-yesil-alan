@@ -207,6 +207,11 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
     await reload();
   }
 
+  async function dropPlayer(playerId: string) {
+    await api(`/api/games/${id}/players`, { method: "POST", body: JSON.stringify({ playerId, action: "drop" }) });
+    await reload();
+  }
+
   async function award(playerId?: string) {
     if (!confirm("Birinciye ödül verilsin ve oyun kapansın mı?")) return;
     await api(`/api/games/${id}/award`, { method: "POST", body: JSON.stringify({ playerId }) });
@@ -238,7 +243,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a className="btn" href={`/sunucu/${data.slug}`}><Tx>Admin yönetim</Tx></a>
+          <a className="btn" href={`/sunucu/${data.slug}`}><Tx>Sunucu ekranı</Tx></a>
           <a className="btn ghost" href={`/oyun/${data.slug}`} target="_blank"><Tx>Duvar ekranı</Tx></a>
           {data.type !== "wheel" && data.type !== "match" && data.type !== "kilo" && data.type !== "hatira" && data.type !== "plak" ? (
             <>
@@ -256,7 +261,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           <QrImage path={`/oyun/${data.slug}/katil`} alt={tx("Katıl QR")} size={140} />
           <div>
             <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]"><Tx>Telefon giriş karekodu</Tx></div>
-            <p className="text-sm mt-1">{data.type === "kilo" ? "Karekod doğrudan hesap formunu açar. Rumuz gerekmez." : data.type === "hatira" ? "Karekod doğrudan selfie kamerasını açar. Admin onaylarsa duvarda görünür." : "Duvara yansıtılan oyunun QRsı da bunu açar. Rumuz admin onayına düşer."}</p>
+            <p className="text-sm mt-1">{data.type === "kilo" ? "Karekod doğrudan hesap formunu açar." : data.type === "hatira" ? "Karekod doğrudan selfie kamerasını açar. Onaylarsanız duvarda görünür." : "Karekodu okutan telefonunda hemen oynar. Rumuz ve onay yok."}</p>
             <a className="text-sm text-[#0077C2] underline" href={`/oyun/${data.slug}/katil`} target="_blank">{origin}/oyun/{data.slug}/katil</a>
             <div className="mt-2">
               <span className={`badge ${data.status === "live" ? "ok" : data.status === "lobby" ? "warn" : "muted"}`}>{data.status}</span>
@@ -555,7 +560,8 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                     <button className="btn ghost" onClick={() => void bump(p.id, 5)}>+5</button>
                     <button className="btn ghost" onClick={() => void bump(p.id, -5)}>−5</button>
                   </td>
-                  <td>
+                  <td className="space-x-1">
+                    <button className="btn ghost" onClick={() => void dropPlayer(p.id)}><Tx>Düşür</Tx></button>
                     <button className="btn ghost" onClick={() => void award(p.id)}><Tx>Ödül</Tx></button>
                   </td>
                 </tr>
