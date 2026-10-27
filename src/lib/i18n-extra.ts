@@ -1,5 +1,13 @@
 /** Turkish strings that were missing from the main phrase book. */
 export const EN_EXTRA: Record<string, string> = {
+  "GitHub'dan güncelle": "Update from GitHub",
+  "GitHub'daki son kod canlı siteye alınsın mı? Birkaç dakika sürebilir.":
+    "Take the latest GitHub code onto the live site? This can take a few minutes.",
+  "Güncelleme başladı. Site birkaç dakika içinde yenilenir.":
+    "The update has started. The site refreshes within a few minutes.",
+  "Güncelleme zaten sürüyor.": "An update is already running.",
+  "Bu düğme yalnızca canlı sitede çalışır.": "This button only works on the live site.",
+  "Güncelleniyor…": "Updating…",
   "Kayıtlar doldu.": "Registration is full.",
   "Başvuru süresi 5 Kasım 2026 tarihinde kapandı.": "Applications closed on 5 November 2026.",
   "Kabul edilen elçiler e-posta adresiyle giriş yapar.": "Accepted ambassadors sign in with their email address.",

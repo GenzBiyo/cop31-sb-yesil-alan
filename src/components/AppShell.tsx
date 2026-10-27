@@ -14,6 +14,7 @@ import {
   Gift,
   LogOut,
   Menu,
+  RefreshCw,
   MessageSquare,
   Mic2,
   Presentation,
@@ -90,6 +91,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { tx, t } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [updateNote, setUpdateNote] = useState("");
 
   const pathRef = useRef(pathname);
   pathRef.current = pathname;
@@ -176,6 +179,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="font-semibold text-[#0B1C33]">{me?.name}</div>
           <div>{roleLabel}</div>
           <div className="opacity-80">{me?.email}</div>
+          {me?.role === "ADMIN" ? (
+            <>
+              <button
+                type="button"
+                className="btn ghost mt-3"
+                disabled={updating}
+                onClick={() => {
+                  if (!window.confirm(tx("GitHub'daki son kod canlı siteye alınsın mı? Birkaç dakika sürebilir."))) return;
+                  setUpdating(true);
+                  setUpdateNote("");
+                  void api<{ message: string }>("/api/admin/update", { method: "POST" })
+                    .then((res) => setUpdateNote(tx(res.message)))
+                    .catch((err) => setUpdateNote(tx(err instanceof Error ? err.message : "Güncelleme başlatılamadı.")))
+                    .finally(() => setUpdating(false));
+                }}
+              >
+                <RefreshCw size={14} /> {updating ? tx("Güncelleniyor…") : tx("GitHub'dan güncelle")}
+              </button>
+              {updateNote ? <p className="mt-2 text-[#0B1C33]">{updateNote}</p> : null}
+            </>
+          ) : null}
           <button
             className="btn ghost mt-3"
             onClick={() => {

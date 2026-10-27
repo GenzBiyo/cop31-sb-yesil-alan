@@ -35,5 +35,5 @@ jobs:
               printf '%s' "$LOGIN_FIX_B64" | base64 -d > /var/www/cop31/login-fix.json
               chmod 600 /var/www/cop31/login-fix.json
             fi
-            chmod +x scripts/deploy.sh scripts/keep-data.sh
+            chmod +x scripts/deploy.sh scripts/keep-data.sh scripts/deploy-from-admin.sh
             bash scripts/deploy.sh
