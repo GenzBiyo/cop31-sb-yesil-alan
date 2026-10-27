@@ -1,7 +1,7 @@
 /** Turkish strings that were missing from the main phrase book. */
 export const EN_EXTRA: Record<string, string> = {
   "Kayıtlar doldu.": "Registration is full.",
-  "Başvuru süresi 5 Ekim 2026 tarihinde kapandı.": "Applications closed on 5 October 2026.",
+  "Başvuru süresi 5 Kasım 2026 tarihinde kapandı.": "Applications closed on 5 November 2026.",
   "Kabul edilen elçiler e-posta adresiyle giriş yapar.": "Accepted ambassadors sign in with their email address.",
   "Bu başvuru henüz kabul edilmedi.": "This application has not been accepted yet.",
   "Hediyeyi verin.": "Hand over the gift.",

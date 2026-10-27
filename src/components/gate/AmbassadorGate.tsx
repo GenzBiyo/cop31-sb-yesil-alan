@@ -31,7 +31,7 @@ function AmbassadorHome() {
         !loaded ? <p className="text-sm text-[#57534e]">…</p> : open ? <AmbassadorForm /> : (
           <div>
             <h2 className="display text-3xl">{tx("Kayıtlar doldu.")}</h2>
-            <p className="mt-2 text-sm">{tx("Başvuru süresi 5 Ekim 2026 tarihinde kapandı.")}</p>
+            <p className="mt-2 text-sm">{tx("Başvuru süresi 5 Kasım 2026 tarihinde kapandı.")}</p>
           </div>
         )
       ) : (

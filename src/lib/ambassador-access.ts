@@ -7,8 +7,8 @@ import { isAmbassadorAccepted } from "./ambassador-card";
 export const AMBASSADOR_PASSWORD = "COP312026!";
 export const ELCI_COOKIE = "cop31_elci";
 
-/** Registration stays open through the end of 5 October 2026, Europe/Istanbul. */
-export const AMBASSADOR_DEADLINE = new Date("2026-10-05T23:59:59+03:00");
+/** Registration stays open through the end of 5 November 2026, Europe/Istanbul. */
+export const AMBASSADOR_DEADLINE = new Date("2026-11-05T23:59:59+03:00");
 
 export function ambassadorRegistrationOpen(now = new Date()) {
   return now.getTime() <= AMBASSADOR_DEADLINE.getTime();
