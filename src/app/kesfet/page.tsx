@@ -1,6 +1,7 @@
 "use client";
 
 import { useApi, useProgramLive } from "@/lib/client";
+import { slotIsPast } from "@/lib/agenda-time";
 import { MOTES } from "@/components/gate/motes";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -9,6 +10,7 @@ type Ev = {
   title: string;
   date: string;
   startTime: string;
+  endTime?: string;
   location: string;
   gift: string;
 };
@@ -19,7 +21,7 @@ export default function KesfetPage() {
   useProgramLive(() => {
     void reload(true);
   });
-  const events = data?.events || [];
+  const events = (data?.events || []).filter((event) => !slotIsPast(event.date, event.endTime || event.startTime));
 
   return (
     <main className="gate-root is-open" style={{ height: "auto", minHeight: "100dvh", overflow: "auto" }}>
@@ -41,19 +43,20 @@ export default function KesfetPage() {
       ))}
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-10">
         <a href="/" className="text-xs tracking-[0.2em] uppercase opacity-80 underline underline-offset-4">{tx("← Kapılara dön")}</a>
-        <p className="gate-kicker mt-8">{tx("Misafir · hesap yok")}</p>
+        <p className="gate-kicker mt-8">{tx("Ziyaretçi kaydı")}</p>
         <h1 className="gate-slogan text-left">
           {tx("Gezegeni dinle")}
           <br />
           <em>{tx("programı aç")}</em>
         </h1>
         <p className="gate-lead text-left mx-0">
-          {tx("Giriş yapmadan açık program ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.")}
+          {tx("Kayıt olmadan giriş yok. Ad, e-posta ve telefon ile uygulamaya girin. Açık programda saati geçmiş oturum seçilmez.")}
         </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mt-10">
           {[
-            { href: "/p", title: "Açık program", body: "9–20 Kasım tematik günler, paneller ve kayıtlı etkinlikler.", img: "/gate/gate-hero-earth.webp" },
+            { href: "/u", title: "Ziyaretçi kaydı", body: "Kayıt olmadan giriş yok. Ad, e-posta ve telefon zorunlu.", img: "/gate/gate-misafir.webp" },
+            { href: "/p", title: "Açık program", body: "Saati geçmiş oturum seçilmez.", img: "/gate/gate-hero-earth.webp" },
             { href: "/oyun", title: "Etkileşim alanı", body: "Duvar ekranı ve karekod. Okutan telefonunda hemen oynar.", img: "/gate/gate-startup.webp" },
             { href: "/giris/elciler", title: "Elçi olmak", body: "Öğrenciyseniz gönüllü kapısından başvurun.", img: "/gate/gate-misafir.webp" },
           ].map((c) => (

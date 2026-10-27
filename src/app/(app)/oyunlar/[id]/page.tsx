@@ -6,7 +6,7 @@ import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { QuestionVideo } from "@/components/game/QuestionMedia";
 import { PrizeWheel } from "@/components/game/PrizeWheel";
 import { Scoreboard } from "@/components/game/Board";
-import { SLICE_COLORS } from "@/lib/wheel";
+import { SLICE_COLORS, sliceWeight, weightForShare } from "@/lib/wheel";
 import { CONCEPTS } from "@/lib/match-cards";
 import { useI18n, Tx } from "@/components/I18nProvider";
 import { HATIRA_H, HATIRA_NATURE, HATIRA_W, HATIRA_WINDOW, type HatiraLogos } from "@/lib/hatira";
@@ -36,6 +36,7 @@ type Slice = {
   label: string;
   color: string;
   kind: "prize" | "again" | "miss";
+  weight?: number;
 };
 type Detail = {
   id: string;
@@ -95,7 +96,7 @@ function HatiraUpload({
 }
 
 const emptyQ = (): Question => ({ prompt: "", options: ["", "", "", ""], answer: 0, points: 10, seconds: 15, videoUrl: "", videoPath: "" });
-const emptySlice = (): Slice => ({ label: "", color: SLICE_COLORS[0], kind: "prize" });
+const emptySlice = (): Slice => ({ label: "", color: SLICE_COLORS[0], kind: "prize", weight: 100 });
 
 function hydrateSlices(list: Slice[]): Slice[] {
   return list.length
@@ -349,7 +350,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           <PrizeWheel slices={slices.filter((s) => s.label)} angle={0} size={280} />
         </div>
         {slices.map((s, i) => (
-          <div key={s.id || i} className="grid md:grid-cols-[1fr_140px_140px_auto] gap-2 items-end border border-[#DCE8F0] p-3" style={{ background: "#FFFFFF" }}>
+          <div key={s.id || i} className="grid md:grid-cols-[1fr_110px_140px_140px_auto] gap-2 items-end border border-[#DCE8F0] p-3" style={{ background: "#FFFFFF" }}>
             <label className="text-sm"><Tx>Hediye / yazı</Tx><input
                 className="field mt-1"
                 value={s.label}
@@ -357,6 +358,27 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
                 onChange={(e) => {
                   const next = [...slices];
                   next[i] = { ...s, label: e.target.value };
+                  setSlices(next);
+                }}
+              />
+            </label>
+            <label className="text-sm"><Tx>Oran %</Tx>
+              <input
+                className="field mt-1"
+                type="number"
+                min={0.1}
+                max={99.9}
+                step={0.1}
+                value={(() => {
+                  const total = slices.reduce((sum, row) => sum + sliceWeight(row), 0) || 1;
+                  return (sliceWeight(s) / total * 100).toFixed(1);
+                })()}
+                onChange={(e) => {
+                  const percent = Number(e.target.value);
+                  if (!Number.isFinite(percent)) return;
+                  const others = slices.reduce((sum, row, idx) => (idx === i ? sum : sum + sliceWeight(row)), 0);
+                  const next = [...slices];
+                  next[i] = { ...s, weight: weightForShare(percent, others) };
                   setSlices(next);
                 }}
               />

@@ -46,11 +46,11 @@ const GATES = [
     guest: true,
   },
   {
-    href: "/kesfet",
+    href: "/u",
     src: "/gate/gate-misafir.webp",
-    kicker: "06 · Açık alan",
-    title: "Giriş yapmadan devam et",
-    body: "Açık program ve QR etkinlikler. Hesap gerekmez.",
+    kicker: "06 · Ziyaretçi",
+    title: "Ziyaretçi kaydı",
+    body: "Kayıt olmadan giriş yok. Ad, e-posta ve telefon ile uygulamaya girin.",
     guest: true,
   },
 ];

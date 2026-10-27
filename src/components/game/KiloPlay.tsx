@@ -345,6 +345,7 @@ export function KiloPlay({
     setMsg("");
     const local = estimateCarbon({ sex, age, heightCm, weightKg });
     setResult(local);
+    onPosted?.();
     try {
       const res = await fetch(`/api/public/games/${slug}/kilo`, {
         method: "POST",
@@ -354,7 +355,6 @@ export function KiloPlay({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) setMsg(json.error || "Duvara gönderilemedi; hesap yine de sende.");
       else if (json.result) setResult(json.result);
-      onPosted?.();
     } catch {
       setMsg("Bağlantı yok; hesap cihazda gösterildi.");
     } finally {

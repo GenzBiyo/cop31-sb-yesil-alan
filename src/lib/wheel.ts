@@ -7,7 +7,19 @@ export type SliceDraft = {
   label: string;
   color: string;
   kind: "prize" | "again" | "miss";
+  /** Göreli ağırlık. Dilimler 462+308+123+77+15+15 = 1000 ise oran yüzde onda biridir. */
+  weight?: number;
 };
+
+/** Çark ödülleri. Ağırlıklar binde: 462 → %46,2. */
+export const WHEEL_PRIZES: { label: string; weight: number }[] = [
+  { label: "Tohum kartı", weight: 462 },
+  { label: "Tohumlu kalem", weight: 308 },
+  { label: "Bez çanta", weight: 123 },
+  { label: "Bambu termos", weight: 77 },
+  { label: "Bluetooth Speaker", weight: 15 },
+  { label: "Hoparlör + kulaklık", weight: 15 },
+];
 
 export const WHEEL_COAST_DEG_PER_MS = 0.52;
 export const WHEEL_COAST_MAX_SEC = 25;
@@ -27,19 +39,50 @@ export const SAMPLE_WHEEL = {
   slug: "hediye-carki",
   title: "Hediyeli Çark",
   description: "Karekodu okut, Çevir’e bas. Çark dönünce Durdur ile yavaş yavaş dursun.",
-  gift: "Pavilion hediyeleri: bez çanta, matara, rozet, tohum kartı, iklim defteri",
+  gift: "Tohum kartı, tohumlu kalem, bez çanta, bambu termos, bluetooth speaker, hoparlör ve kulaklık",
   location: "Sağlık Pavilionu — Etkileşim alanı",
-  slices: [
-    { label: "Bez çanta", color: SLICE_BRAND[0], kind: "prize" },
-    { label: "Matara", color: SLICE_BRAND[1], kind: "prize" },
-    { label: "Tekrar çevir", color: SLICE_BRAND[2], kind: "again" },
-    { label: "Tohum kartı", color: SLICE_BRAND[3], kind: "prize" },
-    { label: "Teşekkür", color: SLICE_BRAND[4], kind: "miss" },
-    { label: "Pavilion rozeti", color: SLICE_BRAND[5], kind: "prize" },
-    { label: "Tekrar çevir", color: SLICE_BRAND[6], kind: "again" },
-    { label: "İklim defteri", color: SLICE_BRAND[7], kind: "prize" },
-  ] satisfies SliceDraft[],
+  slices: WHEEL_PRIZES.map((prize, i) => ({
+    label: prize.label,
+    color: SLICE_BRAND[i % SLICE_BRAND.length],
+    kind: "prize" as const,
+    weight: prize.weight,
+  })),
 };
+
+export function sliceWeight(slice: { weight?: number } | null | undefined) {
+  const weight = Number(slice?.weight);
+  return Number.isFinite(weight) && weight > 0 ? weight : 1;
+}
+
+export function wheelArcs(slices: { weight?: number }[]) {
+  const weights = (slices.length ? slices : [{ weight: 1 }]).map(sliceWeight);
+  const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+  let cursor = 0;
+  return weights.map((weight) => {
+    const start = cursor;
+    const arc = (weight / total) * 360;
+    cursor += arc;
+    return { start, arc, mid: start + arc / 2 };
+  });
+}
+
+export function pickWeightedIndex(slices: { weight?: number }[], rand = Math.random()) {
+  const weights = (slices.length ? slices : [{ weight: 1 }]).map(sliceWeight);
+  const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+  let mark = Math.min(0.999999, Math.max(0, rand)) * total;
+  for (let i = 0; i < weights.length; i += 1) {
+    mark -= weights[i];
+    if (mark < 0) return i;
+  }
+  return weights.length - 1;
+}
+
+/** Yüzdeyi, diğer dilimlerin ağırlığı sabitken bu dilimin payı yapar. */
+export function weightForShare(percent: number, othersWeight: number) {
+  const share = Math.min(99.9, Math.max(0.1, percent)) / 100;
+  const others = Math.max(1, othersWeight);
+  return Math.max(1, Math.round((share / (1 - share)) * others));
+}
 
 export function cleanSlices(raw: unknown): SliceDraft[] {
   if (!Array.isArray(raw)) return [];
@@ -52,21 +95,31 @@ export function cleanSlices(raw: unknown): SliceDraft[] {
         label: String(item.label || "").trim(),
         color: String(item.color || SLICE_COLORS[i % SLICE_COLORS.length]).trim() || SLICE_COLORS[i % SLICE_COLORS.length],
         kind,
+        weight: sliceWeight(item),
       };
     })
     .filter((s) => s.label);
 }
 
-export function wheelLandAngle(index: number, n: number, extraTurns = 6, jitter = 0) {
-  const count = Math.max(1, n);
-  const arc = 360 / count;
-  const center = index * arc + arc / 2;
-  const wobble = Math.max(-arc * 0.32, Math.min(arc * 0.32, jitter));
-  return Math.round(extraTurns * 360 + (360 - center) + wobble);
+function landSlice(index: number, slicesOrCount: { weight?: number }[] | number) {
+  if (typeof slicesOrCount === "number") {
+    const count = Math.max(1, slicesOrCount);
+    const arc = 360 / count;
+    const safe = ((index % count) + count) % count;
+    return { mid: safe * arc + arc / 2, arc };
+  }
+  const arcs = wheelArcs(slicesOrCount);
+  return arcs[Math.min(Math.max(index, 0), arcs.length - 1)] || { mid: 0, arc: 360 };
 }
 
-export function wheelLandMod(index: number, n: number, jitter = 0) {
-  return ((wheelLandAngle(index, n, 0, jitter) % 360) + 360) % 360;
+export function wheelLandAngle(index: number, slicesOrCount: { weight?: number }[] | number, extraTurns = 6, jitter = 0) {
+  const { mid, arc } = landSlice(index, slicesOrCount);
+  const wobble = Math.max(-arc * 0.32, Math.min(arc * 0.32, jitter));
+  return Math.round(extraTurns * 360 + (360 - mid) + wobble);
+}
+
+export function wheelLandMod(index: number, slicesOrCount: { weight?: number }[] | number, jitter = 0) {
+  return ((wheelLandAngle(index, slicesOrCount, 0, jitter) % 360) + 360) % 360;
 }
 
 export function wheelCoastAngle(from: number, startedAt: Date | string, now = Date.now()) {
@@ -74,9 +127,10 @@ export function wheelCoastAngle(from: number, startedAt: Date | string, now = Da
   return Math.round(from + Math.max(0, now - start) * WHEEL_COAST_DEG_PER_MS);
 }
 
-export function wheelStopTarget(from: number, index: number, n: number) {
-  const jitter = (Math.random() - 0.5) * (360 / Math.max(1, n)) * 0.45;
-  const land = wheelLandMod(index, n, jitter);
+export function wheelStopTarget(from: number, index: number, slicesOrCount: { weight?: number }[] | number) {
+  const { arc } = landSlice(index, slicesOrCount);
+  const jitter = (Math.random() - 0.5) * arc * 0.45;
+  const land = wheelLandMod(index, slicesOrCount, jitter);
   const fromMod = ((from % 360) + 360) % 360;
   let delta = (land - fromMod + 360) % 360;
   const minDelta = 5 * 360 + 40;

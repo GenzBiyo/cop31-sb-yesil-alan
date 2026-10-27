@@ -1,20 +1,19 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { WHEEL_COAST_DEG_PER_MS, WHEEL_STOP_SEC, type WheelMotion, type WheelMode } from "@/lib/wheel";
+import { WHEEL_COAST_DEG_PER_MS, WHEEL_STOP_SEC, wheelArcs, type WheelMotion, type WheelMode } from "@/lib/wheel";
 import { useI18n } from "@/components/I18nProvider";
 
-export type WheelSlice = { id?: string; label: string; color: string; kind?: string };
+export type WheelSlice = { id?: string; label: string; color: string; kind?: string; weight?: number };
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
-function slicePath(i: number, n: number) {
-  const arc = 360 / n;
-  const a0 = i * arc;
-  const a1 = (i + 1) * arc;
+function slicePath(start: number, arc: number) {
+  const a0 = start;
+  const a1 = start + Math.max(arc, 0.4);
   const p0 = polar(100, 100, 88, a0);
   const p1 = polar(100, 100, 88, a1);
   const large = arc > 180 ? 1 : 0;
@@ -131,13 +130,15 @@ export function PrizeWheel({
   spinning?: boolean;
   mode?: WheelMode;
 }) {
-  const n = Math.max(slices.length, 1);
+  const arcs = wheelArcs(slices);
+  const showKey = arcs.some((arc) => arc.arc < 22);
   const motion = mode || (spinning ? "stop" : "idle");
   const { tx } = useI18n();
   const uid = useId().replace(/:/g, "");
 
   return (
-    <div className={`prize-wheel ${motion !== "idle" ? "is-spinning" : ""} is-${motion}`} style={{ width: size, height: size }}>
+    <div>
+      <div className={`prize-wheel ${motion !== "idle" ? "is-spinning" : ""} is-${motion}`} style={{ width: size, height: size }}>
       <div className="prize-halo" aria-hidden />
       <svg viewBox="0 0 200 200" className="prize-rim" aria-hidden>
         <defs>
@@ -179,14 +180,15 @@ export function PrizeWheel({
           </radialGradient>
         </defs>
         {slices.map((s, i) => {
-          const arc = 360 / n;
-          const mid = i * arc + arc / 2;
+          const arc = arcs[i]?.arc || 360;
+          const mid = arcs[i]?.mid || 0;
           const on = highlight === i;
-          const layout = sliceLabelLayout(tx(s.label), n);
+          const layout = sliceLabelLayout(tx(s.label), slices.length);
           const ink = sliceInk(s.color);
           return (
             <g key={s.id || `${s.label}-${i}`}>
-              <path d={slicePath(i, n)} fill={s.color} stroke={on ? "#FFFFFF" : "rgba(255,255,255,0.35)"} strokeWidth={on ? 2.4 : 0.6} />
+              <path d={slicePath(arcs[i]?.start || 0, arc)} fill={s.color} stroke={on ? "#FFFFFF" : "rgba(255,255,255,0.35)"} strokeWidth={on ? 2.4 : 0.6} />
+              {arc >= 18 ? (
               <text
                 x="100"
                 y={layout.y}
@@ -201,6 +203,7 @@ export function PrizeWheel({
               >
                 {tx(s.label)}
               </text>
+              ) : null}
             </g>
           );
         })}
@@ -209,6 +212,17 @@ export function PrizeWheel({
         <circle cx="100" cy="100" r="7" fill="#E31C23" />
         <circle cx="100" cy="100" r="3.2" fill="#FFFFFF" />
       </svg>
+      </div>
+      {showKey ? (
+        <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 rounded-md bg-white/95 px-3 py-2 text-xs text-[#0B1C33]">
+          {slices.map((s, i) => (
+            <li key={s.id || `${s.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
+              <span className="inline-block h-2.5 w-2.5 shrink-0" style={{ background: s.color }} />
+              <span className="truncate">{tx(s.label)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

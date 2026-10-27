@@ -5,9 +5,10 @@ import { broadcast } from "./realtime";
 import { ensureEvents } from "./events-db";
 import { ensureAgendaSlots } from "./agenda";
 import { parseConcept } from "./session-concept";
-import { validEmail, validPhone } from "./agenda-time";
+import { validEmail, validPhone, slotIsPast as sessionEnded } from "./agenda-time";
 import { MEETING_ACCEPTED, MEETING_PENDING, MEETING_REJECTED, openSlotsByCompany, participationDays, slotIsPast, slotStates } from "./meeting-slots";
 import { notifyCompanyDecision } from "./proposals";
+import { panelWheelOpen as joinWheelOpen, wheelWho } from "./once-wheel";
 import { MINISTRY_UNITS } from "./stakeholder-form";
 
 const DEMO_TAGS = [
@@ -362,8 +363,8 @@ export async function saveProfile(
   const phone = input.phone.trim().slice(0, 30);
   let organization = input.organization.trim().slice(0, 120);
   if (name.length < 2) throw new Error("Ad soyad gerekli");
-  if (email && !validEmail(email)) throw new Error("E-posta geçersiz");
-  if (phone && !validPhone(phone)) throw new Error("Telefon en az 10 hane olmalı");
+  if (!validEmail(email)) throw new Error("Geçerli bir e-posta gerekli");
+  if (!validPhone(phone)) throw new Error("Telefon en az 10 hane olmalı");
 
   const current = await prisma.appDevice.findUnique({
     where: { id: deviceId },
@@ -426,36 +427,39 @@ export async function toggleJoin(deviceId: string, kind: "agenda" | "event", ref
   if (kind !== "agenda" && kind !== "event") throw new Error("Katılım türü geçersiz");
   const device = await prisma.appDevice.findUnique({ where: { id: deviceId } });
   if (!device) throw new Error("Cihaz yok");
-  if (!device.name) throw new Error("Önce adınızı kaydedin");
+  if (!device.name || !validEmail(device.email) || !validPhone(device.phone)) throw new Error("Önce kayıt olun");
 
   if (!on) {
     await prisma.appJoin.deleteMany({ where: { deviceId, kind, refId } });
-    return { joined: false };
+    return { joined: false, wheel: false };
   }
 
   let title = "";
+  let wheel = false;
   if (kind === "agenda") {
     const item = await prisma.agendaItem.findUnique({ where: { id: refId }, include: { day: true } });
     if (!item) throw new Error("Oturum bulunamadı");
+    if (sessionEnded(item.day.date, item.endTime)) throw new Error("Bu oturum geçti");
     title = `${item.day.date} ${item.startTime} · ${item.title}`;
-    if (validEmail(device.email) && validPhone(device.phone)) {
-      await prisma.agendaSignup.upsert({
-        where: { agendaId_email: { agendaId: item.id, email: device.email } },
-        update: { fullName: device.name, phone: device.phone, organization: device.organization, role: device.role === "konusmaci" ? "konusmaci" : "katilimci" },
-        create: {
-          agendaId: item.id,
-          fullName: device.name,
-          email: device.email,
-          phone: device.phone,
-          organization: device.organization,
-          role: device.role === "konusmaci" ? "konusmaci" : "katilimci",
-        },
-      });
-    }
+    await prisma.agendaSignup.upsert({
+      where: { agendaId_email: { agendaId: item.id, email: device.email } },
+      update: { fullName: device.name, phone: device.phone, organization: device.organization, role: device.role === "konusmaci" ? "konusmaci" : "katilimci" },
+      create: {
+        agendaId: item.id,
+        fullName: device.name,
+        email: device.email,
+        phone: device.phone,
+        organization: device.organization,
+        role: device.role === "konusmaci" ? "konusmaci" : "katilimci",
+      },
+    });
+    wheel = await joinWheelOpen(item.id, wheelWho(device.email, device.id));
   } else {
     const event = await prisma.pavilionEvent.findUnique({ where: { id: refId } });
     if (!event || !event.published) throw new Error("Etkinlik bulunamadı");
+    if (sessionEnded(event.date, event.endTime)) throw new Error("Bu etkinlik geçti");
     title = `${event.date} ${event.startTime} · ${event.title}`;
+    wheel = await joinWheelOpen(event.id, wheelWho(device.email, device.id));
   }
 
   await prisma.appJoin.upsert({
@@ -464,7 +468,7 @@ export async function toggleJoin(deviceId: string, kind: "agenda" | "event", ref
     create: { deviceId, kind, refId, title },
   });
   await addNote(deviceId, "Katılım alındı", title, "join", `${kind}:${refId}`);
-  return { joined: true, title };
+  return { joined: true, title, wheel };
 }
 
 type PartyDevice = { id: string; role: string; companyId: string; personId: string };

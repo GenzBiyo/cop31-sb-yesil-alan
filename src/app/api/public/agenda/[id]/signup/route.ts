@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { sendMail } from "@/lib/mail";
-import { formatWhen, validEmail, validPhone } from "@/lib/agenda";
+import { formatWhen, slotIsPast, validEmail, validPhone } from "@/lib/agenda-time";
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     include: { day: true },
   });
   if (!item) return jsonError("Oturum yok", 404);
+  if (slotIsPast(item.day.date, item.endTime)) return jsonError("Bu oturum geçti. Kayıt kapandı.");
 
   const existing = await prisma.agendaSignup.findUnique({
     where: { agendaId_email: { agendaId: id, email } },
@@ -40,5 +41,6 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     `Merhaba ${fullName},\n\n${item.title} kaydınız alındı.\n${formatWhen(item.day.date, item.startTime, item.endTime)}\n${item.location}\n\nSaat değişince veya etkinlik yaklaşınca bu e-postaya haber gider.\n`
   );
 
-  return jsonOk({ id: signup.id, email }, 201);
+  const spun = await prisma.wheelSpin.findUnique({ where: { agendaId_who: { agendaId: item.id, who: email } }, select: { id: true } });
+  return jsonOk({ id: signup.id, email, wheel: !spun }, 201);
 }

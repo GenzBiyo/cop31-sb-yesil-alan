@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
-import { SAMPLE_WHEEL, WHEEL_COAST_MAX_SEC, WHEEL_STOP_SEC, parseWheelView, wheelCoastAngle, wheelStopTarget, wheelViewFor } from "./wheel";
+import { SAMPLE_WHEEL, WHEEL_COAST_MAX_SEC, WHEEL_STOP_SEC, parseWheelView, pickWeightedIndex, wheelCoastAngle, wheelStopTarget, wheelViewFor } from "./wheel";
 import { SAMPLE_MATCH } from "./match-cards";
 import { SAMPLE_KILO } from "./kilo-carbon";
 import { SAMPLE_HATIRA } from "./hatira";
@@ -261,6 +261,7 @@ export async function ensureSampleGames() {
             label: s.label,
             color: s.color,
             kind: s.kind,
+            weight: s.weight || 1,
           })),
         },
       },
@@ -555,14 +556,14 @@ export async function stopSpin(gameId: string, fromHint?: number, known?: GameCl
   const slices = await prisma.gameSlice.findMany({
     where: { gameId },
     orderBy: { order: "asc" },
-    select: { id: true },
+    select: { id: true, weight: true },
   });
   if (slices.length < 2) throw new Error("En az iki çark dilimi ekleyin");
   const started = game.questionStartedAt || new Date();
   const computed = wheelCoastAngle(game.spinAngle || 0, started);
   const from = Number.isFinite(fromHint) ? Math.round(Number(fromHint)) : computed;
-  const index = Math.floor(Math.random() * slices.length);
-  const target = wheelStopTarget(from, index, slices.length);
+  const index = pickWeightedIndex(slices);
+  const target = wheelStopTarget(from, index, slices);
   return prisma.game.update({
     where: { id: gameId },
     data: {

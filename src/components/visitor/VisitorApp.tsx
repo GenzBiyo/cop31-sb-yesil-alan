@@ -6,6 +6,8 @@ import { ProgramFilterBar, agendaMatchesFilter, type ProgramFilter } from "@/com
 import { SessionBrief } from "@/components/SessionBrief";
 import { conceptHasDetail, emptyConcept, type SessionConcept } from "@/lib/session-concept";
 import { accountKind } from "@/lib/account-kinds";
+import { slotIsPast, validEmail, validPhone } from "@/lib/agenda-time";
+import { OnceWheel } from "@/components/game/OnceWheel";
 
 type AgendaItem = {
   id: string;
@@ -146,6 +148,7 @@ function savedProfile(): ProfileForm | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProfileForm;
     if (!parsed?.name || parsed.name.trim().length < 2) return null;
+    if (!validEmail(parsed.email || "") || !validPhone(parsed.phone || "")) return null;
     return { ...parsed, role: "ziyaretci", companyId: "", personId: "" };
   } catch {
     return null;
@@ -198,6 +201,7 @@ export function VisitorApp() {
   const restoreOnce = useRef(false);
   const profileReady = useRef(false);
   const [heldName, setHeldName] = useState(false);
+  const [wheelAgenda, setWheelAgenda] = useState("");
 
   const load = useCallback(async (current: string) => {
     const next = await call<AppState>(current, "/api/app");
@@ -283,13 +287,17 @@ export function VisitorApp() {
   }, [state]);
 
   useEffect(() => {
-    if (!dayId && state?.days[0]) setDayId(state.days[0].id);
+    if (dayId || !state?.days.length) return;
+    const live = state.days.find((day) => day.agenda.some((item) => !slotIsPast(day.date, item.endTime)));
+    setDayId((live || state.days[0]).id);
   }, [state, dayId]);
 
   const sessions = useMemo(
     () =>
       (state?.days || []).flatMap((day) =>
-        day.agenda.map((item) => ({ ...item, date: day.date, theme: day.theme }))
+        day.agenda
+          .filter((item) => !slotIsPast(day.date, item.endTime))
+          .map((item) => ({ ...item, date: day.date, theme: day.theme }))
       ),
     [state]
   );
@@ -323,11 +331,12 @@ export function VisitorApp() {
     setBusy(true);
     setError("");
     try {
-      const result = await call<{ state: AppState }>(token, "/api/app/join", {
+      const result = await call<{ state: AppState; wheel?: boolean }>(token, "/api/app/join", {
         method: "POST",
         body: JSON.stringify({ kind, refId, on }),
       });
       setState(result.state);
+      if (on && result.wheel) setWheelAgenda(refId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Katılım kaydedilemedi");
     } finally {
@@ -408,7 +417,7 @@ export function VisitorApp() {
     setUseBrowser(true);
   }
 
-  const registered = Boolean(state?.device.name) || heldName;
+  const registered = Boolean(state?.device.name && validEmail(state.device.email) && validPhone(state.device.phone)) || (heldName && validEmail(profile.email) && validPhone(profile.phone) && profile.name.trim().length >= 2);
 
   function goBack() {
     const here = window.location.pathname;
@@ -480,6 +489,11 @@ export function VisitorApp() {
 
       <div className="phone-scroll">
         {error ? <p className="phone-error">{tx(error) === error ? error : tx(error)}</p> : null}
+        {wheelAgenda && token ? (
+          <div className="phone-card">
+            <OnceWheel agendaId={wheelAgenda} deviceToken={token} personName={state?.device.name || profile.name} onClose={() => setWheelAgenda("")} />
+          </div>
+        ) : null}
         {standalone && registered && state && !state.device.push ? (
           <div className="phone-card">
             <p>{tx("Bildirimleri açın; salon anonsu simgeden gelsin.")}</p>
@@ -490,12 +504,12 @@ export function VisitorApp() {
         {state && !registered ? (
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
-            <p>{tx("Önce kayıt olun. Gündem, soru ve mesajlar kayıttan sonra açılır.")}</p>
+            <p>{tx("Kayıt olmadan giriş yok. Ad, e-posta ve telefon zorunlu.")}</p>
             <p className="phone-kicker">{tx("Ziyaretçi")}</p>
             <input className="phone-field" placeholder={tx("Ad soyad")} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
             <input className="phone-field" placeholder={tx("Kurum")} value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
-            <input className="phone-field" placeholder={tx("E-posta")} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" />
-            <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} inputMode="tel" />
+            <input className="phone-field" placeholder={tx("E-posta")} type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} inputMode="email" required />
+            <input className="phone-field" placeholder={tx("Telefon")} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} inputMode="tel" required />
             <button className="phone-btn" disabled={busy} type="submit">{tx("Kaydet ve devam et")}</button>
           </form>
         ) : null}
@@ -514,6 +528,7 @@ export function VisitorApp() {
             <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
             {(day?.agenda || []).filter((item) => agendaMatchesFilter(item.type, programFilter)).map((item) => {
               const on = joined.has(`agenda:${item.id}`);
+              const past = day ? slotIsPast(day.date, item.endTime) : false;
               return (
                 <article key={item.id} className="phone-card">
                   <div className="phone-row">
@@ -529,9 +544,12 @@ export function VisitorApp() {
                       concept={item.concept || emptyConcept()}
                     />
                   )}
-                  <button className={`phone-btn ${on ? "is-quiet" : ""}`} type="button" disabled={busy} onClick={() => void join("agenda", item.id, !on)}>
-                    {on ? tx("Katıldınız") : tx("Katılacağım")}
+                  <button className={`phone-btn ${on || past ? "is-quiet" : ""}`} type="button" disabled={busy || past} onClick={() => void join("agenda", item.id, !on)}>
+                    {past ? tx("Geçti") : on ? tx("Katıldınız") : tx("Katılacağım")}
                   </button>
+                  {on ? (
+                    <button className="phone-btn is-quiet" type="button" onClick={() => setWheelAgenda(item.id)}>{tx("Çark hakkı")}</button>
+                  ) : null}
                 </article>
               );
             })}
@@ -556,6 +574,7 @@ export function VisitorApp() {
             ) : null}
             {(state?.events || []).map((item) => {
               const on = joined.has(`event:${item.id}`);
+              const past = slotIsPast(item.date, item.endTime);
               return (
                 <article key={item.id} className="phone-card">
                   <div className="phone-row">
@@ -564,9 +583,12 @@ export function VisitorApp() {
                   <h3>{item.title}</h3>
                   <p>{item.location}</p>
                   {item.description ? <p className="phone-muted">{item.description}</p> : null}
-                  <button className={`phone-btn ${on ? "is-quiet" : ""}`} type="button" disabled={busy} onClick={() => void join("event", item.id, !on)}>
-                    {on ? tx("Katıldınız") : tx("Katılacağım")}
+                  <button className={`phone-btn ${on || past ? "is-quiet" : ""}`} type="button" disabled={busy || past} onClick={() => void join("event", item.id, !on)}>
+                    {past ? tx("Geçti") : on ? tx("Katıldınız") : tx("Katılacağım")}
                   </button>
+                  {on ? (
+                    <button className="phone-btn is-quiet" type="button" onClick={() => setWheelAgenda(item.id)}>{tx("Çark hakkı")}</button>
+                  ) : null}
                 </article>
               );
             })}

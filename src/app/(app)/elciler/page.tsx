@@ -115,7 +115,8 @@ export default function AmbassadorsAdminPage() {
           notify: true,
         }),
       });
-      setInfo(result.mailWarning || `${app.fullName} — ${status}. Bilgilendirme e-postası gönderildi.`);
+      const cardNote = status === "Kabul edildi" || status === "Yerleştirildi" ? " Tebrik kartı bağlantısı e-postaya eklendi." : "";
+      setInfo(result.mailWarning || `${app.fullName} — ${status}. Bilgilendirme e-postası gönderildi.${cardNote}`);
       setOpen(null);
       await apps.reload();
       await acts.reload();
@@ -135,7 +136,7 @@ export default function AmbassadorsAdminPage() {
     <div className="space-y-4">
       <div>
         <h1 className="display text-4xl">{tx("İklim Sağlık Elçileri")}</h1>
-        <p className="text-[#57534e]"><Tx>Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider.</Tx></p>
+        <p className="text-[#57534e]"><Tx>Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider. Kabul e-postasında tebrik kartının bağlantısı da vardır; öğrenci kartı JPG indirip paylaşır.</Tx></p>
         <a className="text-sm text-[#0077C2] underline" href="/giris/elciler" target="_blank"><Tx>Açık başvuru formu</Tx></a>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -185,6 +186,9 @@ export default function AmbassadorsAdminPage() {
                     <td className="text-xs">{a.email}<br />{a.phone}</td>
                     <td>
                       <span className={`badge ${a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? "ok" : a.status === "Reddedildi" ? "high" : "warn"}`}>{a.status}</span>
+                      {a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? (
+                        <a className="block text-xs text-[#0077C2] underline mt-1" href={`/elci/kart/${a.id}`} target="_blank" onClick={(e) => e.stopPropagation()}>Tebrik kartı</a>
+                      ) : null}
                       {a.status === "Beklemede" || a.status === "Yedek" ? (
                         <div className="flex flex-wrap gap-1 mt-2" onClick={(e) => e.stopPropagation()}>
                           <button className="btn px-2 py-1 text-xs" disabled={busyId === a.id} onClick={() => void decideApp(a, "Kabul edildi")}><Tx>Kabul et</Tx></button>

@@ -5,6 +5,7 @@ import { CORE_KEYS } from "@/lib/ambassador";
 import { ensureAmbassadorForm } from "@/lib/ambassador-db";
 import { sendMail } from "@/lib/mail";
 import { broadcast } from "@/lib/realtime";
+import { ambassadorRegistrationOpen } from "@/lib/ambassador-access";
 
 function reviewUrl() {
   const base = (process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://cop31saglik.com").replace(/\/$/, "");
@@ -38,6 +39,7 @@ function asString(v: unknown) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!ambassadorRegistrationOpen()) return jsonError("Kayıtlar doldu.", 403);
   const body = await req.json();
   const { fields } = await ensureAmbassadorForm();
   const enabled = fields.filter((f) => f.enabled);

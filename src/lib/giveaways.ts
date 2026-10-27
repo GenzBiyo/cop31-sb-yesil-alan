@@ -18,6 +18,7 @@ export type GiveawaySeed = {
   imagePath: string;
   sourceUrl: string;
   sortOrder: number;
+  packagePrice?: number;
 };
 
 /** Sağlık Bakanlığı fiyat ve adedi sonradan değiştirir. */
@@ -224,6 +225,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     printNote: "Logo baskı",
     quantity: 20,
     unitPrice: 106750,
+    packagePrice: 106750,
     vatRate: 20,
     priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/saat-3077.jpg",
@@ -240,6 +242,7 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     printNote: "Logo baskı",
     quantity: 10,
     unitPrice: 219500,
+    packagePrice: 219500,
     vatRate: 20,
     priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/hoparlor-3068.jpg",
@@ -256,11 +259,63 @@ export const GIVEAWAY_CATALOG: GiveawaySeed[] = [
     printNote: "Logo baskı",
     quantity: 100,
     unitPrice: 82900,
+    packagePrice: 82900,
     vatRate: 20,
     priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat. Sağlık Bakanlığı fiyatı değiştirebilir.",
     imagePath: "/giveaways/speaker-8013.jpg",
     sourceUrl: "https://greenstyle.com.tr/urun/8013-bluetooth-speaker/",
     sortOrder: 150,
+  },
+  {
+    slug: "gs-8011-hoparlor-kulaklik",
+    kind: "esantiyon",
+    sku: "8011",
+    offerNo: "",
+    title: "Bambu kablosuz hoparlör ve bluetooth kulaklık",
+    detail: "10,7×4,5×2,5 cm. Bluetooth 5.0, 3W, dokunmatik kontrol, type-C. Adedi Sağlık Bakanlığı girer.",
+    printNote: "Logo baskı",
+    quantity: 0,
+    unitPrice: 92400,
+    packagePrice: 92400,
+    vatRate: 20,
+    priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat (924,00 ₺). Adedi Sağlık Bakanlığı girer.",
+    imagePath: "https://greenstyle.com.tr/wp-content/uploads/2024/12/bambu-kablosuz-hoparlor-ve-bluetooth-kulaklik.jpg",
+    sourceUrl: "https://greenstyle.com.tr/urun/8011-bambu-kablosuz-hoparlor-bluetooth-kulaklik/",
+    sortOrder: 160,
+  },
+  {
+    slug: "gs-7412-bardak",
+    kind: "esantiyon",
+    sku: "7412",
+    offerNo: "",
+    title: "7 oz kraft karton bardak",
+    detail: "Geri dönüşümlü kraft karton, 7 oz (yaklaşık 207 ml), 200 g, baskısız. Sayfada birim fiyat yok. Adedi Sağlık Bakanlığı girer.",
+    printNote: "Baskısız",
+    quantity: 0,
+    unitPrice: 0,
+    packagePrice: 0,
+    vatRate: 20,
+    priceNote: "Greenstyle sayfasında fiyat yayımlanmıyor (stokta yok). Fiyatı ve adedi Sağlık Bakanlığı girer.",
+    imagePath: "https://greenstyle.com.tr/wp-content/uploads/2023/04/7-oz-kraft-karton-bardak.webp",
+    sourceUrl: "https://greenstyle.com.tr/urun/7412-7oz-kraft-karton-bardak/",
+    sortOrder: 170,
+  },
+  {
+    slug: "gs-9140-kulaklik",
+    kind: "esantiyon",
+    sku: "9140",
+    offerNo: "",
+    title: "Bambu kablosuz bluetooth kulaklık",
+    detail: "Bluetooth 5.0, 10 m, kullanım 2,5 saat. Adedi Sağlık Bakanlığı girer.",
+    printNote: "Logo baskı",
+    quantity: 0,
+    unitPrice: 59250,
+    packagePrice: 59250,
+    vatRate: 20,
+    priceNote: "KDV hariç, yayımlanan en yüksek birim fiyat (592,50 ₺). Adedi Sağlık Bakanlığı girer.",
+    imagePath: "https://greenstyle.com.tr/wp-content/uploads/2023/04/bambu-bluetooth-kulaklik.webp",
+    sourceUrl: "https://greenstyle.com.tr/urun/bambu-bluetooth-kulaklik/",
+    sortOrder: 180,
   },
 ];
 
@@ -331,8 +386,20 @@ export async function ensureGiveawayCatalog() {
     });
   }
   for (const item of GIVEAWAY_CATALOG) {
-    const existing = await prisma.giveawayItem.findUnique({ where: { slug: item.slug }, select: { id: true } });
-    if (!existing) await prisma.giveawayItem.create({ data: item });
+    const existing = await prisma.giveawayItem.findUnique({
+      where: { slug: item.slug },
+      select: { id: true, packagePrice: true },
+    });
+    if (!existing) {
+      await prisma.giveawayItem.create({ data: item });
+      continue;
+    }
+    if (item.packagePrice && existing.packagePrice < 1) {
+      await prisma.giveawayItem.update({
+        where: { id: existing.id },
+        data: { packagePrice: item.packagePrice, unitPrice: item.unitPrice, priceNote: item.priceNote },
+      });
+    }
   }
   quoteReady = true;
 }

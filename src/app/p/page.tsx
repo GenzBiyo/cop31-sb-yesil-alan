@@ -1,6 +1,7 @@
 "use client";
 
 import { useApi, useProgramLive, formatDate } from "@/lib/client";
+import { slotIsPast } from "@/lib/agenda-time";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts } from "@/components/AgendaAlerts";
@@ -70,21 +71,38 @@ export default function PublicProgramPage() {
           <section key={date} className="card p-4">
             <div className="text-[#0077C2] font-semibold">{formatDate(date)}</div>
             <h2 className="display text-2xl">{tx(block.day?.themeTr || "Etkinlikler")}</h2>
-            {agenda.map((a) => (
-              <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">
-                <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
-                {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{tx(a.description)}</div> : null}
-                <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
-              </a>
-            ))}
-            {events.map((e) => (
-              <a key={e.slug} href={`/e/${e.slug}`} className="block mt-3 p-3 bg-[#EAF2F8] hover:bg-white">
-                <div className="text-xs uppercase tracking-wide text-[#0077C2]">{tx(TYPE_TR[e.type] || e.type)}</div>
-                <div className="font-semibold">{tx(e.title)}</div>
-                <div className="text-xs text-[#57534e]">{tx(e.companyName)} · {tx(e.location)} · {tx("hediye:")} {tx(e.gift)}</div>
-                <span className="text-sm text-[#0077C2]">{tx("Katıl / kayıt →")}</span>
-              </a>
-            ))}
+            {agenda.map((a) => {
+              const past = slotIsPast(date, a.endTime);
+              const body = (
+                <>
+                  <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
+                  {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{tx(a.description)}</div> : null}
+                  <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {past ? tx("Geçti") : a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
+                </>
+              );
+              return past ? (
+                <div key={a.id} className="block border-b border-[#DCE8F0] py-2 text-sm opacity-60">{body}</div>
+              ) : (
+                <a key={a.id} href={`/g/${a.id}`} className="block border-b border-[#DCE8F0] py-2 text-sm hover:bg-[#F4FBFF]">{body}</a>
+              );
+            })}
+            {events.map((e) => {
+              const past = slotIsPast(e.date, e.endTime);
+              return past ? (
+                <div key={e.slug} className="block mt-3 p-3 bg-[#EAF2F8] opacity-60">
+                  <div className="text-xs uppercase tracking-wide text-[#0077C2]">{tx(TYPE_TR[e.type] || e.type)}</div>
+                  <div className="font-semibold">{tx(e.title)}</div>
+                  <div className="text-xs text-[#57534e]">{tx("Geçti")}</div>
+                </div>
+              ) : (
+                <a key={e.slug} href={`/e/${e.slug}`} className="block mt-3 p-3 bg-[#EAF2F8] hover:bg-white">
+                  <div className="text-xs uppercase tracking-wide text-[#0077C2]">{tx(TYPE_TR[e.type] || e.type)}</div>
+                  <div className="font-semibold">{tx(e.title)}</div>
+                  <div className="text-xs text-[#57534e]">{tx(e.companyName)} · {tx(e.location)} · {tx("hediye:")} {tx(e.gift)}</div>
+                  <span className="text-sm text-[#0077C2]">{tx("Katıl / kayıt →")}</span>
+                </a>
+              );
+            })}
           </section>
           );
         })}

@@ -1,5 +1,5 @@
 import { PortalChrome } from "@/components/gate/PortalChrome";
-import { AmbassadorForm } from "@/components/gate/AmbassadorForm";
+import { AmbassadorGate } from "@/components/gate/AmbassadorGate";
 
 export default function ElcilerGate() {
   return (
@@ -9,7 +9,7 @@ export default function ElcilerGate() {
       title="Sağlık ve İklim Elçisi"
       lead={"Sağlık Bakanlığı pavilyonundaki karşılama, oyunlar, QR kayıt ve koruyucu sağlık anlatımı konusunda yardımcı olacak öğrenciler.\n\nKonaklama ve ulaşım olmadığı için Antalya ve çevre illerden başvurular önerilir."}
     >
-      <AmbassadorForm />
+      <AmbassadorGate />
     </PortalChrome>
   );
 }

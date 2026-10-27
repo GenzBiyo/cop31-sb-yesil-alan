@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { ensureAmbassadorForm } from "@/lib/ambassador-db";
+import { ambassadorRegistrationOpen } from "@/lib/ambassador-access";
 
 export async function GET() {
   const form = await ensureAmbassadorForm();
@@ -12,9 +13,10 @@ export async function GET() {
     return jsonOk({
       intro: form.intro,
       fields: form.fields.filter((f) => f.enabled),
+      registrationOpen: ambassadorRegistrationOpen(),
     }, 200, fresh);
   }
-  return jsonOk(form, 200, fresh);
+  return jsonOk({ ...form, registrationOpen: ambassadorRegistrationOpen() }, 200, fresh);
 }
 
 export async function PUT(req: NextRequest) {

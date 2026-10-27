@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { slotIsPast, validPhone } from "@/lib/agenda-time";
 
 function isQa(type: string) {
   return type === "gift-qa" || type === "quiz";
@@ -12,8 +13,11 @@ export async function POST(req: NextRequest) {
   const fullName = String(body.fullName || "").trim();
   const slug = String(body.slug || "");
   if (!fullName || !email.includes("@")) return jsonError("Ad ve geçerli e-posta gerekli");
+  if (!validPhone(String(body.phone || ""))) return jsonError("Telefon numarası gerekli");
   const event = await prisma.pavilionEvent.findUnique({ where: { slug } });
   if (!event || !event.published) return jsonError("Etkinlik yok", 404);
+  if (slotIsPast(event.date, event.endTime)) return jsonError("Bu etkinlik geçti");
+  const current = event;
 
   let visitor = await prisma.visitor.findFirst({ where: { email } });
   if (!visitor) {
@@ -40,8 +44,9 @@ export async function POST(req: NextRequest) {
       },
     });
   }
+  const person = visitor;
 
-  const config = JSON.parse(event.config || "{}") as {
+  const config = JSON.parse(current.config || "{}") as {
     questions?: { answer?: number }[];
     passScore?: number;
     slices?: { label: string; prize: string }[];
@@ -53,12 +58,12 @@ export async function POST(req: NextRequest) {
   async function findSignup() {
     if (body.signupId) {
       const byId = await prisma.eventSignup.findFirst({
-        where: { id: String(body.signupId), eventId: event.id, visitorId: visitor.id },
+        where: { id: String(body.signupId), eventId: current.id, visitorId: person.id },
       });
       if (byId) return byId;
     }
     return prisma.eventSignup.findFirst({
-      where: { eventId: event.id, visitorId: visitor.id },
+      where: { eventId: current.id, visitorId: person.id },
       orderBy: { createdAt: "desc" },
     });
   }

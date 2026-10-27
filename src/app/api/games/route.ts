@@ -149,6 +149,7 @@ export async function POST(req: NextRequest) {
                 label: s.label,
                 color: s.color,
                 kind: s.kind,
+                weight: s.weight || 1,
               })),
             }
           : undefined,

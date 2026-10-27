@@ -4,6 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { sendMail } from "@/lib/mail";
 import { ensureAmbassadorReady } from "@/lib/ambassador-db";
+import { ambassadorCardUrl, isAmbassadorAccepted } from "@/lib/ambassador-card";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -32,6 +33,8 @@ export async function PATCH(req: NextRequest) {
   const updated = await prisma.ambassadorApplication.update({ where: { id: body.id }, data });
 
   let mailWarning = "";
+  const accepted = isAmbassadorAccepted(updated.status);
+  const cardUrl = accepted ? ambassadorCardUrl(updated.id) : "";
   if (body.notify !== false && updated.email) {
     const statusLine =
       updated.status === "Kabul edildi"
@@ -41,14 +44,21 @@ export async function PATCH(req: NextRequest) {
           : updated.status === "Yedek"
             ? "Başvurunuz yedek listeye alınmıştır. Kontenjan açılırsa sizinle iletişime geçeceğiz."
             : "Başvurunuz hakkında bilgilendirme:";
-    const message =
-      body.message ||
-      `Sayın ${updated.fullName},\n\n${statusLine}\n\n${body.adminNote || ""}\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`;
+    const cardLine = cardUrl
+      ? `Tebrik kartınız hazır. JPG olarak indirip sosyal medyada paylaşabilirsiniz:\n${cardUrl}`
+      : "";
+    const custom = String(body.message || "").trim();
+    const note = String(body.adminNote || "").trim();
+    const message = custom
+      ? [custom, cardLine].filter(Boolean).join("\n\n")
+      : [`Sayın ${updated.fullName},`, statusLine, note, cardLine, "T.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu"]
+          .filter(Boolean)
+          .join("\n\n");
     try {
       await sendMail(updated.email, `İklim Sağlık Elçisi — ${updated.status}`, message);
     } catch {
       mailWarning = "Karar kaydedildi. E-posta gönderilemedi.";
     }
   }
-  return jsonOk({ ...updated, mailWarning });
+  return jsonOk({ ...updated, mailWarning, cardUrl });
 }

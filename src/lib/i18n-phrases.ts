@@ -128,10 +128,26 @@ export const EN: Record<string, string> = {
     "Contests on the wall screen. QR code, nickname, 15-second Q&A.",
   "Duvara yansıtılan yarışmalar. Karekodu okut, telefonunda oyna.":
     "Contests on the wall screen. Scan the QR and play on your phone.",
-  "06 · Açık alan": "06 · Open area",
-  "Giriş yapmadan devam et": "Continue without signing in",
-  "Açık program ve QR etkinlikler. Hesap gerekmez.":
-    "Open programme and QR events. No account needed.",
+  "06 · Ziyaretçi": "06 · Visitor",
+  "Ziyaretçi kaydı": "Visitor registration",
+  "Kayıt olmadan giriş yok. Ad, e-posta ve telefon ile uygulamaya girin.":
+    "No entry without registration. Sign in to the app with your name, email and phone.",
+  "Kayıt olmadan giriş yok. Ad, e-posta ve telefon zorunlu.":
+    "No entry without registration. Name, email and phone are required.",
+  "Geçti": "Ended",
+  "Bu oturum geçti. Kayıt kapandı.": "This session has ended. Registration is closed.",
+  "Bu etkinlik geçti": "This event has ended",
+  "Tek seferlik": "One time only",
+  "Panel çarkı": "Panel wheel",
+  "Çark hakkı": "One wheel turn",
+  "Bu panel için çark bir kez döner. Sonuç kaydolur, yeniden çevrilmez.":
+    "The wheel turns once for this panel. The result is saved and cannot be spun again.",
+  "Bu etkinlik için çark bir kez döner. Sonuç kaydolur, yeniden çevrilmez.":
+    "The wheel turns once for this event. The result is saved and cannot be spun again.",
+  "Sağlık Bakanlığı Pavilyonuna Git, Ekranı Göster, Hediyeni Al!":
+    "Go to the Ministry of Health Pavilion, show this screen, collect your gift!",
+  "Pavilyon karekodu": "Pavilion QR",
+  "Kişiye özel karekod": "Personal QR",
 
   "T.C. Sağlık Bakanlığı · SGGM": "Republic of Türkiye Ministry of Health · SGGM",
   "Halk sağlığı masası": "Public health desk",
@@ -167,9 +183,10 @@ export const EN: Record<string, string> = {
   "Misafir · hesap yok": "Guest · no account",
   "Gezegeni dinle": "Listen to the planet",
   "programı aç": "open the programme",
-  "Giriş yapmadan açık program ve hediyeli pavilon etkinlikleri. Karbon, hava ve beden aynı hikâye — koruyucu sağlık burada sahaya iner.":
-    "Open programme without sign-in, and pavilion events with gifts. Carbon, air and body are one story — protective health lands here.",
+  "Kayıt olmadan giriş yok. Ad, e-posta ve telefon ile uygulamaya girin. Açık programda saati geçmiş oturum seçilmez.":
+    "No entry without registration. Sign in to the app with your name, email and phone. Sessions whose time has passed cannot be selected.",
   "Açık program": "Open programme",
+  "Saati geçmiş oturum seçilmez.": "Sessions whose time has passed cannot be selected.",
   "9–20 Kasım tematik günler, paneller ve kayıtlı etkinlikler.":
     "9–20 November thematic days, panels and registered events.",
   "Solaklar outdoor": "Solaklar outdoor",
@@ -373,10 +390,16 @@ export const EN: Record<string, string> = {
     "Scan the QR and tap Spin. Stop slows the wheel.",
   "Pavilion hediyeleri: bez çanta, matara, rozet, tohum kartı, iklim defteri":
     "Pavilion gifts: tote, flask, pin, seed card, climate notebook",
+  "Tohum kartı, tohumlu kalem, bez çanta, bambu termos, bluetooth speaker, hoparlör ve kulaklık":
+    "Seed card, seed pen, tote bag, bamboo flask, Bluetooth speaker, speaker and headphones",
   "Bez çanta": "Tote bag",
   "Matara": "Flask",
   "Tekrar çevir": "Spin again",
   "Tohum kartı": "Seed card",
+  "Tohumlu kalem": "Seed pen",
+  "Bluetooth Speaker": "Bluetooth speaker",
+  "Hoparlör + kulaklık": "Speaker and headphones",
+  "Oran %": "Odds %",
   "Teşekkür": "Thank you",
   "Pavilion rozeti": "Pavilion pin",
   "İklim defteri": "Climate notebook",

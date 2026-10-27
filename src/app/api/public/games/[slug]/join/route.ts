@@ -5,10 +5,6 @@ import { jsonError, jsonOk } from "@/lib/api";
 import { newPlayerToken, parsePlayerMap, PLAYER_COOKIE } from "@/lib/games";
 import { touchGame } from "@/lib/game-live";
 
-function guestNick() {
-  return `Oyuncu ${Math.floor(1000 + Math.random() * 9000)}`;
-}
-
 function setPlayerCookie(jar: Awaited<ReturnType<typeof cookies>>, map: Record<string, string>) {
   jar.set(PLAYER_COOKIE, JSON.stringify(map), {
     httpOnly: true,
@@ -18,8 +14,11 @@ function setPlayerCookie(jar: Awaited<ReturnType<typeof cookies>>, map: Record<s
   });
 }
 
-export async function POST(_req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {
   const { slug } = await ctx.params;
+  const body = await req.json().catch(() => ({}));
+  const name = String(body.nickname || "").trim().slice(0, 40);
+  if (name.length < 2) return jsonError("Önce kayıt olun. Ad, e-posta ve telefon gerekli.");
   const game = await prisma.game.findUnique({ where: { slug } });
   if (!game || !game.published) return jsonError("Oyun yok", 404);
   if (game.status === "closed") return jsonError("Oyun kapandı");
@@ -44,9 +43,10 @@ export async function POST(_req: NextRequest, ctx: { params: Promise<{ slug: str
 
   const token = newPlayerToken();
   for (let attempt = 0; attempt < 5; attempt += 1) {
+    const nickname = attempt === 0 ? name : `${name} ${attempt + 1}`;
     try {
       const player = await prisma.gamePlayer.create({
-        data: { gameId: game.id, nickname: guestNick(), token, status: "approved" },
+        data: { gameId: game.id, nickname, token, status: "approved" },
       });
       map[game.id] = token;
       setPlayerCookie(jar, map);

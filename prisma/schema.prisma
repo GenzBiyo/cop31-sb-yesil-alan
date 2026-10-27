@@ -459,6 +459,8 @@ model GameSlice {
   label  String
   color  String @default("#4f101c")
   kind   String @default("prize")
+  /** Pay: dilimlerin toplamına göre çıkma oranı. 462 = %46,2. */
+  weight Int    @default(1)
   game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
 }
 
@@ -644,6 +646,20 @@ model AppJoin {
   device    AppDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
   @@unique([deviceId, kind, refId])
+}
+
+model WheelSpin {
+  id         String   @id @default(cuid())
+  agendaId   String
+  who        String
+  label      String   @default("")
+  sliceIndex Int      @default(0)
+  fullName   String    @default("")
+  eventTitle String    @default("")
+  redeemedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([agendaId, who])
 }
 
 model SessionQuestion {

@@ -16,6 +16,7 @@ import { GameStage } from "@/components/game/GameStage";
 import type { EventSponsorInfo } from "@/components/game/EventSponsor";
 import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay";
 import { ShareBar } from "@/components/game/ShareBar";
+import { OnceWheel } from "@/components/game/OnceWheel";
 import { useI18n } from "@/components/I18nProvider";
 
 type Payload = {
@@ -104,6 +105,12 @@ function Join({ slug }: { slug: string }) {
   const [left, setLeft] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const joining = useRef(false);
+  const [gate, setGate] = useState<"check" | "form" | "ok">("check");
+  const [nick, setNick] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", phone: "", organization: "" });
+  const [earned, setEarned] = useState(false);
+  const [kiloDone, setKiloDone] = useState(false);
+  const [hatiraDone, setHatiraDone] = useState(false);
 
   useGameLive(reload, 12000);
 
@@ -128,6 +135,16 @@ function Join({ slug }: { slug: string }) {
   const wheel = describeWheel(data || {});
   const wheelAngle = useWheelMotion(wheel);
 
+  useEffect(() => {
+    if (!data || data.me?.status !== "approved") return;
+    const mine = Boolean(data.spinPlayer?.id && data.spinPlayer.id === data.me?.id);
+    const reveal = data.phase === "reveal" || data.phase === "closed";
+    if (data.type === "wheel" && reveal && data.landed && mine) setEarned(true);
+    else if (data.type === "plak" && data.plak && !data.plak.spinning && data.plak.index >= 0 && mine) setEarned(true);
+    else if (data.type === "match" && reveal) setEarned(true);
+    else if (data.phase === "closed" && data.type !== "wheel" && data.type !== "plak" && data.type !== "match") setEarned(true);
+  }, [data]);
+
   async function spinWheel(action: "spin" | "stop") {
     if (busy) return;
     setBusy(true);
@@ -146,17 +163,37 @@ function Join({ slug }: { slug: string }) {
   }
 
   useEffect(() => {
+    const token = localStorage.getItem("cop31-device") || "";
+    if (!token) {
+      setGate("form");
+      return;
+    }
+    void fetch("/api/app", { headers: { "x-cop31-device": token } })
+      .then((res) => res.json())
+      .then((payload: { device?: { name?: string; email?: string; phone?: string } }) => {
+        const device = payload.device;
+        const phone = String(device?.phone || "").replace(/\D/g, "");
+        if (device?.name && device.name.trim().length >= 2 && String(device.email || "").includes("@") && phone.length >= 10) {
+          setNick(device.name.trim());
+          setGate("ok");
+        } else setGate("form");
+      })
+      .catch(() => setGate("form"));
+  }, []);
+
+  useEffect(() => {
+    if (gate !== "ok" || !nick) return;
     if (!data || data.type === "kilo" || data.type === "hatira") return;
     if (data.me?.status === "approved" || joining.current) return;
     joining.current = true;
     setMsg("");
-    void api(`/api/public/games/${slug}/join`, { method: "POST", body: "{}" })
+    void api(`/api/public/games/${slug}/join`, { method: "POST", body: JSON.stringify({ nickname: nick }) })
       .then(() => reload())
       .catch((err) => {
         joining.current = false;
         setMsg(err instanceof Error ? err.message : "Oyun açılamadı");
       });
-  }, [data, slug, reload]);
+  }, [data, slug, reload, gate, nick]);
 
   async function answer(choice: number) {
     if (!data?.question || busy || data.me?.answered || picked != null) return;
@@ -179,6 +216,46 @@ function Join({ slug }: { slug: string }) {
 
   if (!data && !error) return <p className="p-8">{tx("Yükleniyor…")}</p>;
   if (error || !data) return <p className="p-8 text-[#0077C2]">{tx(error || "Oyun yok")}</p>;
+  if (gate === "check") return <p className="p-8">{tx("Yükleniyor…")}</p>;
+  if (gate !== "ok") {
+    return (
+      <main className="min-h-screen bg-[#EEF8FD] p-5">
+        <form
+          className="card max-w-md mx-auto p-5 space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const token = localStorage.getItem("cop31-device") || crypto.randomUUID();
+            localStorage.setItem("cop31-device", token);
+            setBusy(true);
+            setMsg("");
+            void fetch("/api/app", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-cop31-device": token },
+              body: JSON.stringify({ ...form, role: "ziyaretci" }),
+            })
+              .then(async (res) => {
+                const payload = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(payload.error || "Kayıt alınamadı");
+                setNick(form.name.trim());
+                setGate("ok");
+              })
+              .catch((err) => setMsg(err instanceof Error ? err.message : "Kayıt alınamadı"))
+              .finally(() => setBusy(false));
+          }}
+        >
+          <p className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{tx("Ziyaretçi kaydı")}</p>
+          <h1 className="display text-3xl">{tx(data.title)}</h1>
+          <p className="text-sm text-[#3E6A88]">{tx("Kayıt olmadan giriş yok. Ad, e-posta ve telefon zorunlu.")}</p>
+          <input className="field" required placeholder={tx("Ad soyad")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className="field" required type="email" placeholder={tx("E-posta")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input className="field" required placeholder={tx("Telefon")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <input className="field" placeholder={tx("Kurum")} value={form.organization} onChange={(e) => setForm({ ...form, organization: e.target.value })} />
+          {msg ? <p className="text-sm text-[#E31C23]">{msg}</p> : null}
+          <button className="btn w-full justify-center" disabled={busy}>{busy ? tx("Kaydediliyor…") : tx("Kaydet ve devam et")}</button>
+        </form>
+      </main>
+    );
+  }
 
   if (data.type === "hatira") {
     return (
@@ -188,7 +265,13 @@ function Join({ slug }: { slug: string }) {
         lead="Selfie çekin. Hazırla deyince Antalya doğası ve COP31 fonu gelir."
         sponsor={data.sponsor}
       >
-        <HatiraPlay slug={slug} logos={data.logos} />
+        <HatiraPlay slug={slug} logos={data.logos} onSent={() => setHatiraDone(true)} />
+        {hatiraDone ? (
+          <div className="game-panel space-y-3">
+            <p className="text-sm font-semibold">{tx("Oyun bitti. Çark hakkınız açıldı.")}</p>
+            <OnceWheel gameSlug={slug} personName={nick} eventTitle={data.title} />
+          </div>
+        ) : null}
       </GameStage>
     );
   }
@@ -201,7 +284,13 @@ function Join({ slug }: { slug: string }) {
         lead="Cinsiyet, yaş, boy ve kilonu gir. BKİ tablosu ve 2035 gıda izi."
         sponsor={data.sponsor}
       >
-        <KiloPlay slug={slug} />
+        <KiloPlay slug={slug} onPosted={() => setKiloDone(true)} />
+        {kiloDone ? (
+          <div className="game-panel space-y-3">
+            <p className="text-sm font-semibold">{tx("Oyun bitti. Çark hakkınız açıldı.")}</p>
+            <OnceWheel gameSlug={slug} personName={nick} eventTitle={data.title} />
+          </div>
+        ) : null}
       </GameStage>
     );
   }
@@ -440,6 +529,12 @@ function Join({ slug }: { slug: string }) {
               </div>
             ) : null}
           </>
+        ) : null}
+        {earned && data ? (
+          <div className="game-panel space-y-3">
+            <p className="text-sm font-semibold">{tx("Oyun bitti. Çark hakkınız açıldı.")}</p>
+            <OnceWheel gameSlug={slug} personName={nick || data.me?.nickname || ""} eventTitle={data.title} />
+          </div>
         ) : null}
         {msg ? <p className="text-sm text-[#0077C2]">{tx(msg)}</p> : null}
       </div>

@@ -147,6 +147,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
         label: s.label,
         color: s.color,
         kind: s.kind,
+        weight: s.weight || 1,
       })),
     });
   } else if (body.loadSample) {
@@ -179,7 +180,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       where: keep.length ? { gameId: id, id: { notIn: keep } } : { gameId: id },
     });
     for (const [i, s] of slices.entries()) {
-      const payload = { order: i, label: s.label, color: s.color, kind: s.kind };
+      const payload = { order: i, label: s.label, color: s.color, kind: s.kind, weight: s.weight || 1 };
       if (s.id) await prisma.gameSlice.update({ where: { id: s.id }, data: payload });
       else await prisma.gameSlice.create({ data: { ...payload, gameId: id } });
     }

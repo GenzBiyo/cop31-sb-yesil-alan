@@ -5,8 +5,11 @@ import { api, useApi } from "@/lib/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useI18n } from "@/components/I18nProvider";
+import { slotIsPast } from "@/lib/agenda-time";
+import { OnceWheel } from "@/components/game/OnceWheel";
 
 type EventPayload = {
+  id: string;
   slug: string;
   title: string;
   type: string;
@@ -15,6 +18,8 @@ type EventPayload = {
   location: string;
   description: string;
   gift: string;
+  date?: string;
+  endTime?: string;
   config: {
     questions?: { q: string; options: string[] }[];
     steps?: { title: string; body: string }[];
@@ -97,9 +102,15 @@ function Play({ slug }: { slug: string }) {
   }
 
   if (!data) return <p className="p-8">{tx("Yükleniyor…")}</p>;
+  const past = Boolean(data.date && data.endTime && slotIsPast(data.date, data.endTime));
   if (result && data.type !== "wheel") {
     return (
-      <Done title={data.title} prize={result.prize} score={result.score} backHref={slug.startsWith("solaklar-") ? "/solaklar" : "/p"} />
+      <main className="min-h-screen bg-[#EEF8FD] p-4 space-y-4">
+        <Done title={data.title} prize={result.prize} score={result.score} backHref={slug.startsWith("solaklar-") ? "/solaklar" : "/p"} />
+        <div className="max-w-lg mx-auto">
+          <OnceWheel agendaId={data.id} email={who.email} personName={who.fullName} eventTitle={data.title} />
+        </div>
+      </main>
     );
   }
 
@@ -117,13 +128,18 @@ function Play({ slug }: { slug: string }) {
       <div className="max-w-lg mx-auto p-5 space-y-4">
         <p>{tx(data.description)}</p>
         <p className="text-sm text-[#0077C2]">{tx("Hediye:")} {tx(data.gift)}</p>
-        {(!isQa || phase === "register") && (
+        {past ? (
+          <div className="card p-4">
+            <h2 className="font-semibold">{tx("Geçti")}</h2>
+            <p className="text-sm text-[#3E6A88]">{tx("Bu oturum geçti. Kayıt kapandı.")}</p>
+          </div>
+        ) : (!isQa || phase === "register") && (
           <div className="card p-4 grid gap-2">
             <h2 className="font-semibold">{tx("Katılımcı kaydı")}</h2>
             {isQa ? <p className="text-sm text-[#3E6A88]">{tx("Önce kayıt olun. Kayıt sonrası sorular açılır.")}</p> : null}
             <input className="field" placeholder={tx("Ad soyad *")} value={who.fullName} onChange={(e) => setWho({ ...who, fullName: e.target.value })} />
             <input className="field" placeholder={tx("E-posta *")} type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} />
-            <input className="field" placeholder={tx("Telefon")} value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} />
+            <input className="field" placeholder={tx("Telefon *")} value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} />
             <input className="field" placeholder={tx("Kurum")} value={who.organization} onChange={(e) => setWho({ ...who, organization: e.target.value })} />
             <div className="grid grid-cols-2 gap-2">
               <input className="field" placeholder={tx("Şehir")} value={who.city} onChange={(e) => setWho({ ...who, city: e.target.value })} />
@@ -143,7 +159,7 @@ function Play({ slug }: { slug: string }) {
           </div>
         )}
 
-        {isQa && phase === "play" && (
+        {!past && isQa && phase === "play" && (
           <div className="card p-4 space-y-3">
             <p className="text-sm text-[#0077C2]">{tx("Kayıt alındı.")} {who.fullName} · {tx("Soruları yanıtlayın.")}</p>
             {(data.config.questions || []).map((q, i) => (
@@ -171,7 +187,7 @@ function Play({ slug }: { slug: string }) {
           </div>
         )}
 
-        {data.type === "survey" && (
+        {!past && data.type === "survey" && (
           <div className="card p-4 space-y-3">
             {(data.config.questions || []).map((q, i) => (
               <div key={q.q}>
@@ -198,9 +214,14 @@ function Play({ slug }: { slug: string }) {
           </div>
         )}
 
-        {data.type === "wheel" && (
+        {!past && data.type === "wheel" && (
           <div className="card p-4 text-center">
-            {result ? <Done title={data.title} prize={result.prize} compact backHref={slug.startsWith("solaklar-") ? "/solaklar" : "/p"} /> : (
+            {result ? (
+              <>
+                <Done title={data.title} prize={result.prize} compact backHref={slug.startsWith("solaklar-") ? "/solaklar" : "/p"} />
+                <OnceWheel agendaId={data.id} email={who.email} personName={who.fullName} eventTitle={data.title} />
+              </>
+            ) : (
               <>
                 <div className="relative mx-auto w-64 h-64">
                   <div className="absolute left-1/2 -top-2 z-10 -translate-x-1/2 text-[#0077C2]">▼</div>
@@ -219,7 +240,7 @@ function Play({ slug }: { slug: string }) {
           </div>
         )}
 
-        {data.type === "interactive" && (
+        {!past && data.type === "interactive" && (
           <div className="card p-4">
             {data.config.steps?.[step] ? (
               <>

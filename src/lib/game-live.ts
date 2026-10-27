@@ -29,7 +29,7 @@ export type SharedGame = {
   spinAngle: number;
   wheelMode: import("./wheel").WheelMode;
   spinFrom: number;
-  slices: { id: string; label: string; color: string; kind: string }[];
+  slices: { id: string; label: string; color: string; kind: string; weight: number }[];
   spinPlayer: { id: string; nickname: string } | null;
   landed: { label: string; kind: string; color: string } | null;
   touch: import("./touch-live").TouchSnap | null;
@@ -102,7 +102,7 @@ async function loadPlay(slug: string): Promise<SharedGame | null> {
         orderBy: { order: "asc" },
         select: { id: true, order: true, prompt: true, options: true, points: true, answer: true, seconds: true, videoUrl: true, videoPath: true },
       },
-      slices: { orderBy: { order: "asc" }, select: { id: true, label: true, color: true, kind: true } },
+      slices: { orderBy: { order: "asc" }, select: { id: true, label: true, color: true, kind: true, weight: true } },
       tracks: { orderBy: { order: "asc" }, select: { id: true, title: true, artist: true, imageUrl: true, videoId: true } },
       teams: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, color: true } },
     },

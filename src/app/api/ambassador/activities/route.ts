@@ -4,6 +4,7 @@ import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { ensureAmbassadorReady } from "@/lib/ambassador-db";
 import { sendMail } from "@/lib/mail";
+import { ambassadorCardUrl } from "@/lib/ambassador-card";
 
 export async function GET() {
   const { user, error } = await withUser();
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       await sendMail(
         app.email,
         "İklim Sağlık Elçisi yerleştirmeniz",
-        `Sayın ${app.fullName},\n\n${activity.date} ${activity.startTime}–${activity.endTime} saatleri arasında “${activity.title}” aktivitesine yerleştirildiniz.\nGörev: ${row.role}\nYer: ${activity.location}\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
+        `Sayın ${app.fullName},\n\n${activity.date} ${activity.startTime}–${activity.endTime} saatleri arasında “${activity.title}” aktivitesine yerleştirildiniz.\nGörev: ${row.role}\nYer: ${activity.location}\n\nTebrik kartınız:\n${ambassadorCardUrl(app.id)}\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
       );
     }
     return jsonOk(row, 201);

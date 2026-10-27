@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { api, useApi, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 
@@ -120,6 +121,24 @@ export default function MessagesPage() {
     }
   }
 
+  async function remove(item: Conversation) {
+    if (!confirm(tx("Bu yazışma silinsin mi? Karşı tarafın kutusundan da kalkar."))) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api(`/api/messages?id=${encodeURIComponent(item.threadId)}`, { method: "DELETE" });
+      if (threadId === item.threadId) {
+        setThreadId("");
+        setPeerId("");
+      }
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("Yazışma silinemedi"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const title = conversation?.title || peer?.name || "";
   const subtitle = conversation?.subtitle || peer?.hint || "";
 
@@ -157,13 +176,18 @@ export default function MessagesPage() {
                 </button>
               ))
             : visible.map((item) => (
-                <button key={item.threadId} type="button" onClick={() => openConversation(item)} className={`w-full text-left px-2 py-2 ${threadId === item.threadId ? "bg-[#EEF8FD]" : ""}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold truncate">{item.title}</span>
-                    {item.needsReply ? <span className="badge high shrink-0">{tx("yeni")}</span> : null}
-                  </div>
-                  <div className="text-xs text-[#57534e] truncate">{item.lastBody || tx("Henüz yazışma yok")}</div>
-                </button>
+                <div key={item.threadId} className={`flex items-start gap-1 px-2 py-2 ${threadId === item.threadId ? "bg-[#EEF8FD]" : ""}`}>
+                  <button type="button" onClick={() => openConversation(item)} className="min-w-0 flex-1 text-left">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold truncate">{item.title}</span>
+                      {item.needsReply ? <span className="badge high shrink-0">{tx("yeni")}</span> : null}
+                    </div>
+                    <div className="text-xs text-[#57534e] truncate">{item.lastBody || tx("Henüz yazışma yok")}</div>
+                  </button>
+                  <button type="button" className="btn ghost px-2 shrink-0" style={{ color: "#E31C23" }} aria-label={tx("Sil")} title={tx("Sil")} disabled={busy} onClick={() => void remove(item)}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
           {picking && !contactList.length ? <p className="text-sm text-[#57534e] px-1">{tx("Kayıt bulunamadı")}</p> : null}
           {!picking && !visible.length ? <p className="text-sm text-[#57534e] px-1">{tx("Henüz mesaj yok.")}</p> : null}
@@ -179,9 +203,16 @@ export default function MessagesPage() {
           <p className="text-[#57534e]">{tx("Soldan bir yazışma seçin veya yeni mesaj açın.")}</p>
         ) : (
           <>
-            <header>
-              <h2 className="display text-2xl">{title}</h2>
-              <p className="text-xs text-[#57534e]">{tx(subtitle)}</p>
+            <header className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="display text-2xl">{title}</h2>
+                <p className="text-xs text-[#57534e]">{tx(subtitle)}</p>
+              </div>
+              {conversation ? (
+                <button type="button" className="btn ghost shrink-0" style={{ color: "#E31C23" }} disabled={busy} onClick={() => void remove(conversation)}>
+                  <Trash2 size={14} />{tx("Sil")}
+                </button>
+              ) : null}
             </header>
             <div className="flex-1 overflow-auto mt-4 space-y-2 pr-1">
               {!conversation?.messages.length ? <p className="text-sm text-[#57534e]">{tx("İlk mesajı yazın.")}</p> : null}

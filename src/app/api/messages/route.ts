@@ -239,3 +239,30 @@ export async function POST(req: NextRequest) {
   broadcast({ type: "message", payload: { threadId: thread.id } });
   return jsonOk({ ok: true, threadId: thread.id }, 201);
 }
+
+function canDelete(user: SessionUser, thread: { type: string; title: string; companyId: string | null }) {
+  if (!["dm", "inbox", "qa"].includes(thread.type)) return false;
+  const isStaff = staff(user.role);
+  if (!isStaff) {
+    if (thread.type === "dm") {
+      const pair = parsePair(thread.title);
+      return Boolean(user.companyId && pair?.includes(companyEndpoint(user.companyId)));
+    }
+    return thread.companyId === user.companyId;
+  }
+  if (thread.type === "dm") return Boolean(parsePair(thread.title)?.some((part) => part.startsWith("u:")));
+  return true;
+}
+
+export async function DELETE(req: NextRequest) {
+  const { user, error } = await withUser();
+  if (error || !user) return error!;
+  const id = new URL(req.url).searchParams.get("id") || "";
+  if (!id) return jsonError("Yazışma yok", 404);
+  const thread = await prisma.thread.findUnique({ where: { id } });
+  if (!thread || !canDelete(user, thread)) return jsonError(thread ? "Yetkiniz yok" : "Yazışma yok", thread ? 403 : 404);
+  await prisma.chatMessage.deleteMany({ where: { threadId: thread.id } });
+  await prisma.thread.delete({ where: { id: thread.id } });
+  broadcast({ type: "message", payload: { threadId: thread.id } });
+  return jsonOk({ ok: true });
+}

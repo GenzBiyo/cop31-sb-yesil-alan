@@ -27,6 +27,13 @@ export function slotInstant(date: string, time: string) {
   return new Date(`${date}T${time}:00+03:00`);
 }
 
+/** Antalya saati. Bitiş anı gelmiş oturum seçilemez. */
+export function slotIsPast(date: string, endTime: string, now = Date.now()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const end = /^\d{2}:\d{2}$/.test(endTime) ? endTime : "23:59";
+  return slotInstant(date, end).getTime() <= now;
+}
+
 export function formatWhen(date: string, start: string, end: string) {
   const [y, m, d] = date.split("-");
   return `${d}.${m}.${y} ${start}–${end}`;

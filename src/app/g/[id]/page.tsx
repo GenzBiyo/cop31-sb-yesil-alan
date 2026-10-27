@@ -4,9 +4,10 @@ import { use, useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts, rememberNotifyEmail } from "@/components/AgendaAlerts";
-import { formatWhen } from "@/lib/agenda-time";
+import { formatWhen, slotIsPast } from "@/lib/agenda-time";
 import { SessionBrief, type BriefGuest } from "@/components/SessionBrief";
 import { emptyConcept, type SessionConcept } from "@/lib/session-concept";
+import { OnceWheel } from "@/components/game/OnceWheel";
 
 type Slot = {
   id: string;
@@ -39,17 +40,19 @@ function Form({ id }: { id: string }) {
     role: "katilimci",
   });
   const [done, setDone] = useState(false);
+  const [wheel, setWheel] = useState(false);
   const [err, setErr] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
     try {
-      await api(`/api/public/agenda/${id}/signup`, {
+      const res = await api<{ wheel?: boolean }>(`/api/public/agenda/${id}/signup`, {
         method: "POST",
         body: JSON.stringify(who),
       });
       rememberNotifyEmail(who.email);
+      setWheel(Boolean(res.wheel));
       setDone(true);
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : tx("Kayıt alınamadı"));
@@ -85,14 +88,22 @@ function Form({ id }: { id: string }) {
       <div className="max-w-3xl mx-auto p-5 space-y-4">
         <SessionBrief summary={data.summary || data.description} concept={data.concept || emptyConcept()} startOpen lineup={data.lineup} />
         {done ? (
+          <div className="space-y-3">
+            <div className="card p-5 space-y-2">
+              <h2 className="display text-3xl text-[#0077C2]">{tx("Kaydınız alındı")}</h2>
+              <p className="text-sm">
+                {tx("Etkinlik yaklaşınca veya saati değişince e-posta ve bu telefonda uyarı çıkar.")}
+              </p>
+              <a className="btn mt-3 inline-flex" href="/p">
+                {tx("Programa dön")}
+              </a>
+            </div>
+            {wheel ? <OnceWheel agendaId={id} email={who.email} personName={who.fullName} eventTitle={data.title} /> : null}
+          </div>
+        ) : slotIsPast(data.date, data.endTime) ? (
           <div className="card p-5 space-y-2">
-            <h2 className="display text-3xl text-[#0077C2]">{tx("Kaydınız alındı")}</h2>
-            <p className="text-sm">
-              {tx("Etkinlik yaklaşınca veya saati değişince e-posta ve bu telefonda uyarı çıkar.")}
-            </p>
-            <a className="btn mt-3 inline-flex" href="/p">
-              {tx("Programa dön")}
-            </a>
+            <h2 className="display text-3xl">{tx("Geçti")}</h2>
+            <p className="text-sm">{tx("Bu oturum geçti. Kayıt kapandı.")}</p>
           </div>
         ) : (
           <form className="card p-5 space-y-3" onSubmit={(e) => void submit(e)}>

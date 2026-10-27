@@ -1,5 +1,17 @@
 /** Turkish strings that were missing from the main phrase book. */
 export const EN_EXTRA: Record<string, string> = {
+  "Kayıtlar doldu.": "Registration is full.",
+  "Başvuru süresi 5 Ekim 2026 tarihinde kapandı.": "Applications closed on 5 October 2026.",
+  "Kabul edilen elçiler e-posta adresiyle giriş yapar.": "Accepted ambassadors sign in with their email address.",
+  "Bu başvuru henüz kabul edilmedi.": "This application has not been accepted yet.",
+  "Hediyeyi verin.": "Hand over the gift.",
+  "Bu hediye teslim edildi.": "This gift has already been handed over.",
+  "Elçi girişi gerekli.": "Ambassador sign-in is required.",
+  "Kodu okutun": "Scan the code",
+  "Karekodu kamerayla okutun.": "Scan the QR code with the camera.",
+  "Bu kod bir kez okutulur.": "This code can be scanned only once.",
+  "Oyun bitti. Çark hakkınız açıldı.": "The game is over. Your wheel spin is open.",
+  "Kamera açılamadı. Kodu aşağıya yapıştırın.": "The camera could not open. Paste the code below.",
   ". Tek oturum için “Google’a ekle” kullanın.": ". For a single session, use “Add to Google”.",
   "· oturum süresiyle aynı": "· same as the session length",
   "← Önceki": "← Previous",
@@ -567,8 +579,8 @@ export const EN_EXTRA: Record<string, string> = {
   "Öğle molasında tek kullanımlık gördünüz mü?": "Did you see any single-use items at the lunch break?",
   "Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.":
     "Student volunteer applications, activity placement and form editing. Acceptance notices go to the contact details.",
-  "Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider.":
-    "Accept or reject applications from the open form here. The decision is emailed to the applicant.",
+  "Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider. Kabul e-postasında tebrik kartının bağlantısı da vardır; öğrenci kartı JPG indirip paylaşır.":
+    "Accept or reject applications from the open form here. The decision is emailed to the applicant. The acceptance email also includes a congratulations card link; the student downloads it as a JPG and shares it.",
   "Elçi başvuruları": "Ambassador applications",
   "elçi başvurusu kabul veya red bekliyor.":
     "ambassador applications are waiting to be accepted or rejected.",
@@ -1212,6 +1224,8 @@ export const EN_EXTRA: Record<string, string> = {
     "Propose a digital game. The QR and the programme open after the Ministry of Health approves it.",
   "Etkinlikler yalnızca dijital oyunlardır: soru-cevap, çark, hafıza, kilo karbon ve hatıra fotoğrafı. Her slot 1 saattir.":
     "Events are digital games only: quiz, wheel, memory, kilo carbon and souvenir photo. Each slot is one hour.",
+  "Bu yazışma silinsin mi? Karşı tarafın kutusundan da kalkar.": "Delete this conversation? It will also leave the other side’s inbox.",
+  "Yazışma silinemedi": "The conversation could not be deleted",
   "Yeni mesaj": "New message",
   "Yazışmalar": "Conversations",
   "Birim olarak yaz": "Write as unit",

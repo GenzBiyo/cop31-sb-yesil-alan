@@ -12,7 +12,7 @@ const WIN = HATIRA_WINDOW;
 
 type Step = "live" | "shot" | "ready" | "sent";
 
-export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos | null }) {
+export function HatiraPlay({ slug, logos, onSent }: { slug: string; logos?: HatiraLogos | null; onSent?: () => void }) {
   const { tx } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -160,6 +160,7 @@ export function HatiraPlay({ slug, logos }: { slug: string; logos?: HatiraLogos 
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || "Gönderilemedi");
       setStep("sent");
+      onSent?.();
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Gönderilemedi");
     } finally {
