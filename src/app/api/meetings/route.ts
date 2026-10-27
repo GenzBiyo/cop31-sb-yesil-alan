@@ -6,15 +6,17 @@ import { MEETING_PENDING, MEETING_REJECTED, openSlotsByCompany, participationDay
 import { createMeeting, updateMeeting, webDevice } from "@/lib/visitor-app";
 import { notifyCompanyDecision } from "@/lib/proposals";
 import { canManage } from "@/lib/auth";
+import { unitOfEmail } from "@/lib/unit-accounts";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
+  const unit = unitOfEmail(user.email);
   if (canManage(user.role)) {
     const incoming = await prisma.meetingRequest.findMany({
-      where: { withKind: "bakanlik" },
+      where: unit ? { withKind: "bakanlik", withId: unit } : { withKind: "bakanlik" },
       orderBy: { createdAt: "desc" },
       take: 200,
       include: { fromDevice: { select: { name: true, organization: true, email: true } } },
@@ -113,6 +115,11 @@ export async function PATCH(req: NextRequest) {
   if (error || !user) return error!;
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   const body = await req.json().catch(() => ({}));
+  const unit = unitOfEmail(user.email);
+  if (unit) {
+    const existing = await prisma.meetingRequest.findUnique({ where: { id: String(body.id || "") } });
+    if (!existing || existing.withKind !== "bakanlik" || existing.withId !== unit) return jsonError("Yetkiniz yok", 403);
+  }
   try {
     const saved = await updateMeeting("staff", String(body.id || ""), {
       status: body.status ? String(body.status) : undefined,

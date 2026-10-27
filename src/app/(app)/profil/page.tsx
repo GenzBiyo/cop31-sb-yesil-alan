@@ -6,6 +6,7 @@ import { ImageUp } from "lucide-react";
 import { api, useApi } from "@/lib/client";
 import { useI18n, Tx } from "@/components/I18nProvider";
 import { accountKind } from "@/lib/account-kinds";
+import { unitTitle } from "@/lib/unit-accounts";
 import { ParticipationDays } from "@/components/ParticipationDays";
 import { DelegationEditor, SpeakerRequest, type FormHint } from "@/components/CompanyPeople";
 
@@ -37,6 +38,30 @@ const COMPLIANCE = [
 ];
 
 export default function ProfilePage() {
+  const me = useApi<{ unit?: string; email: string; name: string }>("/api/auth/me");
+  if (!me.data) return <p><Tx>Yükleniyor…</Tx></p>;
+  if (me.data.unit) return <UnitProfile unit={me.data.unit} email={me.data.email} />;
+  return <CompanyProfile />;
+}
+
+function UnitProfile({ unit, email }: { unit: string; email: string }) {
+  const { tx } = useI18n();
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs tracking-[0.2em] uppercase text-[#0077C2]">{tx("Profil")}</p>
+        <h1 className="display text-4xl">{unit}</h1>
+        <p className="text-[#57534e]">{unitTitle(unit)}</p>
+      </div>
+      <section className="card p-4 space-y-2">
+        <p><strong>{tx("E-posta")}:</strong> {email}</p>
+        <p className="text-sm text-[#57534e]">{tx("Bu hesap kendi biriminin toplantılarını, paydaş formunu ve mesajlarını görür.")}</p>
+      </section>
+    </div>
+  );
+}
+
+function CompanyProfile() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Company[]>("/api/companies");
   const company = data?.[0];

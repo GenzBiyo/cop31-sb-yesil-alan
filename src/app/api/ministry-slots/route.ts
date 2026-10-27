@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { FORM_DAYS, MINISTRY_UNITS, parseMinistryMeeting, SLOT_TIMES } from "@/lib/stakeholder-form";
+import { unitOfEmail } from "@/lib/unit-accounts";
 
 async function manager() {
   const { user, error } = await withUser();
@@ -12,9 +13,10 @@ async function manager() {
 }
 
 export async function GET(req: NextRequest) {
-  const { error } = await manager();
-  if (error) return error;
-  const unit = req.nextUrl.searchParams.get("unit") || "";
+  const { user, error } = await manager();
+  if (error || !user) return error;
+  const locked = unitOfEmail(user.email);
+  const unit = locked || req.nextUrl.searchParams.get("unit") || "";
   if (!MINISTRY_UNITS.includes(unit)) return jsonError("Birim seçin");
   const slots = await prisma.ministrySlot.findMany({ where: { unit } });
   const emails = slots.map((s) => s.bookingEmail).filter(Boolean);
@@ -38,11 +40,13 @@ export async function GET(req: NextRequest) {
 
 /** Opens or closes slots: one slot, a whole day (no time) or the whole calendar (no date). Booked slots are never closed here. */
 export async function POST(req: NextRequest) {
-  const { error } = await manager();
-  if (error) return error;
+  const { user, error } = await manager();
+  if (error || !user) return error;
   const body = await req.json();
-  const unit = String(body.unit || "");
+  const locked = unitOfEmail(user.email);
+  const unit = locked || String(body.unit || "");
   if (!MINISTRY_UNITS.includes(unit)) return jsonError("Birim seçin");
+  if (locked && String(body.unit || locked) !== locked) return jsonError("Yetkiniz yok", 403);
 
   if (body.action === "release") {
     const slot = await prisma.ministrySlot.findUnique({ where: { unit_date_time: { unit, date: String(body.date), time: String(body.time) } } });

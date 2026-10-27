@@ -4,6 +4,7 @@ import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { broadcast } from "@/lib/realtime";
 import { accountKind } from "@/lib/account-kinds";
 import { MINISTRY_UNITS } from "@/lib/stakeholder-form";
+import { unitOfEmail } from "@/lib/unit-accounts";
 import type { SessionUser } from "@/lib/auth";
 
 function textOf(value: unknown) {
@@ -39,9 +40,10 @@ function isUnit(endpoint: string) {
 
 type Person = { id: string; name: string; role: string; companyId: string | null };
 
-function mineMessage(author: Person | undefined, user: SessionUser, bothUnits: boolean) {
+function mineMessage(author: Person | undefined, user: SessionUser, bothUnits: boolean, lockedUnit: string) {
   if (!author) return false;
   if (bothUnits) return author.id === user.id;
+  if (lockedUnit) return staff(author.role);
   if (staff(user.role)) return staff(author.role);
   return author.companyId === user.companyId || author.id === user.id;
 }
@@ -49,8 +51,9 @@ function mineMessage(author: Person | undefined, user: SessionUser, bothUnits: b
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  const isStaff = staff(user.role);
-  const mine = user.companyId ? companyEndpoint(user.companyId) : "";
+  const lockedUnit = unitOfEmail(user.email);
+  const isStaff = staff(user.role) && !lockedUnit;
+  const mine = lockedUnit ? unitEndpoint(lockedUnit) : user.companyId ? companyEndpoint(user.companyId) : "";
 
   const [companies, users, dmThreads, legacy] = await Promise.all([
     prisma.company.findMany({
@@ -66,7 +69,9 @@ export async function GET() {
     prisma.thread.findMany({
       where: isStaff
         ? { type: { in: ["inbox", "qa"] } }
-        : { type: { in: ["inbox", "qa"] }, companyId: user.companyId || "__none__" },
+        : lockedUnit
+          ? { id: "__none__" }
+          : { type: { in: ["inbox", "qa"] }, companyId: user.companyId || "__none__" },
       include: { messages: { orderBy: { createdAt: "asc" } } },
     }),
   ]);
@@ -74,7 +79,7 @@ export async function GET() {
   const people = new Map(users.map((item) => [item.id, item]));
   const names = new Map(companies.map((item) => [item.id, item.name]));
   const own = companies.find((item) => item.id === user.companyId);
-  const canSend = isStaff || Boolean(own);
+  const canSend = isStaff || Boolean(lockedUnit) || Boolean(own);
 
   function label(endpoint: string) {
     if (endpoint.startsWith("u:")) return endpoint.slice(2);
@@ -117,7 +122,7 @@ export async function GET() {
         body: message.body,
         createdAt: message.createdAt,
         authorName: author?.name || "Kullanıcı",
-        mine: mineMessage(author, user, bothUnits),
+        mine: mineMessage(author, user, bothUnits, lockedUnit),
       };
     });
     const last = messages[messages.length - 1];
@@ -172,7 +177,7 @@ export async function GET() {
   return jsonOk({
     me: { id: user.id, role: user.role, name: user.name },
     canSend,
-    units: isStaff ? [...MINISTRY_UNITS] : [],
+    units: lockedUnit ? [lockedUnit] : isStaff ? [...MINISTRY_UNITS] : [],
     contacts: canSend ? contacts : [],
     conversations,
   });
@@ -184,13 +189,17 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const text = textOf(body.body);
   if (text.length < 1) return jsonError("Mesaj yazın");
-  const isStaff = staff(user.role);
+  const lockedUnit = unitOfEmail(user.email);
+  const isStaff = staff(user.role) && !lockedUnit;
 
   if (body.threadId) {
     const thread = await prisma.thread.findUnique({ where: { id: String(body.threadId) } });
     if (!thread || !["dm", "inbox", "qa"].includes(thread.type)) return jsonError("Yazışma yok", 404);
     if (thread.type === "qa" && thread.status === "Kapalı") return jsonError("Bu yazışma kapatıldı");
-    if (!isStaff) {
+    if (lockedUnit) {
+      const pair = parsePair(thread.title);
+      if (thread.type !== "dm" || !pair?.includes(unitEndpoint(lockedUnit))) return jsonError("Yetkiniz yok", 403);
+    } else if (!isStaff) {
       if (thread.type === "dm") {
         const pair = parsePair(thread.title);
         if (!user.companyId || !pair?.includes(companyEndpoint(user.companyId))) return jsonError("Yetkiniz yok", 403);
@@ -208,7 +217,9 @@ export async function POST(req: NextRequest) {
 
   const peerId = String(body.peerId || "");
   let self = "";
-  if (isStaff) {
+  if (lockedUnit) {
+    self = unitEndpoint(lockedUnit);
+  } else if (isStaff) {
     const unit = String(body.asUnit || "");
     if (!MINISTRY_UNITS.includes(unit)) return jsonError("Hangi Bakanlık birimi olarak yazdığınızı seçin");
     self = unitEndpoint(unit);
@@ -242,6 +253,11 @@ export async function POST(req: NextRequest) {
 
 function canDelete(user: SessionUser, thread: { type: string; title: string; companyId: string | null }) {
   if (!["dm", "inbox", "qa"].includes(thread.type)) return false;
+  const lockedUnit = unitOfEmail(user.email);
+  if (lockedUnit) {
+    const pair = parsePair(thread.title);
+    return thread.type === "dm" && Boolean(pair?.includes(unitEndpoint(lockedUnit)));
+  }
   const isStaff = staff(user.role);
   if (!isStaff) {
     if (thread.type === "dm") {

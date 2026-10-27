@@ -156,7 +156,7 @@ export default function MessagesPage() {
         <p className="text-xs text-[#57534e] px-1 mt-1 mb-3">
           {tx("Onaylı paydaşlar ve Sağlık Bakanlığı birimleri birbirine yazar. Eski soru-cevaplar da bu kutudadır.")}
         </p>
-        {staff && data?.units.length ? (
+        {staff && (data?.units.length || 0) > 1 ? (
           <label className="text-xs text-[#3E6A88] mb-2">
             {tx("Birim olarak yaz")}
             <select className="field mt-1" value={asUnit} onChange={(e) => setAsUnit(e.target.value)}>

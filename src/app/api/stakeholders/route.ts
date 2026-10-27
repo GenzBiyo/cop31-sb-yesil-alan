@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canManage } from "@/lib/auth";
 import { jsonError, jsonOk, withUser } from "@/lib/api";
 import { toRow } from "@/lib/stakeholder-form";
+import { unitOfEmail } from "@/lib/unit-accounts";
 import { importStakeholderXlsx } from "@/lib/stakeholder-import";
 
 export async function GET() {
@@ -17,6 +18,7 @@ export async function POST(req: NextRequest) {
   const { user, error } = await withUser();
   if (error || !user) return error!;
   if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+  if (unitOfEmail(user.email)) return jsonError("Yetkiniz yok", 403);
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return jsonError("Excel dosyası seçin");

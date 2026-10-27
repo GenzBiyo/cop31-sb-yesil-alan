@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { COOKIE, sessionSecret } from "@/lib/session-cookie";
 import { sbCanSee } from "@/lib/access";
+import { unitCanOpen, unitOfEmail } from "@/lib/unit-accounts";
 
 const PUBLIC = [
   "/login",
@@ -49,12 +50,12 @@ function isPublic(pathname: string) {
   return PUBLIC.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-async function roleOf(token: string) {
+async function sessionOf(token: string) {
   try {
     const { payload } = await jwtVerify(token, sessionSecret());
-    return String(payload.role || "");
+    return { role: String(payload.role || ""), email: String(payload.email || "") };
   } catch {
-    return "";
+    return { role: "", email: "" };
   }
 }
 
@@ -65,7 +66,14 @@ export async function middleware(req: NextRequest) {
   }
   const token = req.cookies.get(COOKIE)?.value;
   if (token) {
-    const role = await roleOf(token);
+    const { role, email } = await sessionOf(token);
+    if (unitOfEmail(email) && !unitCanOpen(pathname)) {
+      if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });
+      const url = req.nextUrl.clone();
+      url.pathname = "/program";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     if (pathname.startsWith("/oyun-sponsorluk") || pathname.startsWith("/api/game-sponsors")) {
       if (role !== "ADMIN") {
         if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });

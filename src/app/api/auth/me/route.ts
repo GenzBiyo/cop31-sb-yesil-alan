@@ -4,6 +4,7 @@ import { jsonError, jsonOk } from "@/lib/api";
 import { pendingProposalCounts } from "@/lib/proposals";
 import { memoGet, memoSet } from "@/lib/memo";
 import { renameAstorgToOxoid } from "@/lib/oxoid";
+import { unitOfEmail, unitTitle } from "@/lib/unit-accounts";
 
 export async function GET() {
   const session = await readSession();
@@ -71,6 +72,8 @@ export async function GET() {
       ...session,
       accountKind: session.role === "FIRMA" ? account.company?.kind || "firma" : "",
       companyName: account.company?.name || "",
+      unit: unitOfEmail(session.email),
+      unitTitle: unitTitle(unitOfEmail(session.email)),
       unread,
       openQa,
       pendingAccounts,

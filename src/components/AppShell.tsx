@@ -34,6 +34,7 @@ import { api, copCountdown, useRealtime } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
 import { AgendaAlerts } from "@/components/AgendaAlerts";
 import { accountKind } from "@/lib/account-kinds";
+import { unitOfEmail } from "@/lib/unit-accounts";
 
 type Me = {
   id: string;
@@ -54,6 +55,7 @@ type Me = {
   pendingAmbassadors?: number;
   accountKind?: string;
   companyName?: string;
+  unit?: string;
 };
 
 const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; firmTools?: boolean }[] = [
@@ -84,6 +86,15 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
 ];
 
 const MINISTRY_ONLY = ["/todos", "/takvim", "/paydas-yanitlari"];
+
+const UNIT_NAV: { href: string; label: string; icon: typeof Bell }[] = [
+  { href: "/profil", label: "Profil", icon: Building2 },
+  { href: "/program", label: "COP31 gündem", icon: Sparkles },
+  { href: "/paydas-yanitlari", label: "Paydaş formu", icon: FileSpreadsheet },
+  { href: "/toplantilar", label: "Toplantılarım", icon: Handshake },
+  { href: "/oyunlar", label: "Etkileşim oyunları", icon: Trophy },
+  { href: "/mesajlar", label: "Mesaj kutusu", icon: MessageSquare },
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -133,12 +144,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const kind = accountKind(me?.accountKind);
-  const items = useMemo(
-    () => NAV.filter((n) => me && n.roles.includes(me.role) && !(me.role === "FIRMA" && n.firmTools && !kind.firmTools)),
-    [me, kind.firmTools]
-  );
+  const unit = me?.unit || unitOfEmail(me?.email);
+  const items = useMemo(() => {
+    if (unit) return UNIT_NAV;
+    return NAV.filter((n) => me && n.roles.includes(me.role) && !(me.role === "FIRMA" && n.firmTools && !kind.firmTools));
+  }, [me, kind.firmTools, unit]);
   const days = copCountdown();
-  const roleLabel = me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
+  const roleLabel = unit ? unit : me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">

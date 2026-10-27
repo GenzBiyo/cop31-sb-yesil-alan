@@ -20,7 +20,7 @@ export type MinistryMeeting = {
   attendees: NamedPerson[];
 };
 
-export const MINISTRY_UNITS = ["SGGM", "HSGM", "KHGM", "TİTCK", "TÜSEB", "USHAŞ"];
+export const MINISTRY_UNITS = ["SGGM", "SHGM", "HSGM", "KHGM", "TİTCK", "TÜSEB", "USHAŞ"];
 export const OTHER_UNIT = "Diğer";
 export const SLOT_TIMES = Array.from({ length: 8 }, (_, i) => `${String(9 + i).padStart(2, "0")}:00`);
 export const SLOT_MINUTES = 15;

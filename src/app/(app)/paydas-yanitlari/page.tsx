@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Download, ExternalLink, Trash2, Upload } from "lucide-react";
 import { api, formatDate, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
@@ -15,9 +15,12 @@ type AdminSlot = {
   booking: { email: string; company: string; topic: string; requester: string; attendees: { name: string; title: string }[] } | null;
 };
 
-function MinistryCalendar() {
+function MinistryCalendar({ fixedUnit = "" }: { fixedUnit?: string }) {
   const { tx } = useI18n();
-  const [unit, setUnit] = useState(MINISTRY_UNITS[0]);
+  const [unit, setUnit] = useState(fixedUnit || MINISTRY_UNITS[0]);
+  useEffect(() => {
+    if (fixedUnit) setUnit(fixedUnit);
+  }, [fixedUnit]);
   const { data, reload } = useApi<{ slots: AdminSlot[] }>(`/api/ministry-slots?unit=${encodeURIComponent(unit)}`);
   const [busy, setBusy] = useState(false);
   const [detail, setDetail] = useState<AdminSlot | null>(null);
@@ -45,11 +48,13 @@ function MinistryCalendar() {
             {tx("Slotlar varsayılan olarak kapalıdır. Açtığınız saatler paydaş formunda seçilebilir hale gelir. Her saat başı bir görüşme,")} {SLOT_MINUTES} {tx("dakika.")}
           </p>
         </div>
-        <div className="flex flex-wrap gap-1">
-          {MINISTRY_UNITS.map((u) => (
-            <button key={u} className={`tab ${unit === u ? "on" : ""}`} onClick={() => { setUnit(u); setDetail(null); }}>{u}</button>
-          ))}
-        </div>
+        {fixedUnit ? null : (
+          <div className="flex flex-wrap gap-1">
+            {MINISTRY_UNITS.map((u) => (
+              <button key={u} className={`tab ${unit === u ? "on" : ""}`} onClick={() => { setUnit(u); setDetail(null); }}>{u}</button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="badge ok">{openCount} {tx("açık")}</span>
@@ -143,7 +148,7 @@ function csvCell(v: string | number) {
 export default function StakeholderResponsesPage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<{ responses: StakeholderRow[] }>("/api/stakeholders");
-  const { data: me } = useApi<{ role: string }>("/api/auth/me");
+  const { data: me } = useApi<{ role: string; unit?: string }>("/api/auth/me");
   const [tab, setTab] = useState<Tab>("yanitlar");
   const [info, setInfo] = useState("");
   const [copied, setCopied] = useState(false);
@@ -186,6 +191,10 @@ export default function StakeholderResponsesPage() {
       }),
     [rows]
   );
+  const visibleMeetings = useMemo(
+    () => (me?.unit ? meetings.filter((m) => m.ministry && m.with.endsWith(`· ${me.unit}`)) : meetings),
+    [meetings, me?.unit]
+  );
   const stats = useMemo(
     () => ({
       speakers: rows.filter((r) => r.speakerWilling).length,
@@ -221,7 +230,7 @@ export default function StakeholderResponsesPage() {
 
   function exportMeetings() {
     const lines = [["Firma", "E-posta", "Kiminle", "Konu", "Gün / saat", "Talep eden", "Katılımcı", "Unvan"].join(";")];
-    for (const m of meetings) {
+    for (const m of visibleMeetings) {
       const people = m.attendees.length ? m.attendees : [{ name: "", title: "" }];
       for (const p of people) {
         lines.push([m.company, m.email, m.with, m.topic, m.when, m.requester, p.name, p.title].map(csvCell).join(";"));
@@ -255,7 +264,7 @@ export default function StakeholderResponsesPage() {
             <Copy size={15} />
             {copied ? tx("Kopyalandı") : tx("Form linkini kopyala")}
           </button>
-          <button className="btn" onClick={() => fileRef.current?.click()}><Upload size={15} />{tx("Google Form Excel'i yükle")}</button>
+          {me?.unit ? null : <button className="btn" onClick={() => fileRef.current?.click()}><Upload size={15} />{tx("Google Form Excel'i yükle")}</button>}
           <input
             ref={fileRef}
             type="file"
@@ -296,7 +305,7 @@ export default function StakeholderResponsesPage() {
       <div className="flex gap-1">
         {([
           ["yanitlar", `Yanıtlar (${rows.length})`],
-          ["toplantilar", `Toplantı talepleri (${meetings.length})`],
+          ["toplantilar", `Toplantı talepleri (${visibleMeetings.length})`],
           ["takvim", "Bakanlık takvimi"],
           ["gunler", "Günlere göre"],
         ] as [Tab, string][]).map(([k, label]) => (
@@ -393,9 +402,9 @@ export default function StakeholderResponsesPage() {
         <section className="card p-4 space-y-3">
           <div className="flex flex-wrap justify-between items-center gap-2">
             <h2 className="display text-2xl">{tx("Toplantı talepleri ve katılımcılar")}</h2>
-            {meetings.length ? <button className="btn ghost" onClick={exportMeetings}><Download size={15} />{tx("Excel (CSV) indir")}</button> : null}
+            {visibleMeetings.length ? <button className="btn ghost" onClick={exportMeetings}><Download size={15} />{tx("Excel (CSV) indir")}</button> : null}
           </div>
-          {meetings.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Henüz toplantı talebi yok.")}</p> : null}
+          {visibleMeetings.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Henüz toplantı talebi yok.")}</p> : null}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -408,7 +417,7 @@ export default function StakeholderResponsesPage() {
                 </tr>
               </thead>
               <tbody>
-                {meetings.map((m) => (
+                {visibleMeetings.map((m) => (
                   <tr key={m.key} className="border-t border-[#DCE8F0] align-top">
                     <td className="py-2 pr-3 font-medium">{m.company}</td>
                     <td className="py-2 pr-3">{m.ministry ? <strong className="text-[#0077C2]">{m.with}</strong> : m.with}</td>
@@ -427,7 +436,7 @@ export default function StakeholderResponsesPage() {
         </section>
       ) : null}
 
-      {tab === "takvim" ? <MinistryCalendar /> : null}
+      {tab === "takvim" ? <MinistryCalendar fixedUnit={me?.unit || ""} /> : null}
 
       {tab === "gunler" ? (
         <section className="card p-4">
