@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { jsonError, jsonOk } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { getSharedGame } from "@/lib/game-live";
-import { parsePlayerMap, PLAYER_COOKIE } from "@/lib/games";
+import { parsePlayerMap, PLAYER_COOKIE, syncOfficialWheelSlices } from "@/lib/games";
+import { SAMPLE_WHEEL } from "@/lib/wheel";
 import { playerMatchView } from "@/lib/match-live";
 import { liveSponsorFor } from "@/lib/game-sponsors";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
   const { slug } = await ctx.params;
+  if (slug === SAMPLE_WHEEL.slug) await syncOfficialWheelSlices();
   const play = new URL(req.url).searchParams.get("play") === "1";
   const shared = await getSharedGame(slug, !play);
   if (!shared) return jsonError("Oyun yok", 404);

@@ -290,7 +290,7 @@ export async function ensureSampleGames() {
   }
   await ensureKiloGame();
   await ensureHatiraGame();
-  await syncWheelSliceColors();
+  await syncOfficialWheelSlices();
   await syncSampleQuizQuestions();
   await syncSampleDescriptions();
   sampleFlag.sampleQuizReadyV3 = true;
@@ -308,19 +308,34 @@ async function syncSampleDescriptions() {
   });
 }
 
-async function syncWheelSliceColors() {
+export async function syncOfficialWheelSlices() {
   const wheel = await prisma.game.findUnique({
     where: { slug: SAMPLE_WHEEL.slug },
     include: { slices: { orderBy: { order: "asc" } } },
   });
-  if (!wheel?.slices.length) return;
-  await Promise.all(
-    wheel.slices.map((slice, i) => {
-      const color = SAMPLE_WHEEL.slices[i % SAMPLE_WHEEL.slices.length].color;
-      if (slice.color === color) return Promise.resolve();
-      return prisma.gameSlice.update({ where: { id: slice.id }, data: { color } });
-    }),
-  );
+  if (!wheel) return;
+  const next = SAMPLE_WHEEL.slices;
+  const same =
+    wheel.slices.length === next.length &&
+    wheel.slices.every(
+      (slice, i) =>
+        slice.label === next[i].label &&
+        slice.kind === next[i].kind &&
+        slice.weight === (next[i].weight || 1) &&
+        slice.color === next[i].color
+    );
+  if (same) return;
+  await prisma.gameSlice.deleteMany({ where: { gameId: wheel.id } });
+  await prisma.gameSlice.createMany({
+    data: next.map((slice, i) => ({
+      gameId: wheel.id,
+      order: i,
+      label: slice.label,
+      color: slice.color,
+      kind: slice.kind,
+      weight: slice.weight || 1,
+    })),
+  });
 }
 
 async function ensureKiloGame() {

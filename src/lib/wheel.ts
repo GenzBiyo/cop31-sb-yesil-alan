@@ -7,19 +7,23 @@ export type SliceDraft = {
   label: string;
   color: string;
   kind: "prize" | "again" | "miss";
-  /** Göreli ağırlık. Dilimler 462+308+123+77+15+15 = 1000 ise oran yüzde onda biridir. */
+  /** Göreli ağırlık. Eşit dilimlerde her dilim 1’dir. */
   weight?: number;
 };
 
-/** Çark ödülleri. Ağırlıklar binde: 462 → %46,2. */
-export const WHEEL_PRIZES: { label: string; weight: number }[] = [
-  { label: "Tohum kartı", weight: 462 },
-  { label: "Tohumlu kalem", weight: 308 },
-  { label: "Bez çanta", weight: 123 },
-  { label: "Bambu termos", weight: 77 },
-  { label: "Bluetooth Speaker", weight: 15 },
-  { label: "Hoparlör + kulaklık", weight: 15 },
+/** Eşit dilimler: 4 tohum kartı, 3 tohumlu kalem, 2 bez çanta, diğerleri birer. */
+const WHEEL_PRIZE_COUNTS: { label: string; count: number }[] = [
+  { label: "Tohum kartı", count: 4 },
+  { label: "Tohumlu kalem", count: 3 },
+  { label: "Bez çanta", count: 2 },
+  { label: "Bambu termos", count: 1 },
+  { label: "Bluetooth Speaker", count: 1 },
+  { label: "Hoparlör + kulaklık", count: 1 },
 ];
+
+export const WHEEL_PRIZES: { label: string; weight: number }[] = WHEEL_PRIZE_COUNTS.flatMap((prize) =>
+  Array.from({ length: prize.count }, () => ({ label: prize.label, weight: 1 }))
+);
 
 export const WHEEL_COAST_DEG_PER_MS = 0.52;
 export const WHEEL_COAST_MAX_SEC = 25;
