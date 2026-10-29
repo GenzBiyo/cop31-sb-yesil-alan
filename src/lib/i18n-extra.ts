@@ -1,5 +1,6 @@
 /** Turkish strings that were missing from the main phrase book. */
 export const EN_EXTRA: Record<string, string> = {
+  "yeşil bant": "green band",
   Profil: "Profile",
   "Bu hesap kendi biriminin toplantılarını, paydaş formunu ve mesajlarını görür.":
     "This account sees its own unit’s meetings, the stakeholder form and its messages.",

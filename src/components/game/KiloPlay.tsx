@@ -235,30 +235,29 @@ function KiloMeters({ result, t }: { result: KiloResult; t: number }) {
       label: tx("Ağaç"),
       value: Math.round(result.trees * ease).toLocaleString("tr-TR"),
       unit: tx("ağaç yılı"),
-      hint: tx("Bu izi soğurmak için bir ağacın çalışacağı yıl."),
     },
     {
       emoji: "🚗",
       label: tx("Binek"),
       value: Math.round(result.carKm * ease).toLocaleString("tr-TR"),
       unit: "km",
-      hint: tx("Aynı karbon, bir binek otomobilin gideceği yol."),
     },
     {
       emoji: "✈️",
       label: tx("İç hat"),
       value: (result.flights * ease).toLocaleString("tr-TR", { maximumFractionDigits: 1 }),
       unit: tx("uçuş"),
-      hint: tx("Kısa iç hat (İstanbul–Ankara civarı) uçuş karşılığı."),
     },
   ];
   return (
     <div className="kilo-eq">
+      <p className="kilo-eq-note">
+        {tx("BKİ")} {result.bmi} · {tx(result.bmiLabel)} · {tx("yeşil bant")} {result.healthyMinKg}–{result.healthyMaxKg} kg
+      </p>
       {rows.map((row) => (
         <div key={row.label} className="kilo-eq-card">
           <div className="kilo-eq-emoji" aria-hidden>{row.emoji}</div>
           <div className="kilo-eq-val">{row.value} <small>{row.unit}</small></div>
-          <p>{row.hint}</p>
         </div>
       ))}
     </div>
@@ -394,12 +393,6 @@ export function KiloWallView({ kilo, large }: { kilo: KiloPublic | null; large?:
       {shown && latest ? (
         <>
           <KiloScene key={latest.id} result={shown} large={large} />
-          {large ? (
-            <div className="card p-4">
-              <BmiScale result={shown} />
-              <p className="text-sm mt-3">{tx(shown.bmiNote)}</p>
-            </div>
-          ) : null}
         </>
       ) : (
         <div className={`kilo-stage ${large ? "is-large" : ""} is-idle`}>

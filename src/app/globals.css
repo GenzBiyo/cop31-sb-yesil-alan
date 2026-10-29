@@ -2081,7 +2081,7 @@ button.q-opt:disabled { cursor: default; }
   grid-template-columns: minmax(100px, 38%) 1fr;
   align-items: center;
   gap: 0.15rem 0.5rem;
-  padding: 0 0.5rem;
+  padding: 0 0.5rem 7.2rem;
   flex: 1;
 }
 .kilo-tank {
@@ -2216,17 +2216,30 @@ button.q-opt:disabled { cursor: default; }
   color: #57534e;
 }
 .kilo-eq {
-  position: relative;
-  z-index: 3;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.4rem;
-  padding: 0.15rem 0.55rem 0.7rem;
+  padding: 2.4rem 0.55rem 0.7rem;
+  background: linear-gradient(180deg, rgba(7, 22, 40, 0) 0%, rgba(7, 22, 40, 0.72) 38%, rgba(7, 22, 40, 0.88) 100%);
+}
+.kilo-eq-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
 }
 @media (min-width: 520px) {
   .kilo-eq { grid-template-columns: 1fr 1fr 1fr; }
 }
-.kilo-stage.is-large .kilo-eq { grid-template-columns: 1fr 1fr 1fr; padding: 0.2rem 0.85rem 0.9rem; }
+.kilo-stage.is-large .kilo-eq { grid-template-columns: 1fr 1fr 1fr; padding: 2.6rem 0.85rem 0.9rem; }
 .kilo-eq-card {
   background: rgba(12, 8, 8, 0.42);
   border: 1px solid rgba(244, 239, 230, 0.18);
