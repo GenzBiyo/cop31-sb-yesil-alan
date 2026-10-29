@@ -55,14 +55,28 @@ type Payload = {
   sponsor?: EventSponsorInfo | null;
 };
 
+function playedKey(slug: string) {
+  return `cop31-played:${slug}`;
+}
+
+function markPlayed(slug: string) {
+  sessionStorage.setItem(playedKey(slug), "1");
+}
+
+function hasPlayed(slug: string) {
+  return sessionStorage.getItem(playedKey(slug)) === "1";
+}
+
 function MatchPhone({
   slug,
   view,
   onReload,
+  onPlayed,
 }: {
   slug: string;
   view: PlayerMatchView;
   onReload: () => Promise<void> | void;
+  onPlayed: () => void;
 }) {
   const [board, setBoard] = useState(view);
   const [busy, setBusy] = useState(false);
@@ -80,6 +94,7 @@ function MatchPhone({
         body: JSON.stringify(body),
       });
       setBoard(res.view);
+      onPlayed();
       if (res.view.last === "bad") setTimeout(() => void onReload(), 900);
       else if (res.gained) void onReload();
     } finally {
@@ -136,14 +151,15 @@ function Join({ slug }: { slug: string }) {
   const wheelAngle = useWheelMotion(wheel);
 
   useEffect(() => {
-    if (!data || data.me?.status !== "approved") return;
+    if (!data || data.me?.status !== "approved" || !hasPlayed(slug)) return;
     const mine = Boolean(data.spinPlayer?.id && data.spinPlayer.id === data.me?.id);
     const reveal = data.phase === "reveal" || data.phase === "closed";
-    if (data.type === "wheel" && reveal && data.landed && mine) setEarned(true);
+    const wheelSettled = wheel.mode === "idle";
+    if (data.type === "wheel" && reveal && wheelSettled && data.landed && mine) setEarned(true);
     else if (data.type === "plak" && data.plak && !data.plak.spinning && data.plak.index >= 0 && mine) setEarned(true);
-    else if (data.type === "match" && reveal) setEarned(true);
+    else if (data.type === "match" && (data.phase === "closed" || (reveal && (data.currentIndex ?? 0) >= 1))) setEarned(true);
     else if (data.phase === "closed" && data.type !== "wheel" && data.type !== "plak" && data.type !== "match") setEarned(true);
-  }, [data]);
+  }, [data, slug, wheel.mode]);
 
   async function spinWheel(action: "spin" | "stop") {
     if (busy) return;
@@ -154,6 +170,7 @@ function Join({ slug }: { slug: string }) {
         method: "POST",
         body: JSON.stringify({ action, fromAngle: Math.round(wheelAngle) }),
       });
+      if (action === "spin") markPlayed(slug);
       await reload();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Çark çevrilemedi");
@@ -205,6 +222,7 @@ function Join({ slug }: { slug: string }) {
         method: "POST",
         body: JSON.stringify({ questionId: data.question.id, choice }),
       });
+      markPlayed(slug);
       await reload();
     } catch (err) {
       setPicked(null);
@@ -370,6 +388,7 @@ function Join({ slug }: { slug: string }) {
                     setBusy(true);
                     try {
                       await api(`/api/public/games/${slug}/plak`, { method: "POST" });
+                      markPlayed(slug);
                       await reload();
                     } finally {
                       setBusy(false);
@@ -431,7 +450,7 @@ function Join({ slug }: { slug: string }) {
                   <div className="game-panel space-y-3">
                     <TimerRing remaining={left} total={data.seconds} />
                     {data.matchBoard ? (
-                      <MatchPhone slug={slug} view={data.matchBoard} onReload={reload} />
+                      <MatchPhone slug={slug} view={data.matchBoard} onReload={reload} onPlayed={() => markPlayed(slug)} />
                     ) : (
                       <p>{tx("Kartlar açılıyor…")}</p>
                     )}
