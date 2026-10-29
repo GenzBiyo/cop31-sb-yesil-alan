@@ -312,16 +312,6 @@ function canLiveCam() {
   return typeof window !== "undefined" && window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia);
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
 function cover(ctx: CanvasRenderingContext2D, img: CanvasImageSource, x: number, y: number, w: number, h: number) {
   const iw = "width" in img ? Number(img.width) : 0;
   const ih = "height" in img ? Number(img.height) : 0;
@@ -346,12 +336,27 @@ function stand(ctx: CanvasRenderingContext2D, img: CanvasImageSource, x: number,
   const iw = "width" in img ? Number(img.width) : 0;
   const ih = "height" in img ? Number(img.height) : 0;
   if (!iw || !ih) return;
-  const scale = Math.min(w / iw, (h * 0.92) / ih);
+  let scale = h / ih;
+  if (iw * scale > w * 0.96) scale = (w * 0.96) / iw;
   const dw = iw * scale;
   const dh = ih * scale;
   const dx = x + (w - dw) / 2;
   const dy = y + h - dh;
   ctx.drawImage(img, dx, dy, dw, dh);
+}
+
+function isCutout(img: CanvasImageSource) {
+  const probe = document.createElement("canvas");
+  probe.width = 16;
+  probe.height = 16;
+  const g = probe.getContext("2d", { willReadFrequently: true });
+  if (!g) return false;
+  g.drawImage(img, 0, 0, 16, 16);
+  const px = g.getImageData(0, 0, 16, 16).data;
+  const corners = [0, 15, 15 * 16, 16 * 16 - 1];
+  let clear = 0;
+  for (const i of corners) if (px[i * 4 + 3] < 48) clear += 1;
+  return clear >= 2;
 }
 
 const NAVY = "#071628";
@@ -376,62 +381,51 @@ function paintCard(
   ctx.lineWidth = 1;
   ctx.strokeRect(28, 28, W - 56, H - 56);
 
-  plate(ctx, 48, 48, W - 96, 228);
-  logoTile(ctx, saglik, 68, 72, 168, 168, true);
-  logoTile(ctx, cop, W - 68 - 300, 96, 300, 132, false);
+  plate(ctx, 40, 40, W - 80, 156);
+  logoTile(ctx, saglik, 56, 52, 128, 128, true);
+  logoTile(ctx, cop, W - 56 - 248, 64, 248, 108, false);
   ctx.textAlign = "center";
   ctx.fillStyle = RED;
-  ctx.font = "700 15px Segoe UI, sans-serif";
-  ctx.fillText("TÜRKİYE CUMHURİYETİ", 500, 108);
+  ctx.font = "700 14px Segoe UI, sans-serif";
+  ctx.fillText("TÜRKİYE CUMHURİYETİ", 500, 92);
   ctx.fillStyle = INK;
-  ctx.font = "700 26px Segoe UI, sans-serif";
-  ctx.fillText("SAĞLIK BAKANLIĞI", 500, 144);
+  ctx.font = "700 24px Segoe UI, sans-serif";
+  ctx.fillText("SAĞLIK BAKANLIĞI", 500, 124);
   ctx.fillStyle = "#0077C2";
-  ctx.font = "700 16px Segoe UI, sans-serif";
-  ctx.fillText("COP31  ·  ANTALYA", 500, 176);
-  ctx.fillStyle = "#5C6B76";
-  ctx.font = "500 14px Segoe UI, sans-serif";
-  ctx.fillText("Sağlıklı insan, sağlıklı gezegen", 500, 204);
+  ctx.font = "600 15px Segoe UI, sans-serif";
+  ctx.fillText("COP31  ·  ANTALYA", 500, 154);
 
-  stripe(ctx, WIN.y - 22);
+  stripe(ctx, WIN.y - 18);
   const { x: rx, y: ry, w: rw, h: rh } = WIN;
   ctx.save();
   ctx.beginPath();
   ctx.rect(rx, ry, rw, rh);
   ctx.clip();
   cover(ctx, nature, rx, ry, rw, rh);
-  const shade = ctx.createLinearGradient(0, ry + rh * 0.62, 0, ry + rh);
+  if (isCutout(person)) stand(ctx, person, rx, ry, rw, rh);
+  else cover(ctx, person, rx, ry, rw, rh);
+  const shade = ctx.createLinearGradient(0, ry + rh * 0.78, 0, ry + rh);
   shade.addColorStop(0, "rgba(7,22,40,0)");
-  shade.addColorStop(1, "rgba(7,22,40,0.35)");
+  shade.addColorStop(1, "rgba(7,22,40,0.28)");
   ctx.fillStyle = shade;
   ctx.fillRect(rx, ry, rw, rh);
-  stand(ctx, person, rx, ry, rw, rh);
   ctx.restore();
-  ctx.strokeStyle = CREAM;
-  ctx.lineWidth = 8;
-  ctx.strokeRect(rx, ry, rw, rh);
-  ctx.strokeStyle = "#D4B483";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(rx - 10, ry - 10, rw + 20, rh + 20);
-  corners(ctx, rx, ry, rw, rh);
 
-  seal(ctx, saglik, 54, ry + rh / 2, 88);
-  chip(ctx, cop, rx + rw - 72, ry + rh / 2 - 34, 156, 68);
-
-  stripe(ctx, ry + rh + 16);
-  plate(ctx, 48, ry + rh + 32, W - 96, H - (ry + rh + 32) - 40);
-  const foot = ry + rh + 48;
-  logoTile(ctx, cop, 68, foot + 18, 250, 108, false);
-  logoTile(ctx, saglik, W - 68 - 132, foot + 8, 132, 132, true);
+  stripe(ctx, ry + rh + 12);
+  plate(ctx, 40, ry + rh + 28, W - 80, H - (ry + rh + 28) - 36);
+  const foot = ry + rh + 28;
+  logoTile(ctx, cop, 56, foot + 28, 196, 86, false);
+  logoTile(ctx, saglik, W - 56 - 108, foot + 22, 108, 108, true);
   ctx.textAlign = "center";
   ctx.fillStyle = INK;
-  ctx.font = "700 28px Georgia, serif";
-  ctx.fillText("COP31 Türkiye", 530, foot + 52);
+  ctx.font = "700 30px Georgia, serif";
+  ctx.fillText("COP31 Türkiye", 530, foot + 64);
+  ctx.fillStyle = "#3E5566";
   ctx.font = "600 18px Segoe UI, sans-serif";
-  ctx.fillText("Sağlık Pavilionu Hatırası", 530, foot + 82);
+  ctx.fillText("Sağlık Pavilionu Hatırası", 530, foot + 98);
   ctx.fillStyle = "#0077C2";
-  ctx.font = "600 15px Segoe UI, sans-serif";
-  ctx.fillText("Antalya  ·  9–20 Kasım 2026", 530, foot + 112);
+  ctx.font = "600 16px Segoe UI, sans-serif";
+  ctx.fillText("Antalya  ·  9–20 Kasım 2026", 530, foot + 128);
 }
 
 function plate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
@@ -446,25 +440,6 @@ function stripe(ctx: CanvasRenderingContext2D, y: number) {
   ctx.fillRect(48, y + 8, W - 96, 4);
 }
 
-function corners(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  const n = 36;
-  ctx.strokeStyle = "#F6F3EA";
-  ctx.lineWidth = 3;
-  const marks: [number, number, number, number][] = [
-    [x + 16, y + 16, 1, 1],
-    [x + w - 16, y + 16, -1, 1],
-    [x + 16, y + h - 16, 1, -1],
-    [x + w - 16, y + h - 16, -1, -1],
-  ];
-  for (const [cx, cy, dx, dy] of marks) {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy + dy * n);
-    ctx.lineTo(cx, cy);
-    ctx.lineTo(cx + dx * n, cy);
-    ctx.stroke();
-  }
-}
-
 function logoTile(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -477,36 +452,6 @@ function logoTile(
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(x - 6, y - 6, maxW + 12, maxH + 12);
   drawLogo(ctx, img, x, y, maxW, maxH, punchBlack);
-}
-
-function seal(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cx: number, cy: number, size: number) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, size / 2 + 8, 0, Math.PI * 2);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = RED;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
-  ctx.clip();
-  drawLogo(ctx, img, cx - size / 2, cy - size / 2, size, size, true);
-  ctx.restore();
-}
-
-function chip(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  ctx.save();
-  roundRect(ctx, x, y, w, h, 8);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "#0077C2";
-  ctx.stroke();
-  roundRect(ctx, x + 6, y + 6, w - 12, h - 12, 4);
-  ctx.clip();
-  drawLogo(ctx, img, x + 8, y + 8, w - 16, h - 16, false);
-  ctx.restore();
 }
 
 function drawLogo(

@@ -298,7 +298,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
         </p>
         <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 text-sm space-y-1">
           <div><b><Tx>Kart çıktısı:</Tx></b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>
-          <div><b>Arka plan:</b> aynı ölçü, {HATIRA_W} × {HATIRA_H} px. Fotoğraf penceresi {HATIRA_WINDOW.w} × {HATIRA_WINDOW.h} px; görsel bu alana sığdırılır, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
+          <div><b>Arka plan:</b> aynı ölçü, {HATIRA_W} × {HATIRA_H} px. Fotoğraf penceresi {HATIRA_WINDOW.w} × {HATIRA_WINDOW.h} px; görsel bu alanı doldurur, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
           <div><b>COP31 logosu:</b><Tx>şeffaf PNG, yatay, örneğin 900 × 360 px.</Tx></div>
           <div><b><Tx>Sağlık Bakanlığı logosu:</Tx></b><Tx>kare, örneğin 800 × 800 px. Siyah fon otomatik temizlenir.</Tx></div>
         </div>
