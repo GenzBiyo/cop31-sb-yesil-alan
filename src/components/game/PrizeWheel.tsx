@@ -182,7 +182,7 @@ export function PrizeWheel({
         {slices.map((s, i) => {
           const arc = arcs[i]?.arc || 360;
           const mid = arcs[i]?.mid || 0;
-          const on = highlight === i;
+          const on = motion === "idle" && highlight === i;
           const layout = sliceLabelLayout(tx(s.label), slices.length);
           const ink = sliceInk(s.color);
           return (

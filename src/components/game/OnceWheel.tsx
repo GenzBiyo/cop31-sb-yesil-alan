@@ -71,15 +71,18 @@ export function OnceWheel({
   }
 
   function show(data: Claim, animate: boolean) {
-    setHighlight(data.index);
     if (animate) {
+      setHighlight(null);
       setMotion({ mode: "stop", from: 0, target: data.land, startedAt: new Date().toISOString(), seconds: 7 });
       window.setTimeout(() => {
+        setMotion({ mode: "idle", from: data.land, target: data.land, startedAt: null, seconds: 7 });
+        setHighlight(data.index);
         setResult(data.label);
         setTicket(data);
-      }, 7000);
+      }, 9200);
       return;
     }
+    setHighlight(data.index);
     setMotion({ mode: "idle", from: data.land, target: data.land, startedAt: null, seconds: 7 });
     setResult(data.label);
     setTicket(data);
