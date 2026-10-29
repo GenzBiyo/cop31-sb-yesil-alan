@@ -535,7 +535,7 @@ export const EN: Record<string, string> = {
   "İnteraktif deneyim": "Interactive experience",
   "İnteraktif yürüyüş": "Interactive walk",
   "Katıl / kayıt →": "Join / register →",
-  "9–20 Kasım 2026 · Antalya EXPO Center · Blue Zone": "9–20 November 2026 · Antalya EXPO Center · Blue Zone",
+  "9–20 Kasım 2026 · Antalya EXPO Center · Green Zone · Yeşil Alan": "9–20 November 2026 · Antalya EXPO Center · Green Zone · Yeşil Alan",
   "11–12 Kasım Solaklar outdoor →": "11–12 November Solaklar outdoor →",
   "Etkileşim alanı / oyunlar →": "Interaction area / games →",
   "Etkinlikler": "Events",

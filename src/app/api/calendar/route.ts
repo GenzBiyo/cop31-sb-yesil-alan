@@ -13,7 +13,7 @@ async function programEvents(): Promise<CalendarEvent[]> {
         id: `day-${day.id}`,
         title: `COP31 · ${day.themeTr}`,
         description: [day.topic1, day.topic2].filter(Boolean).join("\n"),
-        location: "Antalya EXPO Center — Sağlık Pavilionu, Blue Zone",
+        location: "Antalya EXPO Center — Sağlık Pavilionu, Green Zone, Yeşil Alan",
         date: day.date,
         startTime: "09:00",
         endTime: "18:00",

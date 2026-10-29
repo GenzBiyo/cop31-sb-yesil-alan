@@ -469,7 +469,7 @@ async function main() {
       { key: "todosSheetId", value: "1hmBcT-7ZsZXS0pTfviN8DcqdkICLUcqD" },
       { key: "companiesSheetId", value: "10uW2ZbzkW7x3DDwEBbWwo1jrjxxx3kAWcoopAeGU1JI" },
       { key: "pavilionName", value: "COP31 Sağlık Pavilionu (Yeşil Alan)" },
-      { key: "venue", value: "Antalya EXPO Center — Blue Zone" },
+      { key: "venue", value: "Antalya EXPO Center — Green Zone, Yeşil Alan" },
     ],
   });
 

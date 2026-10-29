@@ -30,7 +30,7 @@ function header(doc: PDFKit.PDFDocument, title: string) {
   doc.fillColor("#444").fontSize(9).text("Sağlığın Geliştirmesi Genel Müdürlüğü · COP31 Sağlık Pavilionu", { align: "left" });
   doc.moveDown(0.4);
   doc.fillColor("#0077C2").fontSize(16).text(title);
-  doc.fillColor("#666").fontSize(9).text("Antalya EXPO Center · Blue Zone · 9–20 Kasım 2026");
+  doc.fillColor("#666").fontSize(9).text("Antalya EXPO Center · Green Zone · Yeşil Alan · 9–20 Kasım 2026");
   doc.moveTo(48, doc.y + 8).lineTo(547, doc.y + 8).strokeColor("#0077C2").lineWidth(1.2).stroke();
   doc.moveDown(1.2);
   doc.fillColor("#1a1a1a");

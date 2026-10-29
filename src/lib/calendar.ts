@@ -36,7 +36,7 @@ export function googleTemplateUrl(event: CalendarEvent) {
     text: event.title,
     dates: `${start}/${end}`,
     details: event.description || "COP31 Sağlık Pavilionu — T.C. Sağlık Bakanlığı",
-    location: event.location || "Antalya EXPO Center, Blue Zone",
+    location: event.location || "Antalya EXPO Center, Green Zone, Yeşil Alan",
     ctz: TZ,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -52,7 +52,7 @@ export function toIcsEvent(event: CalendarEvent) {
     `DTEND:${compactUtc(event.date, event.endTime || event.startTime)}`,
     `SUMMARY:${icsEscape(event.title)}`,
     `DESCRIPTION:${icsEscape(event.description || "COP31 Sağlık Pavilionu")}`,
-    `LOCATION:${icsEscape(event.location || "Antalya EXPO Center, Blue Zone")}`,
+    `LOCATION:${icsEscape(event.location || "Antalya EXPO Center, Green Zone, Yeşil Alan")}`,
     "END:VEVENT",
   ].join("\r\n");
 }
