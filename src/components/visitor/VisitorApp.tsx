@@ -504,7 +504,6 @@ export function VisitorApp() {
         {state && !registered ? (
           <form className="phone-card" onSubmit={saveProfile}>
             <h2>{tx("Sizi tanıyalım")}</h2>
-            <p>{tx("Kayıt olmadan giriş yok. Ad, e-posta ve telefon zorunlu.")}</p>
             <p className="phone-kicker">{tx("Ziyaretçi")}</p>
             <input className="phone-field" placeholder={tx("Ad soyad")} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
             <input className="phone-field" placeholder={tx("Kurum")} value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
