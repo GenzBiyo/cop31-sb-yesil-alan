@@ -294,7 +294,7 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
       <section className="card p-4 space-y-4">
         <h2 className="display text-3xl"><Tx>Hatıra kartı</Tx></h2>
         <p className="text-sm text-[#57534e]">
-          Ziyaretçi selfie çekince kişi bu arka planın önüne oturur. Kartın kendisi arka plandır, ayrıca çerçeve yoktur. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
+          Ziyaretçi selfie çekince kişi arka planın alt yarısında, ortaya ve kartın yarısı kadar durur. Çerçeve yoktur. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
         </p>
         <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 text-sm space-y-1">
           <div><b><Tx>Kart çıktısı:</Tx></b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>

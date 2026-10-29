@@ -350,21 +350,25 @@ function isCutout(img: CanvasImageSource) {
 
 function paintCard(ctx: CanvasRenderingContext2D, nature: CanvasImageSource, person: CanvasImageSource) {
   cover(ctx, nature, 0, 0, W, H);
-  if (isCutout(person)) stand(ctx, person, 0, 0, W, H);
-  else cover(ctx, person, 0, 0, W, H);
-  const shade = ctx.createLinearGradient(0, H * 0.82, 0, H);
-  shade.addColorStop(0, "rgba(7,22,40,0)");
-  shade.addColorStop(1, "rgba(7,22,40,0.45)");
-  ctx.fillStyle = shade;
-  ctx.fillRect(0, H * 0.82, W, H * 0.18);
+  const pw = W * 0.5;
+  const ph = H * 0.5;
+  const px = (W - pw) / 2;
+  const py = H - ph;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(px, py, pw, ph);
+  ctx.clip();
+  if (isCutout(person)) stand(ctx, person, px, py, pw, ph);
+  else cover(ctx, person, px, py, pw, ph);
+  ctx.restore();
   ctx.textAlign = "center";
   ctx.fillStyle = "#FFFFFF";
   ctx.shadowColor = "rgba(0,0,0,0.55)";
   ctx.shadowBlur = 12;
   ctx.font = "700 36px Georgia, serif";
-  ctx.fillText("COP31 Türkiye", W / 2, H - 78);
+  ctx.fillText("COP31 Türkiye", W / 2, H * 0.16);
   ctx.font = "600 22px Segoe UI, sans-serif";
-  ctx.fillText("Antalya  ·  9–20 Kasım 2026", W / 2, H - 42);
+  ctx.fillText("Antalya  ·  9–20 Kasım 2026", W / 2, H * 0.16 + 40);
   ctx.shadowBlur = 0;
 }
 
