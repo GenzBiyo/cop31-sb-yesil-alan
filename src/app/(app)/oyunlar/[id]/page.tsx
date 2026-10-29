@@ -9,7 +9,7 @@ import { Scoreboard } from "@/components/game/Board";
 import { SLICE_COLORS, sliceWeight, weightForShare } from "@/lib/wheel";
 import { CONCEPTS } from "@/lib/match-cards";
 import { useI18n, Tx } from "@/components/I18nProvider";
-import { HATIRA_H, HATIRA_NATURE, HATIRA_W, HATIRA_WINDOW, type HatiraLogos } from "@/lib/hatira";
+import { HATIRA_H, HATIRA_NATURE, HATIRA_W, type HatiraLogos } from "@/lib/hatira";
 
 type Question = {
   id?: string;
@@ -294,11 +294,11 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
       <section className="card p-4 space-y-4">
         <h2 className="display text-3xl"><Tx>Hatıra kartı</Tx></h2>
         <p className="text-sm text-[#57534e]">
-          Ziyaretçi selfie çekince kişi bu arka planın önüne oturur. Çerçevede COP31 ve Sağlık Bakanlığı logoları yer alır. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
+          Ziyaretçi selfie çekince kişi bu arka planın önüne oturur. Kartın kendisi arka plandır, ayrıca çerçeve yoktur. Gönderince fotoğraf onayınıza düşer; onaylarsanız duvarda görünür.
         </p>
         <div className="border border-[#B5DFF2] bg-[#F2F9FD] p-3 text-sm space-y-1">
           <div><b><Tx>Kart çıktısı:</Tx></b> {HATIRA_W} × {HATIRA_H} px, dikey 3:4</div>
-          <div><b>Arka plan:</b> aynı ölçü, {HATIRA_W} × {HATIRA_H} px. Fotoğraf penceresi {HATIRA_WINDOW.w} × {HATIRA_WINDOW.h} px; görsel bu alanı doldurur, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
+          <div><b>Arka plan:</b> kartın tamamı, {HATIRA_W} × {HATIRA_H} px. Görsel kenardan kenara dolar, taşan kenar kırpılır. JPG veya PNG, en fazla 8 MB.</div>
           <div><b>COP31 logosu:</b><Tx>şeffaf PNG, yatay, örneğin 900 × 360 px.</Tx></div>
           <div><b><Tx>Sağlık Bakanlığı logosu:</Tx></b><Tx>kare, örneğin 800 × 800 px. Siyah fon otomatik temizlenir.</Tx></div>
         </div>

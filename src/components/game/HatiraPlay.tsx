@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HATIRA_H, HATIRA_W, HATIRA_WINDOW, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
+import { HATIRA_H, HATIRA_W, defaultHatiraLogos, type HatiraLogos, type HatiraPublic } from "@/lib/hatira";
 import { cutoutPerson, warmupSegmenter } from "@/lib/hatira-segment";
 import { useI18n, Tx } from "@/components/I18nProvider";
 import { ShareBar } from "@/components/game/ShareBar";
 
 const W = HATIRA_W;
 const H = HATIRA_H;
-const WIN = HATIRA_WINDOW;
 
 type Step = "live" | "shot" | "ready" | "sent";
 
@@ -17,8 +16,6 @@ export function HatiraPlay({ slug, logos, onSent }: { slug: string; logos?: Hati
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const natureRef = useRef<HTMLImageElement | null>(null);
-  const copRef = useRef<HTMLImageElement | null>(null);
-  const saglikRef = useRef<HTMLImageElement | null>(null);
   const marks = logos || defaultHatiraLogos();
   const [step, setStep] = useState<Step>("live");
   const [shot, setShot] = useState<string>("");
@@ -75,14 +72,8 @@ export function HatiraPlay({ slug, logos, onSent }: { slug: string; logos?: Hati
     const nature = new Image();
     nature.src = marks.background;
     natureRef.current = nature;
-    const cop = new Image();
-    cop.src = marks.cop31;
-    copRef.current = cop;
-    const saglik = new Image();
-    saglik.src = marks.saglik;
-    saglikRef.current = saglik;
     warmupSegmenter();
-  }, [marks.background, marks.cop31, marks.saglik]);
+  }, [marks.background]);
 
   useEffect(() => {
     if (step !== "live") {
@@ -130,14 +121,12 @@ export function HatiraPlay({ slug, logos, onSent }: { slug: string; logos?: Hati
       const face = await loadImg(shot);
       const person = await cutoutPerson(face, slug);
       const nature = natureRef.current && natureRef.current.complete ? natureRef.current : await loadImg(marks.background);
-      const cop = copRef.current && copRef.current.complete ? copRef.current : await loadImg(marks.cop31);
-      const saglik = saglikRef.current && saglikRef.current.complete ? saglikRef.current : await loadImg(marks.saglik);
       const c = document.createElement("canvas");
       c.width = W;
       c.height = H;
       const ctx = c.getContext("2d");
       if (!ctx) return;
-      paintCard(ctx, nature, person, cop, saglik);
+      paintCard(ctx, nature, person);
       setComposed(c.toDataURL("image/jpeg", 0.9));
       setStep("ready");
       setMsg("");
@@ -359,131 +348,24 @@ function isCutout(img: CanvasImageSource) {
   return clear >= 2;
 }
 
-const NAVY = "#071628";
-const CREAM = "#F6F3EA";
-const RED = "#C8102E";
-const TEAL = "#00A3E0";
-const INK = "#0B1C33";
-
-function paintCard(
-  ctx: CanvasRenderingContext2D,
-  nature: CanvasImageSource,
-  person: CanvasImageSource,
-  cop: HTMLImageElement,
-  saglik: HTMLImageElement,
-) {
-  ctx.fillStyle = NAVY;
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = "#D4B483";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(18, 18, W - 36, H - 36);
-  ctx.strokeStyle = TEAL;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(28, 28, W - 56, H - 56);
-
-  plate(ctx, 40, 40, W - 80, 156);
-  logoTile(ctx, saglik, 56, 52, 128, 128, true);
-  logoTile(ctx, cop, W - 56 - 248, 64, 248, 108, false);
-  ctx.textAlign = "center";
-  ctx.fillStyle = RED;
-  ctx.font = "700 14px Segoe UI, sans-serif";
-  ctx.fillText("TÜRKİYE CUMHURİYETİ", 500, 92);
-  ctx.fillStyle = INK;
-  ctx.font = "700 24px Segoe UI, sans-serif";
-  ctx.fillText("SAĞLIK BAKANLIĞI", 500, 124);
-  ctx.fillStyle = "#0077C2";
-  ctx.font = "600 15px Segoe UI, sans-serif";
-  ctx.fillText("COP31  ·  ANTALYA", 500, 154);
-
-  stripe(ctx, WIN.y - 18);
-  const { x: rx, y: ry, w: rw, h: rh } = WIN;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(rx, ry, rw, rh);
-  ctx.clip();
-  cover(ctx, nature, rx, ry, rw, rh);
-  if (isCutout(person)) stand(ctx, person, rx, ry, rw, rh);
-  else cover(ctx, person, rx, ry, rw, rh);
-  const shade = ctx.createLinearGradient(0, ry + rh * 0.78, 0, ry + rh);
+function paintCard(ctx: CanvasRenderingContext2D, nature: CanvasImageSource, person: CanvasImageSource) {
+  cover(ctx, nature, 0, 0, W, H);
+  if (isCutout(person)) stand(ctx, person, 0, 0, W, H);
+  else cover(ctx, person, 0, 0, W, H);
+  const shade = ctx.createLinearGradient(0, H * 0.82, 0, H);
   shade.addColorStop(0, "rgba(7,22,40,0)");
-  shade.addColorStop(1, "rgba(7,22,40,0.28)");
+  shade.addColorStop(1, "rgba(7,22,40,0.45)");
   ctx.fillStyle = shade;
-  ctx.fillRect(rx, ry, rw, rh);
-  ctx.restore();
-
-  stripe(ctx, ry + rh + 12);
-  plate(ctx, 40, ry + rh + 28, W - 80, H - (ry + rh + 28) - 36);
-  const foot = ry + rh + 28;
-  logoTile(ctx, cop, 56, foot + 28, 196, 86, false);
-  logoTile(ctx, saglik, W - 56 - 108, foot + 22, 108, 108, true);
+  ctx.fillRect(0, H * 0.82, W, H * 0.18);
   ctx.textAlign = "center";
-  ctx.fillStyle = INK;
-  ctx.font = "700 30px Georgia, serif";
-  ctx.fillText("COP31 Türkiye", 530, foot + 64);
-  ctx.fillStyle = "#3E5566";
-  ctx.font = "600 18px Segoe UI, sans-serif";
-  ctx.fillText("Sağlık Pavilionu Hatırası", 530, foot + 98);
-  ctx.fillStyle = "#0077C2";
-  ctx.font = "600 16px Segoe UI, sans-serif";
-  ctx.fillText("Antalya  ·  9–20 Kasım 2026", 530, foot + 128);
-}
-
-function plate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.fillStyle = CREAM;
-  ctx.fillRect(x, y, w, h);
-}
-
-function stripe(ctx: CanvasRenderingContext2D, y: number) {
-  ctx.fillStyle = RED;
-  ctx.fillRect(48, y, W - 96, 8);
-  ctx.fillStyle = TEAL;
-  ctx.fillRect(48, y + 8, W - 96, 4);
-}
-
-function logoTile(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  maxW: number,
-  maxH: number,
-  punchBlack: boolean,
-) {
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(x - 6, y - 6, maxW + 12, maxH + 12);
-  drawLogo(ctx, img, x, y, maxW, maxH, punchBlack);
-}
-
-function drawLogo(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  maxW: number,
-  maxH: number,
-  punchBlack: boolean,
-) {
-  const scale = Math.min(maxW / img.width, maxH / img.height);
-  const dw = img.width * scale;
-  const dh = img.height * scale;
-  const dx = x + (maxW - dw) / 2;
-  const dy = y + (maxH - dh) / 2;
-  if (!punchBlack) {
-    ctx.drawImage(img, dx, dy, dw, dh);
-    return;
-  }
-  const tmp = document.createElement("canvas");
-  tmp.width = img.width;
-  tmp.height = img.height;
-  const t = tmp.getContext("2d");
-  if (!t) return;
-  t.drawImage(img, 0, 0);
-  const data = t.getImageData(0, 0, tmp.width, tmp.height);
-  for (let i = 0; i < data.data.length; i += 4) {
-    if (data.data[i] < 24 && data.data[i + 1] < 24 && data.data[i + 2] < 24) data.data[i + 3] = 0;
-  }
-  t.putImageData(data, 0, 0);
-  ctx.drawImage(tmp, dx, dy, dw, dh);
+  ctx.shadowColor = "rgba(0,0,0,0.55)";
+  ctx.shadowBlur = 12;
+  ctx.font = "700 36px Georgia, serif";
+  ctx.fillText("COP31 Türkiye", W / 2, H - 78);
+  ctx.font = "600 22px Segoe UI, sans-serif";
+  ctx.fillText("Antalya  ·  9–20 Kasım 2026", W / 2, H - 42);
+  ctx.shadowBlur = 0;
 }
 
 async function fileToJpeg(file: File) {

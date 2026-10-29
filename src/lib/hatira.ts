@@ -8,8 +8,8 @@ export const HATIRA_LOGO_SAGLIK = "/hatira/logo-saglik.jpg";
 /** Finished souvenir card. Portrait 3:4. */
 export const HATIRA_W = 1080;
 export const HATIRA_H = 1440;
-/** Photo plate between the header and the footer. */
-export const HATIRA_WINDOW = { x: 40, y: 220, w: 1000, h: 980 };
+/** The souvenir is the background itself, edge to edge. */
+export const HATIRA_WINDOW = { x: 0, y: 0, w: HATIRA_W, h: HATIRA_H };
 
 export const SAMPLE_HATIRA = {
   slug: "cop31-hatira",
