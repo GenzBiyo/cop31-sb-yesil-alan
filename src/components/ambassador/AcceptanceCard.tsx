@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { CARD_TAGS, cardFileName, cardShareCaption } from "@/lib/ambassador-card";
 
-const TEMPLATE = "/brand/elci-kart.png";
-const INK = "#0A3E73";
-const NAME_FIELD = { x: 252, y: 746, w: 650 };
-const SCHOOL_FIELD = { x: 252, y: 864, w: 650 };
+const TEMPLATE = "/brand/elci-kart.jpg";
+const INK = "#FFFFFF";
+const NAME_FIELD = { x: 566, y: 770, w: 860, size: 54 };
+const SCHOOL_FIELD = { x: 566, y: 870, w: 780, size: 28 };
 
 export function AcceptanceCard({ name, school, city }: { name: string; school: string; city: string }) {
   const [jpeg, setJpeg] = useState("");
@@ -79,7 +79,7 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
         {jpeg ? (
           <img src={jpeg} alt={`${name} İklim Sağlık Elçisi kabul kartı`} className="w-full border border-[#B5DFF2] bg-white" />
         ) : (
-          <div className="aspect-[1024/1536] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
+          <div className="aspect-[1131/1600] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
             {error ? "" : "Kart hazırlanıyor…"}
           </div>
         )}
@@ -127,17 +127,17 @@ function fontStacks() {
 function writeField(
   ctx: CanvasRenderingContext2D,
   text: string,
-  field: { x: number; y: number; w: number },
+  field: { x: number; y: number; w: number; size: number },
   sans: string,
 ) {
   const value = text.trim();
   if (!value) return;
-  const lines = linesOf(ctx, value, field.w, `600 30px ${sans}`, 16, 2);
-  const gap = 4;
+  const lines = linesOf(ctx, value, field.w, `600 ${field.size}px ${sans}`, Math.max(16, Math.round(field.size * 0.55)), 2);
+  const gap = 6;
   const block = lines.reduce((sum, line) => sum + line.size, 0) + gap * (lines.length - 1);
   let y = field.y - block / 2;
   ctx.fillStyle = INK;
-  ctx.textAlign = "left";
+  ctx.textAlign = "center";
   ctx.textBaseline = "top";
   for (const line of lines) {
     ctx.font = `600 ${line.size}px ${sans}`;
