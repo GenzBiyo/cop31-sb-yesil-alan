@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
-import { Source_Sans_3, Cormorant_Garamond } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { I18nProvider } from "@/components/I18nProvider";
 import { PageNav } from "@/components/PageNav";
 
-const sans = Source_Sans_3({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "600"],
+const sans = localFont({
+  src: [
+    { path: "../fonts/source-sans-3-latin.woff2", weight: "400 600", style: "normal" },
+    { path: "../fonts/source-sans-3-latin-ext.woff2", weight: "400 600", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-sans",
 });
 
-const display = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["600"],
+const display = localFont({
+  src: [
+    { path: "../fonts/cormorant-garamond-600-latin.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/cormorant-garamond-600-latin-ext.woff2", weight: "600", style: "normal" },
+  ],
   display: "swap",
   preload: false,
   variable: "--font-display",
