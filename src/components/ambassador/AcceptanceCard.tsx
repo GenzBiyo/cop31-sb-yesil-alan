@@ -6,14 +6,14 @@ import { CARD_TAGS, cardFileName, cardShareCaption } from "@/lib/ambassador-card
 const W = 1080;
 const H = 1350;
 const NAVY = "#0B1C33";
-const BLUE = "#0077C2";
-const TEAL = "#00A3E0";
-const RED = "#E31C23";
-const CREAM = "#F4FBFE";
+const BLUE = "#0C5F96";
+const RED = "#C4161D";
+const PAPER = "#F4F1EA";
 const INK = "#0B1C33";
-const MUTED = "#3E6A88";
+const MUTED = "#5A636C";
+const LINE = "#D2CCC2";
 
-const SAGLIK_SRCS = ["/icons/saglik-192.png", "/hatira/logo-saglik.jpg"];
+const SAGLIK_SRCS = ["/hatira/logo-saglik.jpg", "/icons/saglik-symbol.png", "/icons/saglik-512.png"];
 const COP_SRCS = ["/brand/cop31-turkiye.png", "/hatira/logo-cop31.png"];
 
 export function AcceptanceCard({ name, school, city }: { name: string; school: string; city: string }) {
@@ -76,18 +76,18 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
   const shareText = `${caption}\n${pageUrl}`;
 
   return (
-    <main className="min-h-screen bg-[#EEF8FD] text-[#0B1C33] px-4 py-8">
+    <main className="min-h-screen bg-[#E6E1D8] text-[#0B1C33] px-4 py-8">
       <div className="mx-auto max-w-[440px] space-y-4">
         <div className="text-center">
-          <p className="text-xs font-bold tracking-[0.22em] text-[#0077C2]">COP31 TÜRKİYE · ANTALYA</p>
+          <p className="text-xs font-bold tracking-[0.22em] text-[#0C5F96]">COP31 TÜRKİYE · ANTALYA</p>
           <h1 className="display text-4xl mt-1">Tebrikler</h1>
-          <p className="text-sm text-[#3E6A88] mt-1">İklim Sağlık Elçisi kabul kartınız. JPG indirip paylaşabilirsiniz.</p>
+          <p className="text-sm text-[#5A636C] mt-1">İklim Sağlık Elçisi kabul kartınız. JPG indirip paylaşabilirsiniz.</p>
         </div>
-        {error ? <p className="text-sm text-[#E31C23] text-center">{error}</p> : null}
+        {error ? <p className="text-sm text-[#C4161D] text-center">{error}</p> : null}
         {jpeg ? (
-          <img src={jpeg} alt={`${name} İklim Sağlık Elçisi kabul kartı`} className="w-full border border-[#B5DFF2] bg-white" />
+          <img src={jpeg} alt={`${name} İklim Sağlık Elçisi kabul kartı`} className="w-full border border-[#D2CCC2] bg-[#F4F1EA] shadow-sm" />
         ) : (
-          <div className="aspect-[1080/1350] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
+          <div className="aspect-[1080/1350] border border-[#D2CCC2] bg-[#F4F1EA] grid place-items-center text-sm text-[#5A636C]">
             {error ? "" : "Kart hazırlanıyor…"}
           </div>
         )}
@@ -100,11 +100,11 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${caption}`)}&url=${encodeURIComponent(pageUrl)}`)}>X</button>
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`)}>LinkedIn</button>
         </div>
-        <p className="text-xs text-[#3E6A88] text-center">
+        <p className="text-xs text-[#5A636C] text-center">
           Instagram görseli bağlantı olarak almaz. JPG’yi indirip hikâyeye ekleyin ya da telefondaki Paylaş ile Instagram’ı seçin.
         </p>
-        {note ? <p className="text-sm text-[#0077C2] text-center">{note}</p> : null}
-        <p className="text-[11px] text-center tracking-wide text-[#3E6A88]">{CARD_TAGS}</p>
+        {note ? <p className="text-sm text-[#0C5F96] text-center">{note}</p> : null}
+        <p className="text-[11px] text-center tracking-wide text-[#5A636C]">{CARD_TAGS}</p>
       </div>
     </main>
   );
@@ -140,108 +140,134 @@ function drawCard(
   saglik: HTMLImageElement | null,
   cop: HTMLImageElement | null,
 ) {
-  ctx.fillStyle = CREAM;
+  ctx.fillStyle = PAPER;
   ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = BLUE;
-  ctx.fillRect(0, 0, W, 392);
-  ctx.fillStyle = RED;
-  ctx.fillRect(0, 392, W, 10);
-  ctx.fillStyle = TEAL;
-  ctx.fillRect(0, 402, W, 6);
-
-  logoTile(ctx, saglik, 336, 36, 150, 150, "SB");
-  logoTile(ctx, cop, 502, 52, 230, 118, "31");
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(32, 32, W - 64, H - 64);
+  ctx.strokeStyle = RED;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(46, 46, W - 92, H - 92);
 
   ctx.textAlign = "center";
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = `700 20px ${fonts.sans}`;
-  ctx.fillText("TÜRKİYE CUMHURİYETİ", W / 2, 230);
-  ctx.font = `700 36px ${fonts.sans}`;
-  ctx.fillText("SAĞLIK BAKANLIĞI", W / 2, 276);
-  ctx.font = `600 22px ${fonts.sans}`;
-  ctx.fillText("COP31  ·  ANTALYA", W / 2, 318);
-  ctx.font = `500 20px ${fonts.sans}`;
-  ctx.fillStyle = "#D7F3FF";
-  ctx.fillText("Sağlıklı insan, sağlıklı gezegen", W / 2, 356);
+  ctx.textBaseline = "top";
 
-  let y = 470;
-  ctx.fillStyle = RED;
-  ctx.font = `700 22px ${fonts.sans}`;
-  ctx.fillText("KABUL EDİLDİ", W / 2, y);
-  y += 92;
+  const rowY = 74;
+  const rowH = 214;
+  const sealW = 204;
+  const copW = 448;
+  const gap = 40;
+  const rowW = sealW + gap + copW;
+  const rowX = (W - rowW) / 2;
+  if (saglik) drawLogo(ctx, saglik, rowX, rowY, sealW, rowH);
+  else drawMark(ctx, "SB", rowX, rowY, sealW, rowH, fonts.sans);
+  if (saglik && cop) {
+    ctx.strokeStyle = LINE;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rowX + sealW + gap / 2, rowY + 36);
+    ctx.lineTo(rowX + sealW + gap / 2, rowY + rowH - 36);
+    ctx.stroke();
+  }
+  if (cop) drawLogo(ctx, cop, rowX + sealW + gap, rowY + 24, copW, rowH - 48);
+  else drawMark(ctx, "COP31", rowX + sealW + gap, rowY, copW, rowH, fonts.sans);
+
+  let y = 322;
+  fillTracked(ctx, "TÜRKİYE CUMHURİYETİ", W / 2, y, 3.4, `600 18px ${fonts.sans}`, MUTED);
+  y += 32;
   ctx.fillStyle = INK;
-  ctx.font = `600 92px ${fonts.display}`;
-  ctx.fillText("Tebrikler", W / 2, y);
+  ctx.font = `600 36px ${fonts.sans}`;
+  ctx.fillText("SAĞLIK BAKANLIĞI", W / 2, y);
+  y += 50;
+  ctx.fillStyle = RED;
+  ctx.fillRect(W / 2 - 84, y, 168, 2);
+  y += 18;
+  fillTracked(ctx, "COP31  ·  ANTALYA", W / 2, y, 2.6, `600 18px ${fonts.sans}`, MUTED);
+  y += 32;
+  ctx.fillStyle = MUTED;
+  ctx.font = `600 24px ${fonts.display}`;
+  ctx.fillText("Sağlıklı insan, sağlıklı gezegen", W / 2, y);
+  y += 62;
 
-  y += 78;
-  const nameLines = linesOf(ctx, input.name.trim() || "İklim Sağlık Elçisi", 920, `600 60px ${fonts.display}`, 36, 2);
+  fillTracked(ctx, "KABUL EDİLDİ", W / 2, y, 4.2, `600 18px ${fonts.sans}`, RED);
+  y += 34;
+  ctx.fillStyle = INK;
+  ctx.font = `600 72px ${fonts.display}`;
+  ctx.fillText("Tebrikler", W / 2, y);
+  y += 86;
+
+  const nameLines = linesOf(ctx, input.name.trim() || "İklim Sağlık Elçisi", 900, `600 54px ${fonts.display}`, 32, 2);
   ctx.fillStyle = BLUE;
   for (const line of nameLines) {
     ctx.font = `600 ${line.size}px ${fonts.display}`;
     ctx.fillText(line.text, W / 2, y);
-    y += Math.min(line.size + 8, 68);
+    y += line.size + 6;
   }
 
-  y += 28;
-  ctx.strokeStyle = "#B5DFF2";
-  ctx.lineWidth = 2;
+  y += 16;
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(180, y);
   ctx.lineTo(W - 180, y);
   ctx.stroke();
+  y += 22;
 
   ctx.fillStyle = INK;
-  ctx.font = `700 36px ${fonts.sans}`;
-  ctx.fillText("İklim Sağlık Elçisi", W / 2, y + 58);
+  ctx.font = `600 34px ${fonts.sans}`;
+  ctx.fillText("İklim Sağlık Elçisi", W / 2, y);
+  y += 44;
   ctx.fillStyle = MUTED;
-  ctx.font = `600 22px ${fonts.sans}`;
-  ctx.fillText("Climate Health Ambassador", W / 2, y + 98);
+  ctx.font = `600 20px ${fonts.sans}`;
+  ctx.fillText("Climate Health Ambassador", W / 2, y);
+  y += 36;
 
   const place = [input.school.trim(), input.city.trim()].filter(Boolean).join("  ·  ");
-  let placeEnd = y + 130;
   if (place) {
-    const placeLines = linesOf(ctx, place, 900, `600 26px ${fonts.sans}`, 18, 2);
+    const placeLines = linesOf(ctx, place, 860, `600 24px ${fonts.sans}`, 16, 2);
     ctx.fillStyle = NAVY;
-    let placeY = y + 156;
     for (const line of placeLines) {
       ctx.font = `600 ${line.size}px ${fonts.sans}`;
-      ctx.fillText(line.text, W / 2, placeY);
-      placeY += line.size + 8;
+      ctx.fillText(line.text, W / 2, y);
+      y += line.size + 8;
     }
-    placeEnd = placeY;
   }
 
-  const boxTop = Math.min(placeEnd + 28, 1008);
-  roundRect(ctx, 120, boxTop, W - 240, 176, 8);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = BLUE;
-  ctx.stroke();
+  const boxH = 156;
+  const footerTop = H - 148;
+  let boxTop = y + 28;
+  const maxTop = footerTop - boxH - 24;
+  if (boxTop > maxTop) boxTop = maxTop;
+  if (boxTop < y + 16) boxTop = y + 16;
+  const boxX = 132;
+  const boxW = W - 264;
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 1.25;
+  ctx.strokeRect(boxX, boxTop, boxW, boxH);
+  ctx.fillStyle = RED;
+  ctx.fillRect(boxX, boxTop, 6, boxH);
+
+  const blockH = 22 + 14 + 30 + 14 + 26;
+  let by = boxTop + (boxH - blockH) / 2;
   ctx.fillStyle = MUTED;
   ctx.font = `600 22px ${fonts.sans}`;
-  ctx.fillText("Gönüllü ekibimizdesiniz", W / 2, boxTop + 48);
+  ctx.fillText("Gönüllü ekibimizdesiniz", W / 2, by);
+  by += 36;
   ctx.fillStyle = BLUE;
-  ctx.font = `700 28px ${fonts.sans}`;
-  ctx.fillText("Antalya  ·  Sağlık Pavilionu", W / 2, boxTop + 96);
+  ctx.font = `600 30px ${fonts.sans}`;
+  ctx.fillText("Antalya  ·  Sağlık Pavilionu", W / 2, by);
+  by += 44;
   ctx.fillStyle = INK;
   ctx.font = `600 26px ${fonts.sans}`;
-  ctx.fillText("9–20 Kasım 2026", W / 2, boxTop + 140);
+  ctx.fillText("9–20 Kasım 2026", W / 2, by);
 
-  ctx.fillStyle = BLUE;
-  ctx.fillRect(0, H - 168, W, 168);
-  ctx.fillStyle = RED;
-  ctx.fillRect(0, H - 168, W, 8);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = `600 28px ${fonts.display}`;
-  ctx.fillText("COP31 Türkiye", W / 2, H - 112);
-  ctx.font = `600 20px ${fonts.sans}`;
-  ctx.fillText("#COP31SaglikBakanligi", W / 2, H - 74);
-  ctx.fillText("#SaglikliInsanSaglikliGezegen", W / 2, H - 44);
-
-  ctx.strokeStyle = BLUE;
-  ctx.lineWidth = 18;
-  ctx.strokeRect(9, 9, W - 18, H - 18);
+  ctx.fillStyle = INK;
+  ctx.font = `600 30px ${fonts.display}`;
+  ctx.fillText("COP31 Türkiye", W / 2, footerTop);
+  ctx.fillStyle = MUTED;
+  ctx.font = `600 18px ${fonts.sans}`;
+  ctx.fillText("#COP31SaglikBakanligi", W / 2, footerTop + 42);
+  ctx.fillText("#SaglikliInsanSaglikliGezegen", W / 2, footerTop + 70);
 }
 
 function linesOf(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, font: string, min: number, maxLines = 2) {
@@ -274,38 +300,91 @@ function linesOf(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, 
   return [{ text: text.slice(0, 48), size: min }];
 }
 
-function logoTile(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement | null,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  mark: string,
-) {
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(x, y, w, h);
-  if (!img) {
-    ctx.fillStyle = BLUE;
-    ctx.font = `700 ${Math.floor(h * 0.42)}px Segoe UI, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText(mark, x + w / 2, y + h * 0.64);
-    return;
-  }
-  const scale = Math.min((w - 16) / img.width, (h - 16) / img.height);
-  const dw = img.width * scale;
-  const dh = img.height * scale;
-  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+function drawLogo(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  const cut = knockoutMatte(img);
+  const scale = Math.min(w / cut.width, h / cut.height);
+  const dw = cut.width * scale;
+  const dh = cut.height * scale;
+  ctx.drawImage(cut, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+function drawMark(ctx: CanvasRenderingContext2D, label: string, x: number, y: number, w: number, h: number, sans: string) {
+  ctx.save();
+  ctx.fillStyle = RED;
+  ctx.font = `600 ${Math.floor(h * 0.22)}px ${sans}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, x + w / 2, y + h / 2);
+  ctx.restore();
+}
+
+function fillTracked(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  y: number,
+  tracking: number,
+  font: string,
+  color: string,
+) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  const chars = Array.from(text);
+  const widths = chars.map((ch) => ctx.measureText(ch).width);
+  const total = widths.reduce((sum, width) => sum + width, 0) + tracking * Math.max(0, chars.length - 1);
+  let x = cx - total / 2;
+  const align = ctx.textAlign;
+  ctx.textAlign = "left";
+  chars.forEach((ch, i) => {
+    ctx.fillText(ch, x, y);
+    x += widths[i] + tracking;
+  });
+  ctx.textAlign = align;
+}
+
+function knockoutMatte(img: HTMLImageElement) {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const g = canvas.getContext("2d", { willReadFrequently: true });
+  if (!g) return img;
+  g.drawImage(img, 0, 0);
+  const frame = g.getImageData(0, 0, canvas.width, canvas.height);
+  const d = frame.data;
+  const at = (x: number, y: number) => (y * canvas.width + x) * 4;
+  const corners = [at(0, 0), at(canvas.width - 1, 0), at(0, canvas.height - 1), at(canvas.width - 1, canvas.height - 1)];
+  let white = 0;
+  let black = 0;
+  let clear = 0;
+  for (const i of corners) {
+    if (d[i + 3] < 24) {
+      clear += 1;
+      continue;
+    }
+    const r = d[i];
+    const gch = d[i + 1];
+    const b = d[i + 2];
+    if (r > 240 && gch > 240 && b > 240) white += 1;
+    if (r < 24 && gch < 24 && b < 24) black += 1;
+  }
+  if (clear < 3 && white >= 2) {
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] > 236 && d[i + 1] > 236 && d[i + 2] > 236) d[i + 3] = 0;
+    }
+    g.putImageData(frame, 0, 0);
+  } else if (clear < 3 && black >= 2) {
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i];
+      const gch = d[i + 1];
+      const b = d[i + 2];
+      const max = Math.max(r, gch, b);
+      const min = Math.min(r, gch, b);
+      const redInk = r > 80 && r > gch * 1.8 && r > b * 1.8;
+      if (!redInk && (max < 42 || (max < 72 && max - min < 18))) d[i + 3] = 0;
+    }
+    g.putImageData(frame, 0, 0);
+  }
+  return canvas;
 }
 
 function loadFirst(srcs: string[]) {
