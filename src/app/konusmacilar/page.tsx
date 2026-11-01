@@ -52,6 +52,7 @@ export default function SpeakersPage() {
                     {open === s.id ? tx("Özgeçmişi kapat") : tx("Özgeçmiş")}
                   </button>
                 ) : null}
+                <Link href={`/konusmacilar/${s.id}`} className="underline text-[#0077C2]">{tx("Paylaşım kartı")}</Link>
                 {s.linkedin ? (
                   <a href={s.linkedin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#0077C2] underline">
                     <ExternalLink size={14} /> LinkedIn

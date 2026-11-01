@@ -285,6 +285,9 @@ export default function SpeakerAdminPage() {
                   ) : null}
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
+                      {s.status === "Onaylandı" ? (
+                        <a className="btn ghost" href={`/konusmacilar/${s.id}`} target="_blank" rel="noreferrer">{tx("Paylaşım kartı")}</a>
+                      ) : null}
                       {canEdit(s) ? (
                         <button className="btn ghost px-2" onClick={() => openEdit(s)} title={tx("Düzenle")}><Pencil size={14} /></button>
                       ) : null}

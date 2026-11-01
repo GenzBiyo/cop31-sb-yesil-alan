@@ -64,6 +64,7 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
   { href: "/program", label: "COP31 gündem", icon: Sparkles, roles: ["ADMIN", "SAGLIK", "FIRMA"] },
   { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone, roles: ["ADMIN", "SAGLIK"] },
   { href: "/elciler", label: "İklim Sağlık Elçileri", icon: GraduationCap, roles: ["ADMIN", "SAGLIK"] },
+  { href: "/elciler/takip", label: "Elçi takip", icon: ClipboardCheck, roles: ["ADMIN", "SAGLIK"] },
   { href: "/firmalar", label: "Firmalar", icon: Building2, roles: ["ADMIN", "SAGLIK"] },
   { href: "/paydas-yanitlari", label: "Paydaş formu", icon: FileSpreadsheet, roles: ["ADMIN", "SAGLIK"] },
   { href: "/hesaplar", label: "Kullanıcı yönetimi", icon: UserPlus, roles: ["ADMIN"] },
@@ -169,7 +170,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="mt-5 space-y-0.5">
           {items.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            const active = item.href === "/elciler"
+              ? pathname === "/elciler"
+              : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link key={item.href} href={item.href} prefetch={false} onMouseEnter={() => router.prefetch(item.href)} onFocus={() => router.prefetch(item.href)} className={`sidebar-link ${active ? "active" : ""}`}>
                 <Icon size={16} />

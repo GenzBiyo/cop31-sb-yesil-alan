@@ -138,6 +138,8 @@ export default function AmbassadorsAdminPage() {
         <h1 className="display text-4xl">{tx("İklim Sağlık Elçileri")}</h1>
         <p className="text-[#57534e]"><Tx>Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider. Kabul e-postasında tebrik kartının bağlantısı da vardır; öğrenci kartı JPG indirip paylaşır.</Tx></p>
         <a className="text-sm text-[#0077C2] underline" href="/giris/elciler" target="_blank"><Tx>Açık başvuru formu</Tx></a>
+        {" · "}
+        <a className="text-sm text-[#0077C2] underline" href="/elciler/takip"><Tx>Grup, sohbet ve görev takibi</Tx></a>
       </div>
       <div className="flex gap-2 flex-wrap">
         {[

@@ -24,6 +24,7 @@ export default async function ElciGiftPage() {
           <p className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">İklim Sağlık Elçisi</p>
           <h1 className="display text-3xl">{elci.name}</h1>
           <p className="text-sm text-[#3E6A88]">Kişiye özel kodu okutun. Her kod bir kez hediye verir.</p>
+          <Link className="text-sm text-[#0077C2] underline" href="/elci/masa">Görevler ve sohbet</Link>
         </div>
         <PrizeScanner />
       </div>

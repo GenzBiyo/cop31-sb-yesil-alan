@@ -329,6 +329,85 @@ model AmbassadorApplication {
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
   placements     AmbassadorPlacement[]
+  groupMemberships ElciGroupMember[]
+  elciMessages     ElciMessage[]
+  taskWork         ElciTaskWork[]
+  taskLogs         ElciTaskLog[]
+}
+
+model ElciGroup {
+  id        String            @id @default(cuid())
+  name      String
+  createdAt DateTime          @default(now())
+  members   ElciGroupMember[]
+  messages  ElciMessage[]
+  tasks     ElciTask[]
+}
+
+model ElciGroupMember {
+  id            String                @id @default(cuid())
+  groupId       String
+  applicationId String
+  createdAt     DateTime              @default(now())
+  group         ElciGroup             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  application   AmbassadorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, applicationId])
+}
+
+model ElciMessage {
+  id            String                 @id @default(cuid())
+  groupId       String?
+  applicationId String?
+  fromAdmin     Boolean                @default(false)
+  body          String
+  createdAt     DateTime               @default(now())
+  group         ElciGroup?             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  application   AmbassadorApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([applicationId, createdAt])
+}
+
+model ElciTask {
+  id        String         @id @default(cuid())
+  title     String
+  detail    String         @default("")
+  unit      String         @default("adet")
+  target    Int            @default(0)
+  groupId   String?
+  createdAt DateTime       @default(now())
+  group     ElciGroup?     @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  work      ElciTaskWork[]
+  logs      ElciTaskLog[]
+}
+
+model ElciTaskWork {
+  id            String                @id @default(cuid())
+  taskId        String
+  applicationId String
+  amount        Int                   @default(0)
+  note          String                @default("")
+  status        String                @default("Bekliyor")
+  updatedAt     DateTime              @updatedAt
+  task          ElciTask              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  application   AmbassadorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, applicationId])
+}
+
+model ElciTaskLog {
+  id            String                @id @default(cuid())
+  taskId        String
+  applicationId String
+  amount        Int                   @default(0)
+  note          String                @default("")
+  status        String                @default("Bekliyor")
+  createdAt     DateTime              @default(now())
+  task          ElciTask              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  application   AmbassadorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 model AmbassadorActivity {

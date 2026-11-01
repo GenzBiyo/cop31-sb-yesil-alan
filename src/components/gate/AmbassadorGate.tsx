@@ -56,7 +56,7 @@ function ElciLogin() {
     try {
       await api("/api/ambassador/login", { method: "POST", body: JSON.stringify({ email, password }) });
       const next = params.get("next");
-      const dest = next && next.startsWith("/") && !next.startsWith("//") ? next : "/elci/hediye";
+      const dest = next && next.startsWith("/") && !next.startsWith("//") ? next : "/elci/masa";
       window.location.assign(dest);
     } catch (err) {
       setError(err instanceof Error ? err.message : tx("Giriş başarısız"));

@@ -35,6 +35,8 @@ const PUBLIC = [
   "/api/ambassador/form",
   "/api/ambassador/apply",
   "/api/ambassador/login",
+  "/api/ambassador/logout",
+  "/api/ambassador/desk",
   "/api/ambassador/redeem",
   "/_next",
   "/favicon.ico",
