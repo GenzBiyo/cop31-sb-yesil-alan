@@ -5,8 +5,8 @@ import { CARD_TAGS, cardFileName, cardShareCaption } from "@/lib/ambassador-card
 
 const TEMPLATE = "/brand/elci-kart.jpg";
 const INK = "#FFFFFF";
-const NAME_FIELD = { x: 566, y: 770, w: 860, size: 54 };
-const SCHOOL_FIELD = { x: 566, y: 870, w: 780, size: 28 };
+const NAME_FIELD = { x: 566, y: 762, w: 880, size: 66 };
+const SCHOOL_FIELD = { x: 566, y: 882, w: 880, size: 40 };
 
 export function AcceptanceCard({ name, school, city }: { name: string; school: string; city: string }) {
   const [jpeg, setJpeg] = useState("");
