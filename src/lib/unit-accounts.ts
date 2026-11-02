@@ -2,6 +2,7 @@
 export const UNIT_ACCOUNTS = [
   { email: "sggm@cop31.tr", unit: "SGGM", title: "Sağlığın Geliştirilmesi Genel Müdürlüğü" },
   { email: "shgm@cop31.tr", unit: "SHGM", title: "Sağlık Hizmetleri Genel Müdürlüğü" },
+  { email: "sbsgm@cop31.tr", unit: "SBSGM", title: "Sağlık Bilgi Sistemleri Genel Müdürlüğü" },
   { email: "khgm@cop31.tr", unit: "KHGM", title: "Kamu Hastaneleri Genel Müdürlüğü" },
   { email: "titck@cop31.tr", unit: "TİTCK", title: "Türkiye İlaç ve Tıbbi Cihaz Kurumu" },
   { email: "tuseb@cop31.tr", unit: "TÜSEB", title: "Türkiye Sağlık Enstitüleri Başkanlığı" },

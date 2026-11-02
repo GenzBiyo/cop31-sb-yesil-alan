@@ -36,7 +36,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .pavilion-program-20261020 -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e .panel-concepts-20261102 -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .pavilion-program-20261020 -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e .panel-concepts-20261102 -e .unit-accounts-20261102 -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -156,6 +156,11 @@ fi
 if [ ! -f "$APP/.panel-concepts-20261102" ]; then
   npx tsx scripts/apply-panel-concepts.ts
   touch "$APP/.panel-concepts-20261102"
+fi
+
+if [ ! -f "$APP/.unit-accounts-20261102" ]; then
+  npx tsx scripts/apply-unit-accounts.ts
+  touch "$APP/.unit-accounts-20261102"
 fi
 
 if [ -f "$APP/speaker-sheet.json" ] && [ ! -f "$APP/.speaker-sheet-applied" ]; then
