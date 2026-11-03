@@ -364,9 +364,11 @@ model ElciMessage {
   createdAt     DateTime               @default(now())
   group         ElciGroup?             @relation(fields: [groupId], references: [id], onDelete: Cascade)
   application   AmbassadorApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  peerId        String?
 
   @@index([groupId, createdAt])
   @@index([applicationId, createdAt])
+  @@index([peerId, createdAt])
 }
 
 model ElciTask {
@@ -892,4 +894,29 @@ model GiveawayPledge {
 
   @@index([itemId])
   @@index([companyId])
+}
+
+model StockItem {
+  id        String     @id @default(cuid())
+  kind      String
+  title     String
+  unit      String     @default("adet")
+  quantity  Int        @default(0)
+  note      String     @default("")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  logs      StockLog[]
+}
+
+model StockLog {
+  id        String    @id @default(cuid())
+  itemId    String
+  item      StockItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  delta     Int
+  quantity  Int
+  note      String    @default("")
+  actor     String    @default("")
+  createdAt DateTime  @default(now())
+
+  @@index([itemId, createdAt])
 }

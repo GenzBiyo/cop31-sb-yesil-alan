@@ -30,6 +30,13 @@ export default function AnnouncementsPage() {
       <section className="space-y-3">
         <h1 className="display text-4xl">{tx("Anonslar")}</h1>
         <p className="text-[#57534e]">{tx("Duyuruyu firmalara, bakanlığa veya ziyaretçi telefonlarına gönderebilirsiniz. Bir firma ile yazışmak için Mesaj kutusunu kullanın.")}</p>
+        {(board.data?.announcements || []).map((a) => (
+          <article key={a.id} className="card p-4">
+            <strong>{a.title}</strong>
+            <p className="text-sm mt-1 whitespace-pre-wrap">{a.body}</p>
+            <p className="text-xs text-[#57534e] mt-2">{new Date(a.createdAt).toLocaleString("tr-TR")}</p>
+          </article>
+        ))}
         <button className="btn ghost" onClick={async () => { await api("/api/inbox", { method: "PATCH", body: JSON.stringify({ all: true }) }); await inbox.reload(); }}><Tx>Tümünü okundu işaretle</Tx></button>
         {(inbox.data || []).map((item) => (
           <button

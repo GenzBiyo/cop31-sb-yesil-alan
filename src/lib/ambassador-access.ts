@@ -1,5 +1,7 @@
+import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
+import { setSessionCookie, signSession } from "./auth";
 import { prisma } from "./prisma";
 import { sessionSecret } from "./session-cookie";
 import { isAmbassadorAccepted } from "./ambassador-card";
@@ -60,4 +62,32 @@ export async function findAcceptedAmbassador(email: string) {
     orderBy: { updatedAt: "desc" },
   });
   return rows.find((row) => isAmbassadorAccepted(row.status)) || null;
+}
+
+/** Accepted ambassadors also get a desk user so the prep pages open with the same login. */
+export async function openElciDeskUser(person: { email: string; fullName: string; school: string }) {
+  const email = person.email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing && existing.role !== "ELCI") return null;
+  const passwordHash = await bcrypt.hash(AMBASSADOR_PASSWORD, 10);
+  const data = {
+    name: person.fullName,
+    passwordHash,
+    role: "ELCI",
+    title: person.school,
+    accountStatus: "Onaylandı",
+  };
+  const user = existing
+    ? await prisma.user.update({ where: { id: existing.id }, data })
+    : await prisma.user.create({ data: { email, ...data } });
+  const token = await signSession({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: "ELCI",
+    companyId: user.companyId,
+    title: user.title,
+  });
+  await setSessionCookie(token);
+  return user;
 }

@@ -3,6 +3,7 @@ import { jsonError, jsonOk } from "@/lib/api";
 import {
   AMBASSADOR_PASSWORD,
   findAcceptedAmbassador,
+  openElciDeskUser,
   setElciCookie,
   signElci,
 } from "@/lib/ambassador-access";
@@ -17,5 +18,6 @@ export async function POST(req: NextRequest) {
   if (!accepted) return jsonError("Bu başvuru henüz kabul edilmedi.", 403);
   const token = await signElci({ id: accepted.id, email: accepted.email, name: accepted.fullName });
   await setElciCookie(token);
+  await openElciDeskUser(accepted);
   return jsonOk({ id: accepted.id, email: accepted.email, name: accepted.fullName });
 }

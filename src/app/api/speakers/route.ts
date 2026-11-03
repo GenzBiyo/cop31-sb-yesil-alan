@@ -11,10 +11,11 @@ export const runtime = "nodejs";
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (!canManage(user.role) && user.role !== "FIRMA") return jsonError("Yetkiniz yok", 403);
+  const viewer = user.role === "ELCI";
+  if (!canManage(user.role) && user.role !== "FIRMA" && !viewer) return jsonError("Yetkiniz yok", 403);
   await ensureSpeakers();
   const speakers = await prisma.speaker.findMany({
-    where: canManage(user.role) ? {} : { companyId: user.companyId || "-" },
+    where: viewer ? { status: SPEAKER_APPROVED } : canManage(user.role) ? {} : { companyId: user.companyId || "-" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
   return jsonOk({ speakers });

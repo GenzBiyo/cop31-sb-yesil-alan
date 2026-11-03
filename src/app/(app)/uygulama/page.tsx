@@ -53,6 +53,8 @@ type Board = {
 export default function VisitorAdminPage() {
   const { tx } = useI18n();
   const board = useApi<Board>("/api/pavilion");
+  const me = useApi<{ role: string }>("/api/auth/me");
+  const viewOnly = me.data?.role === "ELCI";
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -131,7 +133,7 @@ export default function VisitorAdminPage() {
         </div>
       </section>
 
-      <section className="grid lg:grid-cols-2 gap-4">
+      {viewOnly ? null : <section className="grid lg:grid-cols-2 gap-4">
         <div className="card p-4 space-y-2">
           <h2 className="display text-2xl">Yeni etiket</h2>
           <p className="text-sm text-[#3E6A88]"><Tx>Kodu yazın, mesajı kaydedin, çıkan karekodu standa veya yaka kartına basın.</Tx></p>
@@ -149,7 +151,7 @@ export default function VisitorAdminPage() {
           <button className="btn" type="button" onClick={() => void broadcast()}><Tx>Telefona gönder</Tx></button>
           {sent ? <p className="text-sm text-[#0077C2]">{sent}</p> : null}
         </div>
-      </section>
+      </section>}
 
       <section className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
         {(data?.tags || []).map((tag) => (
@@ -163,7 +165,7 @@ export default function VisitorAdminPage() {
               </div>
             </div>
             <p className="text-sm mt-2">{tag.message}</p>
-            <div className="flex gap-2 mt-3">
+            {viewOnly ? null : <div className="flex gap-2 mt-3">
               <button
                 className="btn ghost"
                 type="button"
@@ -184,7 +186,7 @@ export default function VisitorAdminPage() {
               >
                 Sil
               </button>
-            </div>
+            </div>}
           </article>
         ))}
       </section>
@@ -192,7 +194,7 @@ export default function VisitorAdminPage() {
       <section className="space-y-2">
         <h2 className="display text-3xl"><Tx>İkili görüşme ve toplantı</Tx></h2>
         {(data?.meetings || []).map((meeting) => (
-          <DeskMeeting key={`${meeting.id}:${meeting.updatedAt || meeting.status}`} meeting={meeting} onDone={() => board.reload()} />
+          <DeskMeeting key={`${meeting.id}:${meeting.updatedAt || meeting.status}`} meeting={meeting} viewOnly={viewOnly} onDone={() => board.reload()} />
         ))}
         {!data?.meetings.length ? <p className="text-sm text-[#3E6A88]"><Tx>Henüz talep yok.</Tx></p> : null}
       </section>
@@ -201,7 +203,7 @@ export default function VisitorAdminPage() {
         <div className="space-y-2">
           <h2 className="display text-3xl"><Tx>Sunum soruları</Tx></h2>
           {(data?.questions || []).map((question) => (
-            <QuestionCard key={question.id} question={question} onDone={() => board.reload()} />
+            <QuestionCard key={question.id} question={question} viewOnly={viewOnly} onDone={() => board.reload()} />
           ))}
           {!data?.questions.length ? <p className="text-sm text-[#3E6A88]"><Tx>Henüz soru yok.</Tx></p> : null}
         </div>
@@ -221,7 +223,7 @@ export default function VisitorAdminPage() {
   );
 }
 
-function DeskMeeting({ meeting, onDone }: { meeting: Meeting; onDone: () => void }) {
+function DeskMeeting({ meeting, viewOnly, onDone }: { meeting: Meeting; viewOnly: boolean; onDone: () => void }) {
   const [form, setForm] = useState({
     whenDate: meeting.whenDate,
     startTime: meeting.startTime,
@@ -242,13 +244,13 @@ function DeskMeeting({ meeting, onDone }: { meeting: Meeting; onDone: () => void
       {meeting.status === "Bekliyor" ? (
         <p className="text-sm">İstenen saat: {[meeting.preferredDate, meeting.preferredTime].filter(Boolean).join(" ") || "belirtilmedi"}</p>
       ) : null}
-      {meeting.status === "Bekliyor" ? (
+      {viewOnly ? null : meeting.status === "Bekliyor" ? (
         <div className="flex gap-2">
           <button className="btn" type="button" onClick={async () => { await api("/api/pavilion/meetings", { method: "PATCH", body: JSON.stringify({ id: meeting.id, status: "Kabul" }) }); onDone(); }}>Kabul et</button>
           <button className="btn ghost" type="button" onClick={async () => { await api("/api/pavilion/meetings", { method: "PATCH", body: JSON.stringify({ id: meeting.id, status: "Red" }) }); onDone(); }}>Reddet</button>
         </div>
       ) : null}
-      {meeting.status === "Kabul" ? (
+      {viewOnly ? null : meeting.status === "Kabul" ? (
         <form
           className="grid sm:grid-cols-2 gap-2"
           onSubmit={async (event) => {
@@ -269,7 +271,7 @@ function DeskMeeting({ meeting, onDone }: { meeting: Meeting; onDone: () => void
   );
 }
 
-function QuestionCard({ question, onDone }: { question: Question; onDone: () => void }) {
+function QuestionCard({ question, viewOnly, onDone }: { question: Question; viewOnly: boolean; onDone: () => void }) {
   const { tx } = useI18n();
   const [answer, setAnswer] = useState(question.answer);
   return (
@@ -280,6 +282,12 @@ function QuestionCard({ question, onDone }: { question: Question; onDone: () => 
       </div>
       <p>{question.body}</p>
       {question.organization ? <p className="text-xs text-[#3E6A88]">{question.organization}</p> : null}
+      {viewOnly ? (
+        <>
+          <p className="text-xs text-[#0077C2]">{tx(question.status)}</p>
+          {question.answer ? <p className="text-sm">{question.answer}</p> : null}
+        </>
+      ) : <>
       <div className="flex flex-wrap gap-2">
         {["Yeni", "Sahnede", "Yanıtlandı"].map((status) => (
           <button
@@ -307,6 +315,7 @@ function QuestionCard({ question, onDone }: { question: Question; onDone: () => 
           onDone();
         }}
       ><Tx>Yanıtı gönder</Tx></button>
+      </>}
     </article>
   );
 }

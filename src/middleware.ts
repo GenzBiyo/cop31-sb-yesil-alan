@@ -3,6 +3,7 @@ import { jwtVerify } from "jose";
 import { COOKIE, sessionSecret } from "@/lib/session-cookie";
 import { sbCanSee } from "@/lib/access";
 import { unitCanOpen, unitOfEmail } from "@/lib/unit-accounts";
+import { elciCanOpen } from "@/lib/elci-access";
 
 const PUBLIC = [
   "/login",
@@ -69,6 +70,13 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get(COOKIE)?.value;
   if (token) {
     const { role, email } = await sessionOf(token);
+    if (role === "ELCI" && !elciCanOpen(pathname)) {
+      if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });
+      const url = req.nextUrl.clone();
+      url.pathname = "/program";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     if (unitOfEmail(email) && !unitCanOpen(pathname)) {
       if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });
       const url = req.nextUrl.clone();

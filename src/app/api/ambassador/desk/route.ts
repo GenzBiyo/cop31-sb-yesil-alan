@@ -8,8 +8,9 @@ export async function GET(req: NextRequest) {
   if (!elci) return jsonError("Giriş gerekli", 401);
   const grup = req.nextUrl.searchParams.get("grup") || "";
   const yonetim = req.nextUrl.searchParams.get("yonetim") || "";
+  const kisi = req.nextUrl.searchParams.get("kisi") || "";
   try {
-    return jsonOk(await loadElciDesk(elci.id, { grup, yonetim }));
+    return jsonOk(await loadElciDesk(elci.id, { grup, yonetim, kisi }));
   } catch (err) {
     if (err instanceof DeskError) return jsonError(err.message, err.status);
     throw err;

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { StockDesk } from "@/components/StockDesk";
 
 type Pledge = {
   id: string;
@@ -69,7 +70,7 @@ const RULES: { title: string; body: string }[] = [
   },
 ];
 
-export default function GiveawayPage() {
+function GiveawayCatalog() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Payload>("/api/giveaways");
   const [drafts, setDrafts] = useState<Record<string, { title: string; detail: string; printNote: string; packagePrice: string; vatRate: string; packageQty: string }>>({});
@@ -448,6 +449,19 @@ export default function GiveawayPage() {
           })}
         </div>
       </section>
+    </div>
+  );
+}
+
+export default function GiveawayPage() {
+  const { tx } = useI18n();
+  const me = useApi<{ role: string }>("/api/auth/me");
+  if (!me.data) return <p>{tx("Yükleniyor…")}</p>;
+  if (me.data.role === "ELCI") return <StockDesk canEdit={false} />;
+  return (
+    <div className="space-y-8">
+      {me.data.role === "ADMIN" ? <StockDesk canEdit /> : null}
+      <GiveawayCatalog />
     </div>
   );
 }

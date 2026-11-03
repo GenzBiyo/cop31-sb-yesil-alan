@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { prisma } from "./prisma";
 import { COOKIE, sessionSecret } from "./session-cookie";
 
-export type Role = "ADMIN" | "SAGLIK" | "FIRMA";
+export type Role = "ADMIN" | "SAGLIK" | "FIRMA" | "ELCI";
 
 export type SessionUser = {
   id: string;

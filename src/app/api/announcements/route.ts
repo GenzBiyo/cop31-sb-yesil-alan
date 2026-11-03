@@ -11,7 +11,7 @@ export async function GET() {
   if (error || !user) return error!;
   const announcements = await prisma.announcement.findMany({ orderBy: { createdAt: "desc" } });
   const emails = await prisma.emailLog.findMany({ orderBy: { createdAt: "desc" }, take: 40 });
-  return jsonOk({ announcements, emails });
+  return jsonOk({ announcements, emails: canManage(user.role) ? emails : [] });
 }
 
 export async function POST(req: NextRequest) {

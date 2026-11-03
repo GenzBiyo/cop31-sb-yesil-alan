@@ -6,7 +6,7 @@ import { jsonError, withUser } from "@/lib/api";
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+  if (!canManage(user.role) && user.role !== "ELCI") return jsonError("Yetkiniz yok", 403);
   const rows = await prisma.eventSignup.findMany({
     include: { visitor: true, event: true },
     orderBy: { createdAt: "desc" },

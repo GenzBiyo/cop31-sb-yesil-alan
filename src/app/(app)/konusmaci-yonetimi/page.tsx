@@ -37,6 +37,7 @@ export default function SpeakerAdminPage() {
   const { data, reload } = useApi<{ speakers: Speaker[] }>("/api/speakers");
   const { data: me } = useApi<{ role: string }>("/api/auth/me");
   const manager = me?.role === "ADMIN" || me?.role === "SAGLIK";
+  const viewer = me?.role === "ELCI";
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Speaker | null>(null);
   const [form, setForm] = useState(EMPTY);
@@ -147,7 +148,7 @@ export default function SpeakerAdminPage() {
 
   if (!me || !data) return <p>{tx("Yükleniyor…")}</p>;
 
-  const canEdit = (s: Speaker) => manager || s.status === "Onay bekliyor";
+  const canEdit = (s: Speaker) => !viewer && (manager || s.status === "Onay bekliyor");
 
   return (
     <div className="space-y-4">
@@ -155,7 +156,9 @@ export default function SpeakerAdminPage() {
         <div>
           <h1 className="display text-4xl">{tx("Konuşmacılar")}</h1>
           <p className="text-[#57534e]">
-            {manager
+            {viewer
+              ? tx("Onaylı konuşmacılar. Paylaşım kartı satırın sağında.")
+              : manager
               ? tx("Konuşmacıları ekleyin, düzenleyin, sıralayın ve firma önerilerini onaylayın. Onaylı ve bantta gösterilen konuşmacılar ana sayfada döner.")
               : tx("Konuşmacınızı fotoğraf, kurum, özet, özgeçmiş ve LinkedIn bilgisiyle ekleyin. Sağlık Bakanlığı onaylayınca yayınlanır.")}
           </p>
@@ -163,10 +166,10 @@ export default function SpeakerAdminPage() {
             {tx("Herkese açık konuşmacılar sayfası")}
           </Link>
         </div>
-        <button type="button" className={showForm ? "btn ghost" : "btn"} onClick={() => (showForm ? closeForm() : openNew())}>
+        {viewer ? null : <button type="button" className={showForm ? "btn ghost" : "btn"} onClick={() => (showForm ? closeForm() : openNew())}>
           {showForm ? <X size={16} /> : <Plus size={16} />}
           {showForm ? tx("Formu kapat") : tx("Yeni konuşmacı ekle")}
-        </button>
+        </button>}
       </div>
 
       {info ? <p className="text-sm text-[#22A34A]">{info}</p> : null}
@@ -301,7 +304,7 @@ export default function SpeakerAdminPage() {
             </tbody>
           </table>
         ) : (
-          <p className="p-4 text-[#57534e]">{manager ? tx("Henüz konuşmacı yok.") : tx("Henüz konuşmacı önermediniz.")}</p>
+          <p className="p-4 text-[#57534e]">{manager || viewer ? tx("Henüz konuşmacı yok.") : tx("Henüz konuşmacı önermediniz.")}</p>
         )}
       </section>
     </div>

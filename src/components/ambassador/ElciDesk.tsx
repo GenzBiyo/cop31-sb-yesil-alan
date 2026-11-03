@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type RefObject } from "react";
 import { api, useApi } from "@/lib/client";
 
-type Msg = { id: string; body: string; createdAt: string; fromAdmin: boolean; author: string };
+type Msg = { id: string; body: string; createdAt: string; fromAdmin: boolean; mine?: boolean; author: string };
 type Group = { id: string; name: string; size: number; lastBody: string; lastAt: string };
+type Peer = { id: string; name: string; school: string };
 type Task = {
   assignmentId: string;
   title: string;
@@ -17,7 +18,7 @@ type Task = {
   status: string;
   updatedAt: string;
 };
-type Desk = { me: { id: string; name: string; school: string }; groups: Group[]; tasks: Task[]; messages: Msg[]; thread: string };
+type Desk = { me: { id: string; name: string; school: string }; peers: Peer[]; groups: Group[]; tasks: Task[]; messages: Msg[]; thread: string };
 
 const STATUSES = ["Bekliyor", "Devam ediyor", "Tamamlandı"];
 
@@ -29,8 +30,9 @@ function when(iso: string) {
 }
 
 export function ElciDesk() {
-  const [tab, setTab] = useState<"gorev" | "yonetim" | "grup">("gorev");
+  const [tab, setTab] = useState<"gorev" | "yonetim" | "grup" | "elci">("gorev");
   const [groupId, setGroupId] = useState("");
+  const [peerId, setPeerId] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
@@ -40,8 +42,9 @@ export function ElciDesk() {
   const url = useMemo(() => {
     if (tab === "grup" && groupId) return `/api/ambassador/desk?grup=${encodeURIComponent(groupId)}`;
     if (tab === "yonetim") return "/api/ambassador/desk?yonetim=1";
+    if (tab === "elci" && peerId) return `/api/ambassador/desk?kisi=${encodeURIComponent(peerId)}`;
     return "/api/ambassador/desk";
-  }, [tab, groupId]);
+  }, [tab, groupId, peerId]);
 
   const { data, error, reload } = useApi<Desk>(url);
 
@@ -93,6 +96,7 @@ export function ElciDesk() {
           {data?.me.school ? <p className="text-sm text-[#3E6A88]">{data.me.school}</p> : null}
         </div>
         <div className="flex gap-2">
+          <Link className="btn ghost" href="/program">Takvim</Link>
           <Link className="btn ghost" href="/elci/hediye">Hediye</Link>
           <button className="btn ghost" type="button" onClick={() => void leave()}>Çıkış</button>
         </div>
@@ -104,6 +108,7 @@ export function ElciDesk() {
         </button>
         <button className={tab === "yonetim" ? "btn" : "btn ghost"} type="button" onClick={() => { stick.current = true; setTab("yonetim"); }}>Yönetim</button>
         <button className={tab === "grup" ? "btn" : "btn ghost"} type="button" onClick={() => { stick.current = true; setTab("grup"); }}>Gruplar</button>
+        <button className={tab === "elci" ? "btn" : "btn ghost"} type="button" onClick={() => { stick.current = true; setTab("elci"); }}>Elçiler</button>
       </div>
       {error || formError ? <p className="text-sm text-[#E31C23]">{formError || error}</p> : null}
 
@@ -218,6 +223,44 @@ export function ElciDesk() {
           ) : null}
         </div>
       ) : null}
+
+      {tab === "elci" ? (
+        <div className="space-y-3">
+          {(data?.peers || []).length === 0 ? <p className="card p-4 text-sm text-[#3E6A88]">Başka kabul edilmiş elçi yok.</p> : null}
+          <div className="flex gap-2 flex-wrap">
+            {(data?.peers || []).map((peer) => (
+              <button
+                key={peer.id}
+                className={peer.id === peerId ? "btn" : "btn ghost"}
+                type="button"
+                onClick={() => {
+                  stick.current = true;
+                  setPeerId(peer.id);
+                }}
+              >
+                {peer.name}{peer.school ? ` · ${peer.school}` : ""}
+              </button>
+            ))}
+          </div>
+          {peerId ? (
+            <ChatPane
+              box={box}
+              stick={stick}
+              hint="Bu yazışmayı yalnız siz ve seçtiğiniz elçi görür."
+              ready={data?.thread === `kisi:${peerId}`}
+              messages={data?.thread === `kisi:${peerId}` ? data.messages : []}
+              text={text}
+              setText={setText}
+              busy={busy}
+              onSend={() => {
+                void post({ action: "send", peerId, body: text }).then((ok) => {
+                  if (ok) setText("");
+                });
+              }}
+            />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -256,8 +299,8 @@ function ChatPane({
         }}
       >
         {messages.map((msg) => (
-          <div key={msg.id} className={`max-w-[85%] px-3 py-2 ${msg.fromAdmin ? "bg-[#F4FBFE] border border-[#B5DFF2]" : "ml-auto bg-[#0077C2] text-white"}`}>
-            <p className={`text-xs ${msg.fromAdmin ? "text-[#3E6A88]" : "text-white/80"}`}>{msg.author} · {when(msg.createdAt)}</p>
+          <div key={msg.id} className={`max-w-[85%] px-3 py-2 ${(msg.mine ?? !msg.fromAdmin) ? "ml-auto bg-[#0077C2] text-white" : "bg-[#F4FBFE] border border-[#B5DFF2]"}`}>
+            <p className={`text-xs ${(msg.mine ?? !msg.fromAdmin) ? "text-white/80" : "text-[#3E6A88]"}`}>{msg.author} · {when(msg.createdAt)}</p>
             <p className="whitespace-pre-wrap">{msg.body}</p>
           </div>
         ))}

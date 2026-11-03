@@ -40,7 +40,7 @@ type Me = {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "SAGLIK" | "FIRMA";
+  role: "ADMIN" | "SAGLIK" | "FIRMA" | "ELCI";
   companyId: string | null;
   title: string;
   unread: number;
@@ -87,6 +87,17 @@ const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; fi
 ];
 
 const MINISTRY_ONLY = ["/todos", "/takvim", "/paydas-yanitlari"];
+
+const ELCI_NAV: { href: string; label: string; icon: typeof Bell }[] = [
+  { href: "/program", label: "Takvim", icon: CalendarDays },
+  { href: "/uygulama", label: "Ziyaretçi uygulaması", icon: Smartphone },
+  { href: "/konusmaci-yonetimi", label: "Konuşmacılar", icon: UserRound },
+  { href: "/katilimcilar", label: "Katılımcılar", icon: Users },
+  { href: "/esantiyon", label: "Eşantiyon ve ikram", icon: Gift },
+  { href: "/anonslar", label: "Anonslar", icon: Bell },
+  { href: "/uygunluk", label: "Uygunluk", icon: ClipboardCheck },
+  { href: "/elci-masa", label: "Elçi masası", icon: GraduationCap },
+];
 
 const UNIT_NAV: { href: string; label: string; icon: typeof Bell }[] = [
   { href: "/profil", label: "Profil", icon: Building2 },
@@ -147,11 +158,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const kind = accountKind(me?.accountKind);
   const unit = me?.unit || unitOfEmail(me?.email);
   const items = useMemo(() => {
+    if (me?.role === "ELCI") return ELCI_NAV;
     if (unit) return UNIT_NAV;
     return NAV.filter((n) => me && n.roles.includes(me.role) && !(me.role === "FIRMA" && n.firmTools && !kind.firmTools));
   }, [me, kind.firmTools, unit]);
   const days = copCountdown();
-  const roleLabel = unit ? unit : me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
+  const roleLabel = me?.role === "ELCI" ? tx("İklim Sağlık Elçisi") : unit ? unit : me?.role === "ADMIN" ? tx("Admin") : me?.role === "SAGLIK" ? tx("Sağlık Bakanlığı") : tx(kind.label);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] bg-[#C7E4F3]">

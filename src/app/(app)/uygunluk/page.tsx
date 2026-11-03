@@ -24,6 +24,8 @@ const TYPE_LABEL: Record<string, string> = {
 export default function CompliancePage() {
   const { tx } = useI18n();
   const { data, reload } = useApi<Item[]>("/api/submissions");
+  const me = useApi<{ role: string }>("/api/auth/me");
+  const canDecide = me.data?.role === "ADMIN" || me.data?.role === "SAGLIK";
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
@@ -66,6 +68,7 @@ export default function CompliancePage() {
               <span className={`badge ${item.status === "Uygun" ? "ok" : item.status === "Uygun değil" ? "high" : "warn"}`}>{tx(item.status)}</span>
             </div>
             {item.payload ? <p className="text-sm">{item.payload}</p> : null}
+            {canDecide ? (
             <label className="text-sm block">
               {tx("Gerekçe")}
               <textarea
@@ -75,10 +78,11 @@ export default function CompliancePage() {
                 onChange={(e) => setNotes({ ...notes, [item.id]: e.target.value })}
               />
             </label>
-            <div className="flex gap-2">
+            ) : item.reviewNote ? <p className="text-sm">{item.reviewNote}</p> : null}
+            {canDecide ? <div className="flex gap-2">
               <button className="btn" onClick={() => void decide(item, "Uygun")}>{tx("Uygun")}</button>
               <button className="btn ghost" onClick={() => void decide(item, "Uygun değil")}>{tx("Uygun değil")}</button>
-            </div>
+            </div> : null}
           </article>
         ))}
         {rows.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Henüz başvuru yok.")}</p> : null}

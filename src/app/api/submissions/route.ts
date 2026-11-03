@@ -41,7 +41,7 @@ const COMPLIANCE = new Set<string>(COMPLIANCE_TYPES);
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error!;
-  if (!canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+  if (!canManage(user.role) && user.role !== "ELCI") return jsonError("Yetkiniz yok", 403);
   const items = await prisma.companySubmission.findMany({
     where: { type: { in: [...COMPLIANCE_TYPES] } },
     include: { company: { select: { id: true, name: true, booth: true } } },

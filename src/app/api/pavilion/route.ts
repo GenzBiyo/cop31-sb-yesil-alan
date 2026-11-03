@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const { user, error } = await withUser();
   if (error || !user) return error;
-  if (!canManage(user.role)) return jsonError("Yetki yok", 403);
+  if (!canManage(user.role) && user.role !== "ELCI") return jsonError("Yetki yok", 403);
   await ensureTags();
 
   const [tags, questions, devices, scans, joins, recent, meetings] = await Promise.all([

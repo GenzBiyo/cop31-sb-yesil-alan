@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { isAmbassadorAccepted } from "./ambassador-card";
 
@@ -42,30 +43,38 @@ async function acceptedIds(ids: string[]) {
   return ids.filter((id) => ok.has(id));
 }
 
-function mapMessage(row: {
-  id: string;
-  body: string;
-  createdAt: Date;
-  fromAdmin: boolean;
-  application: { fullName: string } | null;
-}) {
+function mapMessage(
+  row: {
+    id: string;
+    body: string;
+    createdAt: Date;
+    fromAdmin: boolean;
+    applicationId: string | null;
+    application: { fullName: string } | null;
+  },
+  viewerId?: string
+) {
+  const mine = viewerId
+    ? Boolean(row.applicationId && row.applicationId === viewerId && !row.fromAdmin)
+    : !row.fromAdmin;
   return {
     id: row.id,
     body: row.body,
     createdAt: row.createdAt.toISOString(),
     fromAdmin: row.fromAdmin,
+    mine,
     author: row.fromAdmin ? "Yönetim" : row.application?.fullName || "Elçi",
   };
 }
 
-async function messagesFor(where: { groupId: string } | { groupId: null; applicationId: string }) {
+async function messagesFor(where: Prisma.ElciMessageWhereInput, viewerId?: string) {
   const rows = await prisma.elciMessage.findMany({
     where,
     orderBy: { createdAt: "desc" },
     take: 120,
     include: { application: { select: { fullName: true } } },
   });
-  return rows.reverse().map(mapMessage);
+  return rows.reverse().map((row) => mapMessage(row, viewerId));
 }
 
 export async function loadAdminDesk(query: { grup?: string; kisi?: string }) {
@@ -110,7 +119,7 @@ export async function loadAdminDesk(query: { grup?: string; kisi?: string }) {
   ]);
 
   const directs = await prisma.elciMessage.findMany({
-    where: { groupId: null, applicationId: { not: null } },
+    where: { groupId: null, peerId: null, applicationId: { not: null } },
     orderBy: { createdAt: "desc" },
     take: 400,
     select: { applicationId: true, body: true, createdAt: true },
@@ -128,7 +137,7 @@ export async function loadAdminDesk(query: { grup?: string; kisi?: string }) {
     messages = await messagesFor({ groupId: query.grup });
     thread = `grup:${query.grup}`;
   } else if (query.kisi) {
-    messages = await messagesFor({ groupId: null, applicationId: query.kisi });
+    messages = await messagesFor({ groupId: null, peerId: null, applicationId: query.kisi });
     thread = `kisi:${query.kisi}`;
   }
 
@@ -335,8 +344,13 @@ async function requireElci(applicationId: string) {
   return me;
 }
 
-export async function loadElciDesk(applicationId: string, query: { grup?: string; yonetim?: string }) {
+export async function loadElciDesk(applicationId: string, query: { grup?: string; yonetim?: string; kisi?: string }) {
   const me = await requireElci(applicationId);
+  const peers = await prisma.ambassadorApplication.findMany({
+    where: { status: { in: ACCEPTED }, id: { not: me.id } },
+    orderBy: { fullName: "asc" },
+    select: { id: true, fullName: true, school: true, city: true },
+  });
   const memberships = await prisma.elciGroupMember.findMany({
     where: { applicationId: me.id },
     include: {
@@ -360,16 +374,32 @@ export async function loadElciDesk(applicationId: string, query: { grup?: string
   if (query.grup) {
     const member = memberships.find((row) => row.groupId === query.grup);
     if (member) {
-      messages = await messagesFor({ groupId: query.grup });
+      messages = await messagesFor({ groupId: query.grup }, me.id);
       thread = `grup:${query.grup}`;
     }
   } else if (query.yonetim) {
-    messages = await messagesFor({ groupId: null, applicationId: me.id });
+    messages = await messagesFor({ groupId: null, peerId: null, applicationId: me.id }, me.id);
     thread = "yonetim";
+  } else if (query.kisi && query.kisi !== me.id) {
+    const peer = peers.find((row) => row.id === query.kisi);
+    if (peer) {
+      messages = await messagesFor(
+        {
+          groupId: null,
+          OR: [
+            { applicationId: me.id, peerId: peer.id },
+            { applicationId: peer.id, peerId: me.id },
+          ],
+        },
+        me.id
+      );
+      thread = `kisi:${peer.id}`;
+    }
   }
 
   return {
     me: { id: me.id, name: me.fullName, school: me.school || me.city },
+    peers: peers.map((row) => ({ id: row.id, name: row.fullName, school: row.school || row.city })),
     groups: memberships.map((row) => ({
       id: row.group.id,
       name: row.group.name,
@@ -401,12 +431,20 @@ export async function actElci(applicationId: string, body: Record<string, unknow
     const text = clip(body.body, 2000);
     if (!text) throw new DeskError("Mesaj boş olamaz");
     const groupId = clip(body.groupId, 40);
+    const peerId = clip(body.peerId, 40);
     if (groupId) {
       const member = await prisma.elciGroupMember.findUnique({
         where: { groupId_applicationId: { groupId, applicationId: me.id } },
       });
       if (!member) throw new DeskError("Bu grupta değilsiniz", 403);
       await prisma.elciMessage.create({ data: { groupId, applicationId: me.id, fromAdmin: false, body: text } });
+      return { ok: true };
+    }
+    if (peerId) {
+      if (peerId === me.id) throw new DeskError("Kendinize yazamazsınız");
+      const peer = await prisma.ambassadorApplication.findUnique({ where: { id: peerId } });
+      if (!peer || !isAmbassadorAccepted(peer.status)) throw new DeskError("Elçi bulunamadı", 404);
+      await prisma.elciMessage.create({ data: { applicationId: me.id, peerId, fromAdmin: false, body: text } });
       return { ok: true };
     }
     await prisma.elciMessage.create({ data: { applicationId: me.id, fromAdmin: false, body: text } });
