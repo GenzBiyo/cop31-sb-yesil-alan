@@ -3473,3 +3473,135 @@ body:has(.phone-app) {
   main { padding: 0 !important; }
   .booklet-card { break-inside: avoid; }
 }
+
+/* Kiosk: portrait pavilion screens and landscape touch kiosks. Class is set before paint. */
+html.is-kiosk {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+html.is-kiosk input,
+html.is-kiosk textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  font-size: 1.2rem;
+}
+html.is-kiosk .page-nav a,
+html.is-kiosk .page-nav button {
+  width: 3.6rem;
+  height: 3.6rem;
+}
+html.is-kiosk .btn {
+  min-height: 3.5rem;
+  font-size: 1.15rem;
+  padding: 0.85rem 1.3rem;
+}
+html.is-kiosk main:has(> form.card) {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+html.is-kiosk form.card,
+html.is-kiosk .max-w-md {
+  max-width: 720px;
+  width: min(720px, calc(100% - 2rem));
+}
+html.is-kiosk .field {
+  min-height: 3.4rem;
+  font-size: 1.2rem;
+}
+html.is-kiosk .q-opt { min-height: 5.4rem; }
+html.is-kiosk .q-opt-text { font-size: 1.4rem; }
+html.is-kiosk .pair-chip { min-height: 4.6rem; font-size: 1.15rem; }
+html.is-kiosk .mem-card { min-height: 7rem; }
+html.is-kiosk .phone-app {
+  max-width: 880px;
+  font-size: 22px;
+}
+html.is-kiosk .phone-app button,
+html.is-kiosk .phone-app input,
+html.is-kiosk .phone-app select,
+html.is-kiosk .phone-app textarea {
+  font-size: 1.2rem;
+  min-height: 3.2rem;
+}
+html.is-kiosk .game-arena { min-height: 100dvh; }
+html.is-kiosk .game-arena-body,
+html.is-kiosk .game-arena-body.is-wide { max-width: 980px; }
+html.is-kiosk .game-hub-card { min-height: 7.5rem; padding: 1.3rem 1.4rem; }
+html.is-kiosk .game-hub-card h2 { font-size: 2.2rem; }
+html.is-kiosk main.cop-wall {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+html.is-kiosk main.cop-wall > aside {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+html.is-kiosk .phone-qr-card { display: none; }
+html.is-kiosk .climate-root {
+  height: 100dvh;
+  overflow: hidden;
+}
+html.is-kiosk .climate-scene {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+html.is-kiosk .climate-earth,
+html.is-kiosk .climate-ring,
+html.is-kiosk .climate-mote,
+html.is-kiosk .climate-lung,
+html.is-kiosk .climate-ecg { display: none; }
+html.is-kiosk .climate-lockup {
+  width: min(920px, calc(100% - 2rem));
+  padding: 0.4rem 1rem 0.55rem;
+  animation: none;
+}
+html.is-kiosk .climate-lockup .gate-slogan { font-size: clamp(1.7rem, 3.2vh, 2.6rem); }
+html.is-kiosk .climate-root.is-open .climate-hero { padding: 0.35rem 1rem 0; }
+html.is-kiosk .speaker-rail { padding-right: 0.9rem; }
+html.is-kiosk .climate-gates {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 0.55rem;
+  padding: 0.4rem 0.7rem 0.5rem;
+}
+html.is-kiosk .climate-gates .gate {
+  flex: none !important;
+  min-height: 0;
+  height: 100%;
+}
+html.is-kiosk .gate:hover,
+html.is-kiosk .gate:focus-visible { flex: none; }
+html.is-kiosk .gate-copy p {
+  max-height: 4.6rem;
+  opacity: 1;
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+html.is-kiosk .sponsor-rail {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+html.is-kiosk .portal {
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+}
+html.is-kiosk .portal-visual { min-height: 28vh; }
+@media (orientation: portrait) {
+  html.is-kiosk .climate-gates { grid-template-columns: 1fr 1fr; }
+  html.is-kiosk .climate-lockup .gate-main-logo { width: min(108px, 22vw); }
+}

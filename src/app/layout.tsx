@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { I18nProvider } from "@/components/I18nProvider";
 import { PageNav } from "@/components/PageNav";
+import { KioskMode } from "@/components/kiosk/KioskMode";
 
 const sans = localFont({
   src: [
@@ -54,9 +55,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="tr">
       <body className={`${sans.variable} ${display.variable} antialiased`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var q="(orientation: portrait) and (min-width: 700px) and (min-height: 1000px), (orientation: landscape) and (pointer: coarse) and (min-width: 1100px) and (max-height: 1200px)";var on=location.pathname==="/kiosk"||matchMedia(q).matches;if(on)sessionStorage.setItem("cop31-kiosk","1");if(on||sessionStorage.getItem("cop31-kiosk")==="1")document.documentElement.classList.add("is-kiosk");}catch(e){}})();',
+          }}
+        />
         <I18nProvider>
           {children}
           <PageNav />
+          <KioskMode />
         </I18nProvider>
       </body>
     </html>

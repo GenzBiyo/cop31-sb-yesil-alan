@@ -5,6 +5,7 @@ import { QrImage, usePublicOrigin } from "@/components/QrImage";
 import { GameStage } from "@/components/game/GameStage";
 import { useApi } from "@/lib/client";
 import { useI18n } from "@/components/I18nProvider";
+import { useKiosk } from "@/components/kiosk/KioskMode";
 
 type GameCard = {
   slug: string;
@@ -26,6 +27,7 @@ const STATUS: Record<string, string> = {
 
 export default function GamesHubPage() {
   const { tx, t } = useI18n();
+  const kiosk = useKiosk();
   const { data, error, loading, reload } = useApi<{ games: GameCard[] }>("/api/public/games");
   const origin = usePublicOrigin();
   const games = data?.games || [];
@@ -37,19 +39,19 @@ export default function GamesHubPage() {
       live={live}
       kicker="COP31 Türkiye · Sağlık Pavilionu"
       title={tx("Etkileşim alanı")}
-      lead="Her oyunun duvar ekranı ayrıdır. Karekodu okutunca oyun telefonunuzda açılır."
+      lead={kiosk ? "Ekrana dokunun. Oyun bu kioskta açılır." : "Her oyunun duvar ekranı ayrıdır. Karekodu okutunca oyun telefonunuzda açılır."}
     >
       <p className="-mt-2 text-sm">
         <Link href="/" className="underline underline-offset-4 text-[#0077C2]">{tx("← Kapılara dön")}</Link>
       </p>
-      <section className="game-panel flex flex-wrap gap-5 items-center">
+      {kiosk ? null : <section className="game-panel flex flex-wrap gap-5 items-center">
         <QrImage path="/oyun" alt={tx("Etkileşim alanı QR")} size={132} />
         <div>
           <div className="text-xs tracking-[0.16em] uppercase text-[#0077C2]">{tx("Alan girişi karekodu")}</div>
           <p className="text-sm mt-1">{tx("Ziyaretçi bu kodu okutunca açık oyunlara düşer. Yeni soru-cevaplar da burada görünür.")}</p>
           <p className="text-xs text-[#57534e] mt-1">{origin}/oyun</p>
         </div>
-      </section>
+      </section>}
       {loading && !data ? <p className="text-sm text-[#57534e]">{tx("Oyunlar yükleniyor…")}</p> : null}
       {error && !data ? (
         <div className="game-panel space-y-2">
@@ -59,7 +61,7 @@ export default function GamesHubPage() {
       ) : null}
       {!loading && !error && games.length === 0 ? <p className="text-sm text-[#57534e]">{tx("Şu an açık oyun yok.")}</p> : null}
       {games.map((g) => (
-        <Link key={g.slug} href={`/oyun/${g.slug}`} className="game-hub-card" style={{ textDecoration: "none" }}>
+        <Link key={g.slug} href={kiosk ? `/oyun/${g.slug}/katil` : `/oyun/${g.slug}`} className="game-hub-card" style={{ textDecoration: "none" }}>
           <QrImage path={`/oyun/${g.slug}/katil`} alt={`${g.title} katıl QR`} size={112} />
           <div className="flex-1 min-w-[200px]">
             <span className={`badge ${g.status === "live" ? "ok" : g.status === "closed" ? "muted" : "warn"}`}>

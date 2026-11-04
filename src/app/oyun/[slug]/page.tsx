@@ -18,6 +18,7 @@ import { EventSponsor, type EventSponsorInfo } from "@/components/game/EventSpon
 import { EventCreditStrip } from "@/components/game/EventCreditStrip";
 import type { HatiraLogos, HatiraPublic } from "@/lib/hatira";
 import { useI18n, Tx } from "@/components/I18nProvider";
+import { useKiosk } from "@/components/kiosk/KioskMode";
 
 function useIsAdmin() {
   const [on, setOn] = useState(false);
@@ -76,6 +77,7 @@ type Wall = {
 
 function Wall({ slug }: { slug: string }) {
   const { tx, t } = useI18n();
+  const kiosk = useKiosk();
   const admin = useIsAdmin();
   const { data, reload, error } = useApi<Wall>(`/api/public/games/${slug}`);
   const origin = usePublicOrigin();
@@ -342,6 +344,7 @@ function Wall({ slug }: { slug: string }) {
         <div className="bg-[#EEF8FD] p-3">
           <QrImage path={`/oyun/${wall.slug}/katil`} alt={tx("Katıl QR")} size={220} />
         </div>
+        {kiosk ? <a className="btn w-full justify-center" href={`/oyun/${wall.slug}/katil`}>{tx("Bu ekranda oyna")}</a> : null}
         <p className="text-center text-sm tracking-[0.16em] uppercase">{tx("Katılmak için okut")}</p>
         <p className="text-center text-xs opacity-80 break-all">{origin ? `${origin}/oyun/${wall.slug}/katil` : tx("Karekod yükleniyor")}</p>
         <p className="text-center text-xs opacity-80">{isHatira ? tx("Selfie çek, hazırla, gönder") : isKilo ? tx("Cinsiyet, yaş, boy, kilo gir") : tx("Karekodu okut, telefonunda oyna")}</p>

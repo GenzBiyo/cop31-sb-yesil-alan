@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Home } from "lucide-react";
 import { useI18n } from "@/components/I18nProvider";
+import { useKiosk } from "@/components/kiosk/KioskMode";
 
 /** Up one level, skipping path prefixes that have no page of their own. */
 function parentOf(pathname: string) {
@@ -19,13 +20,14 @@ function parentOf(pathname: string) {
 
 function hidden(pathname: string) {
   const seg = pathname.split("/").filter(Boolean);
-  if (seg.length === 0 || seg[0] === "ekran" || seg[0] === "u") return true;
+  if (seg.length === 0 || seg[0] === "ekran" || seg[0] === "kiosk" || seg[0] === "u") return true;
   return seg[0] === "oyun" && seg.length === 2;
 }
 
 export function PageNav() {
   const pathname = usePathname() || "/";
   const { tx } = useI18n();
+  const kiosk = useKiosk();
   if (hidden(pathname)) return null;
   const parent = parentOf(pathname);
   function goBack() {
@@ -44,7 +46,7 @@ export function PageNav() {
       <button type="button" onClick={goBack} aria-label={tx("Geri")} title={tx("Bir önceki sayfaya dön")}>
         <ArrowLeft size={17} />
       </button>
-      <Link href="/" prefetch={false} aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
+      <Link href={kiosk ? "/kiosk" : "/"} prefetch={false} aria-label={tx("Ana sayfa")} title={tx("Ana sayfa")}>
         <Home size={17} />
       </Link>
     </nav>

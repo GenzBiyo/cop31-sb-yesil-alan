@@ -18,6 +18,7 @@ import { PlakPlayer, PlakReel, type PlakTrack } from "@/components/game/PlakPlay
 import { ShareBar } from "@/components/game/ShareBar";
 import { OnceWheel } from "@/components/game/OnceWheel";
 import { useI18n } from "@/components/I18nProvider";
+import { useKiosk } from "@/components/kiosk/KioskMode";
 
 type Payload = {
   slug: string;
@@ -114,6 +115,7 @@ function MatchPhone({
 
 function Join({ slug }: { slug: string }) {
   const { tx, t } = useI18n();
+  const kiosk = useKiosk();
   const { data, error, reload } = useApi<Payload>(`/api/public/games/${slug}?play=1`);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -322,7 +324,7 @@ function Join({ slug }: { slug: string }) {
       kicker="COP31 · Etkileşim"
       title={data.title}
       sponsor={data.sponsor}
-      lead="Karekodu okuttunuz. Oyun telefonunuzda açılır."
+      lead={kiosk ? "Ekrana dokunarak oynayın." : "Karekodu okuttunuz. Oyun telefonunuzda açılır."}
     >
       <div className="space-y-4">
         {status !== "approved" ? (

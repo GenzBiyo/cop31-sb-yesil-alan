@@ -6,6 +6,7 @@ import { MainLogo, SponsorRail } from "@/components/SponsorRail";
 import { SpeakerRail } from "@/components/speakers";
 import { PanelStage, useLivePanel } from "@/components/gate/PanelStage";
 import { useI18n } from "@/components/I18nProvider";
+import { useKiosk } from "@/components/kiosk/KioskMode";
 
 const GATES = [
   {
@@ -43,6 +44,7 @@ const GATES = [
     kicker: "05 · Etkileşim",
     title: "Oyun alanı",
     body: "Duvara yansıtılan yarışmalar. Karekodu okut, telefonunda oyna.",
+    kioskBody: "Ekrana dokunun. Oyun bu kioskta açılır.",
     guest: true,
   },
   {
@@ -58,6 +60,7 @@ const GATES = [
 /** Landing page; with `screen` it becomes the pavilion display and switches to the live panel. */
 export function GateHome({ screen = false }: { screen?: boolean }) {
   const { tx } = useI18n();
+  const kiosk = useKiosk();
   const [inApp, setInApp] = useState(false);
   const [next, setNext] = useState<string | null>(null);
   const [qrSrc, setQrSrc] = useState("");
@@ -165,7 +168,7 @@ export function GateHome({ screen = false }: { screen?: boolean }) {
                 <div className="gate-copy">
                   <div className="text-[10px] tracking-[0.22em] uppercase opacity-80">{tx(g.kicker)}</div>
                   <h2 className="display text-2xl md:text-3xl leading-tight mt-1">{tx(g.title)}</h2>
-                  <p>{tx(g.body)}</p>
+                  <p>{tx(kiosk && "kioskBody" in g && g.kioskBody ? g.kioskBody : g.body)}</p>
                   <span className="inline-block mt-3 text-xs tracking-[0.16em] uppercase">{tx("Kapıyı aç →")}</span>
                 </div>
               </a>
