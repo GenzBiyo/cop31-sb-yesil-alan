@@ -254,6 +254,23 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
           ) : (
             <button className="btn ghost" onClick={() => void saveMeta({ status: "lobby", phase: "lobby", currentIndex: -1 })}><Tx>Lobiyi aç</Tx></button>
           )}
+          <button
+            className={data.published && data.status !== "draft" ? "btn ghost" : "btn"}
+            type="button"
+            onClick={() => {
+              const on = data.published && data.status !== "draft";
+              void api(`/api/games/${id}`, {
+                method: "PATCH",
+                body: JSON.stringify(
+                  on
+                    ? { published: false }
+                    : { published: true, ...(data.status === "draft" || data.status === "closed" ? { status: "lobby", phase: "lobby" } : {}) },
+                ),
+              }).then(() => reload());
+            }}
+          >
+            {data.published && data.status !== "draft" ? tx("Kaldır") : tx("Canlıya al")}
+          </button>
         </div>
       </div>
 
@@ -265,6 +282,8 @@ export default function GameAdminDetailPage({ params }: { params: Promise<{ id: 
             <p className="text-sm mt-1">{data.type === "kilo" ? "Karekod doğrudan hesap formunu açar." : data.type === "hatira" ? "Karekod doğrudan selfie kamerasını açar. Onaylarsanız duvarda görünür." : "Karekodu okutan telefonunda hemen oynar. Rumuz ve onay yok."}</p>
             <a className="text-sm text-[#0077C2] underline" href={`/oyun/${data.slug}/katil`} target="_blank">{origin}/oyun/{data.slug}/katil</a>
             <div className="mt-2">
+              <span className={`badge ${data.published && data.status !== "draft" ? "ok" : "muted"}`}>{data.published && data.status !== "draft" ? tx("Aktif") : tx("Pasif")}</span>
+              {" "}
               <span className={`badge ${data.status === "live" ? "ok" : data.status === "lobby" ? "warn" : "muted"}`}>{data.status}</span>
             </div>
           </div>

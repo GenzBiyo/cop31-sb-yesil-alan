@@ -33,16 +33,41 @@ export default function GamesAdminPage() {
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<"quiz" | "wheel" | "match" | "kilo" | "hatira" | "plak">("quiz");
   const [busy, setBusy] = useState(false);
+  const [busyId, setBusyId] = useState("");
 
   useRealtime((t) => {
     if (t === "game") void reload();
   });
 
+  function isOn(game: GameRow) {
+    return game.published && game.status !== "draft";
+  }
+
+  async function setLive(game: GameRow, live: boolean) {
+    setBusyId(game.id);
+    try {
+      await api(`/api/games/${game.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(
+          live
+            ? {
+                published: true,
+                ...(game.status === "draft" || game.status === "closed" ? { status: "lobby", phase: "lobby" } : {}),
+              }
+            : { published: false },
+        ),
+      });
+      await reload();
+    } finally {
+      setBusyId("");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h1 className="display text-4xl">{tx("Etkileşim oyunları")}</h1>
-        <p className="text-[#57534e]">{tx("Soru-cevap, hediyeli çark, hafıza / eşleştirme, kilo-karbon veya hatıra fotoğrafı.")}</p>
+        <p className="text-[#57534e]">{tx("Soru-cevap, hediyeli çark, hafıza / eşleştirme, kilo-karbon veya hatıra fotoğrafı. Kaldırılan oyun kioskta ve sitede görünmez.")}</p>
       </div>
       <form
         className="card p-4 grid md:grid-cols-2 gap-2"
@@ -97,9 +122,11 @@ export default function GamesAdminPage() {
       </form>
       <div className="space-y-2">
         {(data || []).map((g) => (
-          <div key={g.id} className="card p-4 flex flex-wrap gap-4 items-center">
+          <div key={g.id} className={`card p-4 flex flex-wrap gap-4 items-center ${isOn(g) ? "" : "opacity-70"}`}>
             <QrImage path={`/oyun/${g.slug}/katil`} alt={g.title} size={88} />
             <div className="flex-1">
+              <span className={`badge ${isOn(g) ? "ok" : "muted"}`}>{isOn(g) ? tx("Aktif") : tx("Pasif")}</span>
+              {" "}
               <span className={`badge ${g.status === "live" ? "ok" : g.status === "lobby" ? "warn" : "muted"}`}>{tx(STATUS[g.status])}</span>
               <div className="display text-2xl mt-1">{tx(g.title)}</div>
               <div className="text-sm text-[#57534e]">
@@ -117,6 +144,9 @@ export default function GamesAdminPage() {
                 {g.players[0] ? ` · 1. ${g.players[0].nickname}` : ""}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
+                <button className={isOn(g) ? "btn ghost" : "btn"} type="button" disabled={busyId === g.id} onClick={() => void setLive(g, !isOn(g))}>
+                  {isOn(g) ? tx("Kaldır") : tx("Canlıya al")}
+                </button>
                 <Link className="btn" href={`/oyunlar/${g.id}`}>
                   {g.type === "wheel" ? "Dilimleri düzenle" : g.type === "plak" ? "Parçaları düzenle" : g.type === "match" || g.type === "kilo" || g.type === "hatira" ? "Turu düzenle" : "Soruları düzenle"}
                 </Link>
