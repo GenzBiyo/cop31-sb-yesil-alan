@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { api, formatDate, useApi } from "@/lib/client";
 import { useI18n, Tx } from "@/components/I18nProvider";
+import { ElciArrivalCalendar } from "@/components/ambassador/ElciArrivalCalendar";
 
 type Field = {
   id: string;
@@ -67,7 +68,7 @@ const STATUSES = ["Beklemede", "Kabul edildi", "Yedek", "Yerleştirildi", "Redde
 
 export default function AmbassadorsAdminPage() {
   const { tx } = useI18n();
-  const [tab, setTab] = useState<"apps" | "acts" | "form">("apps");
+  const [tab, setTab] = useState<"apps" | "days" | "acts" | "form">("apps");
   const apps = useApi<Application[]>("/api/ambassador/applications");
   const acts = useApi<Activity[]>("/api/ambassador/activities");
   const form = useApi<{ intro: string; fields: Field[] }>("/api/ambassador/form");
@@ -144,6 +145,7 @@ export default function AmbassadorsAdminPage() {
       <div className="flex gap-2 flex-wrap">
         {[
           ["apps", "Başvurular"],
+          ["days", "Geliş takvimi"],
           ["acts", "Aktiviteler"],
           ["form", "Formu düzenle"],
         ].map(([id, label]) => (
@@ -204,6 +206,19 @@ export default function AmbassadorsAdminPage() {
             </table>
           </div>
         </>
+      ) : null}
+
+      {tab === "days" ? (
+        <ElciArrivalCalendar
+          applications={apps.data || []}
+          onOpen={(id) => {
+            const app = (apps.data || []).find((item) => item.id === id);
+            if (!app) return;
+            setOpen(app);
+            setNote(app.adminNote);
+            setMessage("");
+          }}
+        />
       ) : null}
 
       {tab === "acts" ? (
