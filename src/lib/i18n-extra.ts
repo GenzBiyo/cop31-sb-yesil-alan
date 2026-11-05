@@ -591,8 +591,8 @@ export const EN_EXTRA: Record<string, string> = {
   "Öğle molasında tek kullanımlık gördünüz mü?": "Did you see any single-use items at the lunch break?",
   "Öğrenci gönüllü başvuruları, aktivite yerleştirme ve form düzenleme. Kayıt kabul bilgisi iletişim adreslerine gider.":
     "Student volunteer applications, activity placement and form editing. Acceptance notices go to the contact details.",
-  "Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider. Kabul e-postasında tebrik kartının bağlantısı da vardır; öğrenci kartı JPG indirip paylaşır.":
-    "Accept or reject applications from the open form here. The decision is emailed to the applicant. The acceptance email also includes a congratulations card link; the student downloads it as a JPG and shares it.",
+  "Açık formdan gelen başvuruları buradan kabul veya red edin. Karar, başvuranın e-postasına gider. Kabul e-postasında kabul belgesinin bağlantısı da vardır; öğrenci kartı JPG indirip paylaşır.":
+    "Accept or reject applications from the open form here. The decision is emailed to the applicant. The acceptance email also includes the letter of acceptance; the student downloads it as a JPG and shares it.",
   "Elçi başvuruları": "Ambassador applications",
   "elçi başvurusu kabul veya red bekliyor.":
     "ambassador applications are waiting to be accepted or rejected.",

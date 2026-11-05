@@ -2,32 +2,40 @@
 
 import { useEffect, useState } from "react";
 import { CARD_TAGS, cardFileName, cardShareCaption } from "@/lib/ambassador-card";
+import { useI18n } from "@/components/I18nProvider";
 
-const TEMPLATE = "/brand/elci-kart.jpg";
-const INK = "#FFFFFF";
-const NAME_FIELD = { x: 566, y: 766, w: 880, size: 68 };
-const SCHOOL_FIELD = { x: 566, y: 874, w: 880, size: 35 };
+const FALLBACK = { tr: "/brand/elci-kart-tr.jpg", en: "/brand/elci-kart-en.jpg" };
+const INK = "#022251";
+const NAME_FIELD = { x: 0.524, y: 0.419, w: 0.48, size: 0.046 };
+const SCHOOL_FIELD = { x: 0.524, y: 0.492, w: 0.48, size: 0.026 };
 
 export function AcceptanceCard({ name, school, city }: { name: string; school: string; city: string }) {
+  const { locale } = useI18n();
   const [jpeg, setJpeg] = useState("");
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
-  const caption = cardShareCaption(name);
+  const caption = cardShareCaption(name, locale);
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
+  const english = locale === "en";
 
   useEffect(() => {
     let cancel = false;
-    void paintCard({ name, school, city })
+    setJpeg("");
+    void (async () => {
+      const pack = await fetch("/api/public/card-backgrounds").then((res) => res.json()).catch(() => null);
+      const src = pack?.slots?.[english ? "elci-en" : "elci-tr"]?.url || FALLBACK[english ? "en" : "tr"];
+      return paintCard({ name, school, city, src });
+    })()
       .then((url) => {
         if (!cancel) setJpeg(url);
       })
       .catch(() => {
-        if (!cancel) setError("Kart hazırlanamadı. Sayfayı yenileyin.");
+        if (!cancel) setError(english ? "The card could not be prepared. Refresh the page." : "Kart hazırlanamadı. Sayfayı yenileyin.");
       });
     return () => {
       cancel = true;
     };
-  }, [name, school, city]);
+  }, [name, school, city, english]);
 
   async function download() {
     if (!jpeg) return;
@@ -48,7 +56,7 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
     setNote("");
     const blob = await (await fetch(jpeg)).blob();
     const file = new File([blob], cardFileName(name), { type: "image/jpeg" });
-    const payload: ShareData = { title: "İklim Sağlık Elçisi", text: `${caption}\n${pageUrl}`, files: [file] };
+    const payload: ShareData = { title: english ? "Letter of acceptance" : "Kabul belgesi", text: `${caption}\n${pageUrl}`, files: [file] };
     if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
       try {
         await navigator.share(payload);
@@ -58,7 +66,9 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
       }
     }
     await download();
-    setNote("Bu tarayıcı görseli doğrudan paylaşamıyor. JPG indirildi; galeriden Instagram, WhatsApp veya LinkedIn’e ekleyin.");
+    setNote(english
+      ? "This browser cannot share the image directly. The JPG was downloaded; add it from your gallery."
+      : "Bu tarayıcı görseli doğrudan paylaşamıyor. JPG indirildi; galeriden Instagram, WhatsApp veya LinkedIn’e ekleyin.");
   }
 
   function openShare(href: string) {
@@ -72,8 +82,12 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
       <div className="mx-auto max-w-[440px] space-y-4">
         <div className="text-center">
           <p className="text-xs font-bold tracking-[0.22em] text-[#0077C2]">COP31 TÜRKİYE · ANTALYA</p>
-          <h1 className="display text-4xl mt-1">Tebrikler</h1>
-          <p className="text-sm text-[#3E6A88] mt-1">İsminiz ve okulunuz kartın üzerine yazılır. JPG indirip paylaşabilirsiniz.</p>
+          <h1 className="display text-4xl mt-1">{english ? "Letter of acceptance" : "Kabul belgesi"}</h1>
+          <p className="text-sm text-[#3E6A88] mt-1">
+            {english
+              ? "Your name and school are written on the card. Download the JPG and share it."
+              : "Adınız ve okulunuz kartın üzerine yazılır. JPG indirip paylaşabilirsiniz."}
+          </p>
         </div>
         {error ? <p className="text-sm text-[#E31C23] text-center">{error}</p> : null}
         {jpeg ? (
@@ -84,8 +98,8 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
           </div>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <button className="btn justify-center" type="button" disabled={!jpeg} onClick={() => void download()}>JPG indir</button>
-          <button className="btn secondary justify-center" type="button" disabled={!jpeg} onClick={() => void shareNative()}>Paylaş</button>
+          <button className="btn justify-center" type="button" disabled={!jpeg} onClick={() => void download()}>{english ? "Download JPG" : "JPG indir"}</button>
+          <button className="btn secondary justify-center" type="button" disabled={!jpeg} onClick={() => void shareNative()}>{english ? "Share" : "Paylaş"}</button>
         </div>
         <div className="grid grid-cols-3 gap-2">
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://wa.me/?text=${encodeURIComponent(shareText)}`)}>WhatsApp</button>
@@ -93,7 +107,9 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`)}>LinkedIn</button>
         </div>
         <p className="text-xs text-[#3E6A88] text-center">
-          Instagram görseli bağlantı olarak almaz. JPG’yi indirip hikâyeye ekleyin ya da telefondaki Paylaş ile Instagram’ı seçin.
+          {english
+            ? "Instagram does not take the image as a link. Download the JPG and add it to your story."
+            : "Instagram görseli bağlantı olarak almaz. JPG’yi indirip hikâyeye ekleyin ya da telefondaki Paylaş ile Instagram’ı seçin."}
         </p>
         {note ? <p className="text-sm text-[#0077C2] text-center">{note}</p> : null}
         <p className="text-[11px] text-center tracking-wide text-[#3E6A88]">{CARD_TAGS}</p>
@@ -102,10 +118,10 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
   );
 }
 
-async function paintCard(input: { name: string; school: string; city: string }) {
+async function paintCard(input: { name: string; school: string; city: string; src: string }) {
   await document.fonts?.ready;
   const fonts = fontStacks();
-  const template = await loadImage(TEMPLATE);
+  const template = await loadImage(input.src);
   if (!template) throw new Error("kart");
   const canvas = document.createElement("canvas");
   canvas.width = template.width;
@@ -113,8 +129,14 @@ async function paintCard(input: { name: string; school: string; city: string }) 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas");
   ctx.drawImage(template, 0, 0);
-  writeField(ctx, input.name.trim(), NAME_FIELD, fonts.sans);
-  writeField(ctx, input.school.trim() || input.city.trim(), SCHOOL_FIELD, fonts.sans);
+  const field = (ratio: typeof NAME_FIELD) => ({
+    x: Math.round(ratio.x * template.width),
+    y: Math.round(ratio.y * template.height),
+    w: Math.round(ratio.w * template.width),
+    size: Math.round(ratio.size * template.width),
+  });
+  writeField(ctx, input.name.trim(), field(NAME_FIELD), fonts.sans);
+  writeField(ctx, input.school.trim() || input.city.trim(), field(SCHOOL_FIELD), fonts.sans);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 

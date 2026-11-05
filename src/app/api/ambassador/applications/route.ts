@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
             ? "Başvurunuz yedek listeye alınmıştır. Kontenjan açılırsa sizinle iletişime geçeceğiz."
             : "Başvurunuz hakkında bilgilendirme:";
     const cardLine = cardUrl
-      ? `Tebrik kartınız hazır. JPG olarak indirip sosyal medyada paylaşabilirsiniz:\n${cardUrl}`
+      ? `Kabul belgeniz hazır. JPG olarak indirip sosyal medyada paylaşabilirsiniz:\n${cardUrl}`
       : "";
     const custom = String(body.message || "").trim();
     const note = String(body.adminNote || "").trim();

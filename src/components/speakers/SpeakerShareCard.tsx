@@ -3,33 +3,40 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { speakerCardFileName, speakerShareCaption, SPEAKER_CARD_TAGS, type SpeakerSession, type SpeakerShare } from "@/lib/speaker-share";
+import { useI18n } from "@/components/I18nProvider";
 
 const W = 1080;
 const H = 1350;
 
 export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
+  const { locale } = useI18n();
+  const english = locale === "en";
   const [sessionId, setSessionId] = useState(speaker.sessions[0]?.id || "");
   const session = speaker.sessions.find((row) => row.id === sessionId) || speaker.sessions[0] || null;
   const [jpeg, setJpeg] = useState("");
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
-  const caption = speakerShareCaption(speaker.name, session);
+  const caption = speakerShareCaption(speaker.name, session, english ? "en" : "tr");
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
     let cancel = false;
     setJpeg("");
-    void paintCard(speaker, session)
+    void (async () => {
+      const pack = await fetch("/api/public/card-backgrounds").then((res) => res.json()).catch(() => null);
+      const background = pack?.slots?.[english ? "speaker-en" : "speaker-tr"]?.url || "";
+      return paintCard(speaker, session, { english, background });
+    })()
       .then((url) => {
         if (!cancel) setJpeg(url);
       })
       .catch(() => {
-        if (!cancel) setError("Kart hazırlanamadı. Sayfayı yenileyin.");
+        if (!cancel) setError(english ? "The card could not be prepared. Refresh the page." : "Kart hazırlanamadı. Sayfayı yenileyin.");
       });
     return () => {
       cancel = true;
     };
-  }, [speaker, session]);
+  }, [speaker, session, english]);
 
   async function download() {
     if (!jpeg) return;
@@ -60,7 +67,9 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
       }
     }
     await download();
-    setNote("Bu tarayıcı görseli doğrudan paylaşamıyor. JPG indirildi; galeriden Instagram, WhatsApp veya LinkedIn’e ekleyin.");
+    setNote(english
+      ? "This browser cannot share the image directly. The JPG was downloaded; add it from your gallery."
+      : "Bu tarayıcı görseli doğrudan paylaşamıyor. JPG indirildi; galeriden Instagram, WhatsApp veya LinkedIn’e ekleyin.");
   }
 
   function openShare(href: string) {
@@ -74,14 +83,16 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
       <div className="mx-auto max-w-[440px] space-y-4">
         <div className="text-center">
           <p className="text-xs font-bold tracking-[0.22em] text-[#0077C2]">COP31 TÜRKİYE · ANTALYA</p>
-          <h1 className="display text-4xl mt-1">Konuşuyorum</h1>
+          <h1 className="display text-4xl mt-1">{english ? "I am speaking" : "Konuşuyorum"}</h1>
           <p className="text-sm text-[#3E6A88] mt-1">
-            {speaker.name} için sosyal medya kartı. JPG indirip hikâye veya gönderi olarak paylaşın.
+            {english
+              ? `Social card for ${speaker.name}. Download the JPG and share it as a story or a post.`
+              : `${speaker.name} için sosyal medya kartı. JPG indirip hikâye veya gönderi olarak paylaşın.`}
           </p>
         </div>
         {speaker.sessions.length > 1 ? (
           <label className="block text-sm text-[#3E6A88]">
-            Karttaki oturum
+            {english ? "Session on the card" : "Karttaki oturum"}
             <select className="field mt-1" value={session?.id || ""} onChange={(e) => setSessionId(e.target.value)}>
               {speaker.sessions.map((row) => (
                 <option key={row.id} value={row.id}>{row.title}</option>
@@ -91,7 +102,9 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
         ) : null}
         {!speaker.sessions.length ? (
           <p className="text-sm text-[#3E6A88] text-center">
-            Adınız bir panele yazılınca kartta o oturumun başlığı görünür. Şimdilik Sağlık Pavyonu kartı hazır.
+            {english
+              ? "When your name is on a panel, that session title appears on the card. The Health Pavilion card is ready for now."
+              : "Adınız bir panele yazılınca kartta o oturumun başlığı görünür. Şimdilik Sağlık Pavyonu kartı hazır."}
           </p>
         ) : null}
         {error ? <p className="text-sm text-[#E31C23] text-center">{error}</p> : null}
@@ -103,8 +116,8 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
           </div>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <button className="btn justify-center" type="button" disabled={!jpeg} onClick={() => void download()}>JPG indir</button>
-          <button className="btn secondary justify-center" type="button" disabled={!jpeg} onClick={() => void shareNative()}>Paylaş</button>
+          <button className="btn justify-center" type="button" disabled={!jpeg} onClick={() => void download()}>{english ? "Download JPG" : "JPG indir"}</button>
+          <button className="btn secondary justify-center" type="button" disabled={!jpeg} onClick={() => void shareNative()}>{english ? "Share" : "Paylaş"}</button>
         </div>
         <div className="grid grid-cols-3 gap-2">
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://wa.me/?text=${encodeURIComponent(shareText)}`)}>WhatsApp</button>
@@ -112,7 +125,9 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
           <button className="btn ghost justify-center" type="button" onClick={() => openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`)}>LinkedIn</button>
         </div>
         <p className="text-xs text-[#3E6A88] text-center">
-          Instagram görseli bağlantı olarak almaz. JPG’yi indirip hikâyeye ekleyin ya da telefondaki Paylaş ile Instagram’ı seçin.
+          {english
+            ? "Instagram does not take the image as a link. Download the JPG and add it to your story."
+            : "Instagram görseli bağlantı olarak almaz. JPG’yi indirip hikâyeye ekleyin ya da telefondaki Paylaş ile Instagram’ı seçin."}
         </p>
         {note ? <p className="text-sm text-[#0077C2] text-center">{note}</p> : null}
         <p className="text-[11px] text-center tracking-wide text-[#3E6A88]">{SPEAKER_CARD_TAGS}</p>
@@ -124,7 +139,7 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
   );
 }
 
-async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null) {
+async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null, options: { english: boolean; background: string }) {
   await document.fonts?.ready;
   const fonts = fontStacks();
   const canvas = document.createElement("canvas");
@@ -132,38 +147,45 @@ async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null) 
   canvas.height = H;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas");
-
-  const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, "#08385C");
-  sky.addColorStop(0.45, "#0B4F86");
-  sky.addColorStop(1, "#061525");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
-  ctx.fillRect(0, 0, W, 168);
-  ctx.fillStyle = "#E31C23";
-  ctx.fillRect(0, 168, W, 6);
-  ctx.fillStyle = "#00A3E0";
-  ctx.fillRect(0, 174, W, 3);
+  const ground = options.background ? await loadImage(options.background) : null;
+  if (ground) {
+    const scale = Math.max(W / ground.width, H / ground.height);
+    const dw = ground.width * scale;
+    const dh = ground.height * scale;
+    ctx.drawImage(ground, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  } else {
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#08385C");
+    sky.addColorStop(0.45, "#0B4F86");
+    sky.addColorStop(1, "#061525");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    ctx.fillRect(0, 0, W, 168);
+    ctx.fillStyle = "#E31C23";
+    ctx.fillRect(0, 168, W, 6);
+    ctx.fillStyle = "#00A3E0";
+    ctx.fillRect(0, 174, W, 3);
+  }
 
   ctx.fillStyle = "#D7F1FC";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.font = `600 22px ${fonts.sans}`;
-  ctx.fillText("COP31  ·  ANTALYA  ·  9–20 KASIM 2026", W / 2, 58);
+  ctx.fillText(options.english ? "COP31  ·  ANTALYA  ·  9–20 NOVEMBER 2026" : "COP31  ·  ANTALYA  ·  9–20 KASIM 2026", W / 2, 58);
   ctx.fillStyle = "#FFFFFF";
   ctx.font = `600 28px ${fonts.sans}`;
-  ctx.fillText("T.C. SAĞLIK BAKANLIĞI", W / 2, 98);
+  ctx.fillText(options.english ? "MINISTRY OF HEALTH OF TÜRKİYE" : "T.C. SAĞLIK BAKANLIĞI", W / 2, 98);
 
-  const headline = session?.headline || "Konuşuyorum";
-  const lead = session?.lead || "Sağlık Pavyonu'nda";
+  const headline = options.english ? englishHeadline(session?.headline) : session?.headline || "Konuşuyorum";
+  const lead = options.english ? englishLead(session?.lead) : session?.lead || "Sağlık Pavyonu'nda";
   ctx.fillStyle = "#7ED4F5";
   ctx.font = `600 22px ${fonts.sans}`;
-  ctx.fillText("SAĞLIK PAVYONU", W / 2, 230);
+  ctx.fillText(options.english ? "HEALTH PAVILION" : "SAĞLIK PAVYONU", W / 2, 230);
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = `600 92px ${fonts.display}`;
-  ctx.fillText(headline, W / 2, 268);
+  const headLine = fitLines(ctx, headline, 960, `600 92px ${fonts.display}`, 46, 1)[0];
+  ctx.font = `600 ${headLine.size}px ${fonts.display}`;
+  ctx.fillText(headLine.text, W / 2, 268);
   ctx.fillStyle = "#D7F1FC";
   ctx.font = `600 32px ${fonts.sans}`;
   ctx.fillText(lead, W / 2, 390);
@@ -233,6 +255,19 @@ async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null) 
   ctx.font = `600 18px ${fonts.sans}`;
   ctx.fillText(SPEAKER_CARD_TAGS, W / 2, H - 48);
   return canvas.toDataURL("image/jpeg", 0.92);
+}
+
+function englishHeadline(value?: string) {
+  if (value === "Moderatörüm") return "I am moderating";
+  return "I am speaking";
+}
+
+function englishLead(value?: string) {
+  if (value === "şu sunumda") return "in this talk";
+  if (value === "açılışta") return "at the opening";
+  if (value === "kapanışta") return "at the close";
+  if (value === "Sağlık Pavyonu'nda") return "at the Health Pavilion";
+  return "on this panel";
 }
 
 function drawAvatar(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, r: number) {

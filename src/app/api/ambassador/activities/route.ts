@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       await sendMail(
         app.email,
         "İklim Sağlık Elçisi yerleştirmeniz",
-        `Sayın ${app.fullName},\n\n${activity.date} ${activity.startTime}–${activity.endTime} saatleri arasında “${activity.title}” aktivitesine yerleştirildiniz.\nGörev: ${row.role}\nYer: ${activity.location}\n\nTebrik kartınız:\n${ambassadorCardUrl(app.id)}\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
+        `Sayın ${app.fullName},\n\n${activity.date} ${activity.startTime}–${activity.endTime} saatleri arasında “${activity.title}” aktivitesine yerleştirildiniz.\nGörev: ${row.role}\nYer: ${activity.location}\n\nKabul belgeniz:\n${ambassadorCardUrl(app.id)}\n\nT.C. Sağlık Bakanlığı · COP31 Sağlık Pavilionu`
       );
     }
     return jsonOk(row, 201);

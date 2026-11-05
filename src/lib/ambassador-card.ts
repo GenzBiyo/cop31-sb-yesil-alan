@@ -15,8 +15,11 @@ export function ambassadorCardUrl(id: string) {
   return `${base}${ambassadorCardPath(id)}`;
 }
 
-export function cardShareCaption(name: string) {
-  const who = name.trim() || "Ben";
+export function cardShareCaption(name: string, locale: "tr" | "en" = "tr") {
+  const who = name.trim() || (locale === "en" ? "I" : "Ben");
+  if (locale === "en") {
+    return `${who} has been accepted as a Climate Health Ambassador of the COP31 Türkiye Ministry of Health Pavilion.\n${CARD_TAGS}`;
+  }
   return `${who}, COP31 Türkiye Sağlık Bakanlığı İklim Sağlık Elçisi olarak kabul edildi.\n${CARD_TAGS}`;
 }
 

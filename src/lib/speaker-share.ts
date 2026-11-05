@@ -38,8 +38,13 @@ export function speakerCardFileName(name: string) {
   return `COP31-Konusuyorum${slug ? `-${slug}` : ""}.jpg`;
 }
 
-export function speakerShareCaption(name: string, session?: SpeakerSession | null) {
-  const who = name.trim() || "Konuşmacı";
+export function speakerShareCaption(name: string, session?: SpeakerSession | null, locale: "tr" | "en" = "tr") {
+  const who = name.trim() || (locale === "en" ? "Speaker" : "Konuşmacı");
+  if (locale === "en") {
+    if (!session) return `${who} is speaking at the COP31 Türkiye Ministry of Health Pavilion.\n${SPEAKER_CARD_TAGS}`;
+    const where = session.headline === "Moderatörüm" ? "is moderating" : "is speaking in";
+    return `${who} ${where} “${session.title}” at the COP31 Health Pavilion.\n${session.when}\n${SPEAKER_CARD_TAGS}`;
+  }
   if (!session) {
     return `${who}, COP31 Türkiye Sağlık Bakanlığı Sağlık Pavyonu'nda konuşuyor.\n${SPEAKER_CARD_TAGS}`;
   }

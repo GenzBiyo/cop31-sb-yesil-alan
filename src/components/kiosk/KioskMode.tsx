@@ -7,6 +7,7 @@ import { kioskMatch } from "@/lib/kiosk";
 const STAFF = [
   "/program",
   "/elciler",
+  "/kartlar",
   "/oyunlar",
   "/firmalar",
   "/todos",
