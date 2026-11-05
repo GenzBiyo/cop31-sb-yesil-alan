@@ -36,7 +36,7 @@ bash "$APP/scripts/keep-data.sh" save
 
 git fetch origin master
 git reset --hard origin/master
-git clean -fd -e .env -e .pavilion-program-applied -e .pavilion-program-20261020 -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e .panel-concepts-20261102 -e .unit-accounts-20261102 -e .elci-users-20261103 -e .kitapcik-20261103 -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
+git clean -fd -e .env -e .pavilion-program-applied -e .pavilion-program-20261020 -e .stands-off-agenda -e .session-calendar-only -e .hatira-shots-cleared -e .mail-cop31-tr -e .speaker-sheet-applied -e .login-fix-applied -e .panel-concepts-20261102 -e .unit-accounts-20261102 -e .elci-users-20261103 -e .kitapcik-20261103 -e .dis-paneller-20261105 -e speaker-sheet.json -e login-fix.json -e prisma/dev.db -e prisma/dev.db-journal -e prisma/dev.db-wal -e prisma/dev.db-shm -e public/uploads
 
 bash "$APP/scripts/keep-data.sh" restore
 
@@ -171,6 +171,11 @@ fi
 if [ ! -f "$APP/.kitapcik-20261103" ]; then
   npx tsx scripts/apply-kitapcik.ts
   touch "$APP/.kitapcik-20261103"
+fi
+
+if [ ! -f "$APP/.dis-paneller-20261105" ]; then
+  npx tsx scripts/apply-dis-paneller.ts
+  touch "$APP/.dis-paneller-20261105"
 fi
 
 if [ -f "$APP/speaker-sheet.json" ] && [ ! -f "$APP/.speaker-sheet-applied" ]; then
