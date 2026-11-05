@@ -8,6 +8,7 @@ const STAFF = [
   "/program",
   "/elciler",
   "/kartlar",
+  "/afis",
   "/oyunlar",
   "/firmalar",
   "/todos",
