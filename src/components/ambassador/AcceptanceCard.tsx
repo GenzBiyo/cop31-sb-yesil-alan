@@ -56,7 +56,7 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
     setNote("");
     const blob = await (await fetch(jpeg)).blob();
     const file = new File([blob], cardFileName(name), { type: "image/jpeg" });
-    const payload: ShareData = { title: english ? "Letter of acceptance" : "Kabul belgesi", text: `${caption}\n${pageUrl}`, files: [file] };
+    const payload: ShareData = { title: english ? "CONGRATULATIONS" : "TEBRİKLER", text: `${caption}\n${pageUrl}`, files: [file] };
     if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
       try {
         await navigator.share(payload);
@@ -82,7 +82,7 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
       <div className="mx-auto max-w-[440px] space-y-4">
         <div className="text-center">
           <p className="text-xs font-bold tracking-[0.22em] text-[#0077C2]">COP31 TÜRKİYE · ANTALYA</p>
-          <h1 className="display text-4xl mt-1">{english ? "Letter of acceptance" : "Kabul belgesi"}</h1>
+          <h1 className="display text-4xl mt-1">{english ? "CONGRATULATIONS" : "TEBRİKLER"}</h1>
           <p className="text-sm text-[#3E6A88] mt-1">
             {english
               ? "Your name and school are written on the card. Download the JPG and share it."
@@ -91,7 +91,7 @@ export function AcceptanceCard({ name, school, city }: { name: string; school: s
         </div>
         {error ? <p className="text-sm text-[#E31C23] text-center">{error}</p> : null}
         {jpeg ? (
-          <img src={jpeg} alt={`${name} İklim Sağlık Elçisi kabul kartı`} className="w-full border border-[#B5DFF2] bg-white" />
+          <img src={jpeg} alt={english ? `${name} Climate Health Ambassador card` : `${name} İklim Sağlık Elçisi tebrik kartı`} className="w-full border border-[#B5DFF2] bg-white" />
         ) : (
           <div className="aspect-[1131/1600] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
             {error ? "" : "Kart hazırlanıyor…"}
