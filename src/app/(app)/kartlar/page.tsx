@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api, useApi } from "@/lib/client";
 
-type SlotId = "elci-tr" | "elci-en" | "speaker-tr" | "speaker-en";
+type SlotId = "elci-tr" | "elci-en";
 type Slots = Record<SlotId, { url: string; custom: boolean }>;
 
 const CARDS: { id: SlotId; title: string; note: string }[] = [
@@ -16,16 +16,6 @@ const CARDS: { id: SlotId; title: string; note: string }[] = [
     id: "elci-en",
     title: "Elçi kabul belgesi · English",
     note: "Same layout as the Turkish card. The name and school are written on the two blank lines.",
-  },
-  {
-    id: "speaker-tr",
-    title: "Konuşmacı kartı · Türkçe",
-    note: "Yazılar beyazdır. Koyu bir zemin yükleyin. Boş bırakırsanız hazır lacivert kart kullanılır.",
-  },
-  {
-    id: "speaker-en",
-    title: "Konuşmacı kartı · English",
-    note: "The wording is white. Upload a dark background, or leave it empty for the built-in navy card.",
   },
 ];
 
@@ -72,7 +62,7 @@ export default function CardBackgroundsPage() {
     <div className="space-y-4">
       <h1 className="display text-4xl">Kart arka planları</h1>
       <p className="text-[#57534e]">
-        Kabul belgesi ve konuşmacı kartı, sitedeki dil seçimine göre Türkçe veya İngilizce zemini kullanır. Yüklenen dosya JPG, PNG veya WebP olabilir, en fazla 8 MB.
+        Kabul belgesi, sitedeki dil seçimine göre Türkçe veya İngilizce zemini kullanır. Yüklenen dosya JPG, PNG veya WebP olabilir, en fazla 8 MB. Konuşmacı kartı ayrı bir zemin almaz; oturumun başlığı, saati ve kadrosu yeşil panel afişine yazılır.
       </p>
       {msg ? <p className="text-sm text-[#0077C2]">{msg}</p> : null}
       <div className="grid md:grid-cols-2 gap-4">

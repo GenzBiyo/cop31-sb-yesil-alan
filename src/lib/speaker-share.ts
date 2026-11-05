@@ -1,5 +1,13 @@
 export const SPEAKER_CARD_TAGS = "#COP31SaglikBakanligi #SaglikliInsanSaglikliGezegen #COP31Antalya";
 
+export type SpeakerLineupPerson = {
+  name: string;
+  role: string;
+  title: string;
+  organization: string;
+  photoPath: string;
+};
+
 export type SpeakerSession = {
   id: string;
   title: string;
@@ -13,6 +21,7 @@ export type SpeakerSession = {
   when: string;
   lead: string;
   headline: string;
+  lineup: SpeakerLineupPerson[];
 };
 
 export type SpeakerShare = {
