@@ -6,7 +6,7 @@ export type CardSlot = (typeof CARD_SLOTS)[number];
 export const CARD_DEFAULTS: Record<CardSlot, string> = {
   "elci-tr": "/brand/elci-kart-tr.jpg",
   "elci-en": "/brand/elci-kart-en.jpg",
-  "speaker-tr": "",
+  "speaker-tr": "/brand/panel-afis.jpg",
   "speaker-en": "",
 };
 

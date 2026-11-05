@@ -21,6 +21,8 @@ export type SpeakerSession = {
   when: string;
   lead: string;
   headline: string;
+  theme: string;
+  summary: string;
   lineup: SpeakerLineupPerson[];
 };
 

@@ -5,9 +5,6 @@ import Link from "next/link";
 import { speakerCardFileName, speakerShareCaption, SPEAKER_CARD_TAGS, type SpeakerLineupPerson, type SpeakerSession, type SpeakerShare } from "@/lib/speaker-share";
 import { useI18n } from "@/components/I18nProvider";
 
-const W = 1080;
-const H = 1350;
-
 export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
   const { locale } = useI18n();
   const english = locale === "en";
@@ -107,7 +104,7 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
         {jpeg ? (
           <img src={jpeg} alt={english ? `${speaker.name} panel poster` : `${speaker.name} panel afişi`} className="w-full border border-[#B5DFF2] bg-white" />
         ) : (
-          <div className="aspect-[1080/1350] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
+          <div className="aspect-[819/1024] border border-[#B5DFF2] bg-white grid place-items-center text-sm text-[#3E6A88]">
             {error ? "" : "Kart hazırlanıyor…"}
           </div>
         )}
@@ -135,27 +132,34 @@ export function SpeakerShareCard({ speaker }: { speaker: SpeakerShare }) {
   );
 }
 
+const BASE_W = 819;
+const BASE_H = 1024;
+const PORTRAITS = [
+  { x: 147, y: 604, r: 50 },
+  { x: 324, y: 602, r: 48 },
+  { x: 448, y: 604, r: 50 },
+  { x: 576, y: 604, r: 50 },
+  { x: 706, y: 602, r: 48 },
+];
+
 async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null, english: boolean) {
   await document.fonts?.ready;
   const fonts = fontStacks();
+  const pack = await fetch("/api/public/card-backgrounds").then((res) => res.json()).catch(() => null);
+  const template = await loadImage(pack?.slots?.["speaker-tr"]?.url || "/brand/panel-afis.jpg");
+  if (!template) throw new Error("template");
   const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
+  const scale = template.width < 1200 ? 2 : 1;
+  canvas.width = template.width * scale;
+  canvas.height = template.height * scale;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas");
-  drawGround(ctx);
-  const [seal, mark] = await Promise.all([
-    loadImage("/brand/logo-saglik-beyaz.png"),
-    loadImage("/brand/logo-cop31-beyaz.png"),
-  ]);
-  if (seal) ctx.drawImage(seal, 56, 40, 148, 148);
-  if (mark) {
-    const height = 168;
-    const width = height * (mark.width / mark.height);
-    ctx.drawImage(mark, W - 48 - width, 28, width, height);
-  }
-
-  const people = session?.lineup.length
+  ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
+  const sx = canvas.width / BASE_W;
+  const sy = canvas.height / BASE_H;
+  const X = (n: number) => Math.round(n * sx);
+  const Y = (n: number) => Math.round(n * sy);
+  const people = (session?.lineup.length
     ? session.lineup
     : [{
         name: speaker.name,
@@ -163,285 +167,119 @@ async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null, 
         title: speaker.title,
         organization: speaker.organization,
         photoPath: speaker.photoPath,
-      }];
-  const photos = new Map<string, HTMLImageElement | null>();
-  await Promise.all(people.map(async (person) => {
-    photos.set(person.photoPath, person.photoPath ? await loadImage(person.photoPath) : null);
-  }));
-
+      }]).slice(0, 5);
+  const photos = await Promise.all(people.map((person) => (person.photoPath ? loadImage(person.photoPath) : Promise.resolve(null))));
+  const title = session?.title || (english ? "Health Pavilion" : "Sağlık Pavyonu");
+  const titleLines = fitLines(ctx, title, X(400), `600 ${X(42)}px ${fonts.sans}`, X(22), 2);
+  let y = Y(176);
+  titleLines.forEach((line, index) => {
+    ctx.fillStyle = index === titleLines.length - 1 ? "#178A45" : "#123C46";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = `600 ${line.size}px ${fonts.sans}`;
+    ctx.fillText(line.text, X(36), y);
+    y += line.size + Y(4);
+  });
+  if (session?.theme) {
+    const theme = fitLines(ctx, session.theme, X(420), `600 ${X(18)}px ${fonts.sans}`, X(13), 2);
+    y = Math.max(y + Y(8), Y(292));
+    ctx.fillStyle = "#1A3A44";
+    for (const line of theme) {
+      ctx.font = `600 ${line.size}px ${fonts.sans}`;
+      ctx.fillText(line.text, X(36), y);
+      y += line.size + Y(2);
+    }
+  }
+  const body = fitLines(ctx, inviteCopy(session, title), X(420), `600 ${X(15)}px ${fonts.sans}`, X(12), 3);
+  y = Math.max(y + Y(8), Y(338));
+  ctx.fillStyle = "#4E6570";
+  for (const line of body) {
+    ctx.font = `600 ${line.size}px ${fonts.sans}`;
+    ctx.fillText(line.text, X(36), y);
+    y += line.size + Y(2);
+  }
+  const when = sessionDate(session?.date || "");
+  ctx.fillStyle = "#0E7A64";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  const metaY = 214;
-  drawMeta(ctx, fonts.sans, metaY, [
-    { icon: 0, text: shortDate(session?.date || "", english) },
-    { icon: 1, text: clockLabel(session) },
-    { icon: 2, text: placeLabel(session?.location || "", english) },
-  ].filter((part) => part.text));
-
-  const title = (session?.title || (english ? "Health Pavilion" : "Sağlık Pavyonu")).toLocaleUpperCase("tr-TR");
-  const titleLines = fitLines(ctx, title, 920, `600 62px ${fonts.sans}`, 32, 3);
-  let y = 286;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  for (const line of titleLines) {
+  ctx.font = `600 ${X(16)}px ${fonts.sans}`;
+  ctx.fillText(when.top, X(118), Y(438));
+  ctx.font = `600 ${X(13)}px ${fonts.sans}`;
+  ctx.fillText(when.sub, X(118), Y(460));
+  ctx.font = `600 ${X(18)}px ${fonts.sans}`;
+  ctx.fillText(clockLabel(session), X(378), Y(448));
+  const place = fitLines(ctx, placeLabel(session?.location || ""), X(200), `600 ${X(16)}px ${fonts.sans}`, X(12), 2);
+  let py = Y(448) - ((place.length - 1) * (place[0].size + Y(2))) / 2;
+  for (const line of place) {
     ctx.font = `600 ${line.size}px ${fonts.sans}`;
-    ctx.fillText(line.text, W / 2, y);
-    y += line.size + 6;
+    ctx.fillText(line.text, X(560), py);
+    py += line.size + Y(2);
   }
-  y += 16;
-  y = drawBadge(ctx, fonts.sans, y, badgeLabel(session?.kind || "panel", english));
-  y += 28;
-  drawPeople(ctx, fonts.sans, people, photos, y, english);
+  people.forEach((person, index) => {
+    const slot = PORTRAITS[index];
+    drawSlotPhoto(ctx, photos[index], X(slot.x), Y(slot.y), X(slot.r), person.name, fonts.sans);
+    let ny = Y(slot.y + slot.r + 16);
+    const name = fitLines(ctx, cardName(person), X(148), `600 ${X(15)}px ${fonts.sans}`, X(11), 2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#10283A";
+    for (const line of name) {
+      ctx.font = `600 ${line.size}px ${fonts.sans}`;
+      ctx.fillText(line.text, X(slot.x), ny);
+      ny += line.size + Y(1);
+    }
+    if (person.organization) {
+      const org = fitLines(ctx, person.organization, X(150), `600 ${X(11)}px ${fonts.sans}`, X(9), 3);
+      ctx.fillStyle = "#5C7380";
+      for (const line of org) {
+        ctx.font = `600 ${line.size}px ${fonts.sans}`;
+        ctx.fillText(line.text, X(slot.x), ny);
+        ny += line.size + Y(1);
+      }
+    }
+  });
+  ctx.fillStyle = "#0E7A64";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 ${X(16)}px ${fonts.sans}`;
+  ctx.fillText(when.short, X(92), Y(956));
+  ctx.fillText(clockLabel(session), X(236), Y(956));
+  const bottomPlace = fitLines(ctx, placeLabel(session?.location || ""), X(170), `600 ${X(15)}px ${fonts.sans}`, X(11), 1);
+  ctx.font = `600 ${bottomPlace[0].size}px ${fonts.sans}`;
+  ctx.fillText(bottomPlace[0].text, X(392), Y(956));
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-function drawGround(ctx: CanvasRenderingContext2D) {
-  const sky = ctx.createLinearGradient(0, 0, W * 0.2, H);
-  sky.addColorStop(0, "#1C9A68");
-  sky.addColorStop(0.42, "#128A62");
-  sky.addColorStop(1, "#075568");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createRadialGradient(860, 40, 10, 900, 80, 460);
-  glow.addColorStop(0, "rgba(255,255,255,0.16)");
-  glow.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-  drawLeaf(ctx, 980, 430, 150, -0.5);
-  drawLeaf(ctx, 70, 1180, 90, 0.8);
-  ctx.beginPath();
-  ctx.moveTo(0, 1210);
-  ctx.bezierCurveTo(220, 1120, 420, 1320, 640, 1200);
-  ctx.bezierCurveTo(820, 1100, 960, 1280, W, 1160);
-  ctx.lineTo(W, H);
-  ctx.lineTo(0, H);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(6, 58, 78, 0.45)";
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(0, 1280);
-  ctx.bezierCurveTo(260, 1200, 480, 1360, 760, 1260);
-  ctx.bezierCurveTo(900, 1210, 1000, 1300, W, 1240);
-  ctx.lineTo(W, H);
-  ctx.lineTo(0, H);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(186, 235, 255, 0.16)";
-  ctx.fill();
+function inviteCopy(session: SpeakerSession | null, title: string) {
+  const summary = session?.summary?.replace(/\s+/g, " ").trim();
+  if (summary) return summary.slice(0, 220);
+  return `COP31 Antalya kapsamında düzenlenen “${title}” oturumuna davetlisiniz.`;
 }
 
-function drawLeaf(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, rotation: number) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rotation);
-  ctx.fillStyle = "rgba(214, 245, 170, 0.28)";
-  ctx.beginPath();
-  ctx.ellipse(0, 0, size * 0.28, size, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.25)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(0, -size * 0.8);
-  ctx.quadraticCurveTo(size * 0.08, 0, 0, size * 0.8);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawMeta(ctx: CanvasRenderingContext2D, sans: string, y: number, parts: { icon: number; text: string }[]) {
-  let size = 24;
-  ctx.font = `600 ${size}px ${sans}`;
-  let widths = parts.map((part) => ctx.measureText(part.text).width + 34);
-  while (size > 16 && widths.reduce((sum, width) => sum + width, 0) + 28 * (parts.length - 1) > 960) {
-    size -= 2;
-    ctx.font = `600 ${size}px ${sans}`;
-    widths = parts.map((part) => ctx.measureText(part.text).width + 34);
+function sessionDate(iso: string) {
+  const parsed = new Date(`${iso}T12:00:00`);
+  if (!iso || Number.isNaN(parsed.getTime())) {
+    return { top: "9–20 November 2026", sub: "(Kasım)", short: "9–20 Kasım" };
   }
-  ctx.font = `600 ${size}px ${sans}`;
-  const gap = 28;
-  const total = widths.reduce((sum, width) => sum + width, 0) + gap * (parts.length - 1);
-  let x = (W - total) / 2;
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "#FFFFFF";
-  ctx.strokeStyle = "rgba(255,255,255,0.9)";
-  ctx.lineWidth = 2;
-  parts.forEach((part, index) => {
-    strokeIcon(ctx, x + 10, y, part.icon);
-    ctx.textAlign = "left";
-    ctx.fillText(part.text, x + 30, y);
-    x += widths[index];
-    if (index < parts.length - 1) {
-      ctx.strokeStyle = "rgba(255,255,255,0.55)";
-      ctx.beginPath();
-      ctx.moveTo(x + 8, y - 14);
-      ctx.lineTo(x + 8, y + 14);
-      ctx.stroke();
-      ctx.strokeStyle = "rgba(255,255,255,0.9)";
-      x += gap;
-    }
-  });
-  ctx.strokeStyle = "rgba(255,255,255,0.45)";
-  ctx.beginPath();
-  ctx.moveTo(72, y + 32);
-  ctx.lineTo(W - 72, y + 32);
-  ctx.stroke();
+  const week = parsed.toLocaleDateString("en-GB", { weekday: "short" });
+  const rest = parsed.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  return {
+    top: `${week}, ${rest}`,
+    sub: `(${parsed.toLocaleDateString("tr-TR", { weekday: "long" })})`,
+    short: parsed.toLocaleDateString("tr-TR", { day: "numeric", month: "long" }),
+  };
 }
 
-function strokeIcon(ctx: CanvasRenderingContext2D, x: number, y: number, kind: number) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.beginPath();
-  if (kind === 0) {
-    ctx.rect(-8, -6, 16, 13);
-    ctx.moveTo(-5, -9);
-    ctx.lineTo(-5, -4);
-    ctx.moveTo(5, -9);
-    ctx.lineTo(5, -4);
-  } else if (kind === 1) {
-    ctx.arc(0, 0, 8, 0, Math.PI * 2);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -4);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(4, 2);
-  } else {
-    ctx.arc(0, -2, 5, 0, Math.PI * 2);
-    ctx.moveTo(-6, 8);
-    ctx.lineTo(0, -1);
-    ctx.lineTo(6, 8);
-  }
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawBadge(ctx: CanvasRenderingContext2D, sans: string, y: number, label: string) {
-  ctx.font = `600 22px ${sans}`;
-  const width = ctx.measureText(label).width + 44;
-  const x = (W - width) / 2;
-  ctx.strokeStyle = "rgba(255,255,255,0.85)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x, y, width, 40, 20);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x - 92, y + 20);
-  ctx.lineTo(x - 16, y + 20);
-  ctx.moveTo(x + width + 16, y + 20);
-  ctx.lineTo(x + width + 92, y + 20);
-  ctx.stroke();
-  ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(label, W / 2, y + 21);
-  return y + 40;
-}
-
-function drawPeople(
+function drawSlotPhoto(
   ctx: CanvasRenderingContext2D,
-  sans: string,
-  people: SpeakerLineupPerson[],
-  photos: Map<string, HTMLImageElement | null>,
-  top: number,
-  english: boolean,
-) {
-  const lead = people.length >= 3 ? people[0] : null;
-  const rest = lead ? people.slice(1) : people;
-  let y = top;
-  if (lead) {
-    drawFeatured(ctx, sans, lead, photos.get(lead.photoPath) || null, y, roleLabel(lead, 1, english));
-    y += 236;
-  }
-  if (!rest.length) return;
-  const perRow = rest.length <= 4 ? rest.length : rest.length <= 6 ? 3 : 4;
-  const rows: SpeakerLineupPerson[][] = [];
-  for (let index = 0; index < rest.length; index += perRow) rows.push(rest.slice(index, index + perRow));
-  const room = 1210 - y;
-  const rowHeight = Math.min(250, room / rows.length);
-  const radius = Math.max(46, Math.min(86, rowHeight * 0.32));
-  let speakerNo = lead && lead.role !== "moderator" ? 2 : 1;
-  rows.forEach((row, rowIndex) => {
-    const cy = y + rowIndex * rowHeight + radius + 8;
-    const gap = W / (row.length + 1);
-    row.forEach((person, index) => {
-      const number = person.role === "moderator" || person.role === "acilis" || person.role === "kapanis" ? 1 : speakerNo++;
-      drawPortrait(ctx, photos.get(person.photoPath) || null, gap * (index + 1), cy, radius, person.name);
-      const label = roleLabel(person, number, english);
-      const name = cardName(person);
-      let textY = cy + radius + 16;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillStyle = "#D9FFE8";
-      ctx.font = `600 18px ${sans}`;
-      ctx.fillText(label, gap * (index + 1), textY);
-      textY += 24;
-      const lines = fitLines(ctx, name, gap - 16, `600 22px ${sans}`, 15, 2);
-      ctx.fillStyle = "#FFFFFF";
-      for (const line of lines) {
-        ctx.font = `600 ${line.size}px ${sans}`;
-        ctx.fillText(line.text, gap * (index + 1), textY);
-        textY += line.size + 2;
-      }
-      if (person.organization) {
-        const org = fitLines(ctx, person.organization, gap - 12, `600 16px ${sans}`, 12, 2);
-        ctx.fillStyle = "rgba(255,255,255,0.82)";
-        for (const line of org) {
-          ctx.font = `600 ${line.size}px ${sans}`;
-          ctx.fillText(line.text, gap * (index + 1), textY);
-          textY += line.size + 2;
-        }
-      }
-    });
-  });
-}
-
-function drawFeatured(
-  ctx: CanvasRenderingContext2D,
-  sans: string,
-  person: SpeakerLineupPerson,
   photo: HTMLImageElement | null,
+  x: number,
   y: number,
-  label: string,
+  radius: number,
+  name: string,
+  sans: string,
 ) {
-  const cx = 230;
-  const cy = y + 96;
-  drawPortrait(ctx, photo, cx, cy, 88, person.name);
-  const x = 360;
-  let textY = y + 36;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  ctx.fillStyle = "#D9FFE8";
-  ctx.font = `600 26px ${sans}`;
-  ctx.fillText(label, x, textY);
-  textY += 36;
-  const name = fitLines(ctx, cardName(person), 640, `600 36px ${sans}`, 22, 2);
-  ctx.fillStyle = "#FFFFFF";
-  for (const line of name) {
-    ctx.font = `600 ${line.size}px ${sans}`;
-    ctx.fillText(line.text, x, textY);
-    textY += line.size + 4;
-  }
-  if (person.organization) {
-    textY += 6;
-    const org = fitLines(ctx, person.organization, 640, `600 22px ${sans}`, 16, 2);
-    ctx.fillStyle = "rgba(255,255,255,0.84)";
-    for (const line of org) {
-      ctx.font = `600 ${line.size}px ${sans}`;
-      ctx.fillText(line.text, x, textY);
-      textY += line.size + 3;
-    }
-  }
-}
-
-function drawPortrait(ctx: CanvasRenderingContext2D, photo: HTMLImageElement | null, x: number, y: number, radius: number, name: string) {
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(x, y, radius + 14, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(210, 255, 236, 0.35)";
-  ctx.lineWidth = 10;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.92)";
-  ctx.lineWidth = 4;
-  ctx.stroke();
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.clip();
@@ -451,44 +289,26 @@ function drawPortrait(ctx: CanvasRenderingContext2D, photo: HTMLImageElement | n
     const h = photo.height * scale;
     ctx.drawImage(photo, x - w / 2, y - h / 2, w, h);
   } else {
-    ctx.fillStyle = "#0C4A45";
+    ctx.fillStyle = "#E7F6F2";
     ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = "#0E7A64";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `600 ${Math.round(radius * 0.55)}px "Segoe UI", sans-serif`;
+    ctx.font = `600 ${Math.round(radius * 0.46)}px ${sans}`;
     ctx.fillText(initials(name), x, y);
   }
   ctx.restore();
 }
 
-function shortDate(iso: string, english: boolean) {
-  const parsed = new Date(`${iso}T12:00:00`);
-  if (!iso || Number.isNaN(parsed.getTime())) return english ? "9–20 November" : "9–20 Kasım";
-  return parsed.toLocaleDateString(english ? "en-GB" : "tr-TR", { day: "numeric", month: "long" });
-}
 
 function clockLabel(session: SpeakerSession | null) {
   return [session?.startTime, session?.endTime].filter(Boolean).join(" – ");
 }
 
-function placeLabel(location: string, english: boolean) {
+function placeLabel(location: string) {
   const fold = location.toLocaleLowerCase("tr-TR");
-  if (!location.trim() || fold.includes("ana sahne")) return english ? "Health Pavilion" : "Sağlık Bakanlığı Pavilyonu";
+  if (!location.trim() || fold.includes("ana sahne")) return "Sağlık Bakanlığı Pavyonu";
   return location;
-}
-
-function badgeLabel(kind: string, english: boolean) {
-  if (kind === "sunum") return english ? "TALK" : "SUNUM";
-  if (kind === "acilis") return english ? "OPENING" : "AÇILIŞ";
-  return "PANEL";
-}
-
-function roleLabel(person: SpeakerLineupPerson, number: number, english: boolean) {
-  if (person.role === "moderator") return english ? "Moderator" : "Moderatör";
-  if (person.role === "acilis") return english ? "Opening" : "Açılış";
-  if (person.role === "kapanis") return english ? "Close" : "Kapanış";
-  return english ? `Speaker ${number}` : `Konuşmacı ${number}`;
 }
 
 function cardName(person: SpeakerLineupPerson) {
