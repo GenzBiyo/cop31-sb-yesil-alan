@@ -27,15 +27,23 @@ export async function PATCH(req: NextRequest) {
   const current = await prisma.ambassadorApplication.findUnique({ where: { id: body.id } });
   if (!current) return jsonError("Başvuru yok", 404);
 
-  const data: { status?: string; adminNote?: string } = {};
+  const data: { status?: string; adminNote?: string; canCreatePanel?: boolean } = {};
   if (body.status) data.status = body.status;
   if (body.adminNote !== undefined) data.adminNote = body.adminNote;
+  if (typeof body.canCreatePanel === "boolean") {
+    const nextStatus = data.status || current.status;
+    if (body.canCreatePanel && !isAmbassadorAccepted(nextStatus)) {
+      return jsonError("Panel yetkisi yalnızca kabul edilen elçiye verilir", 403);
+    }
+    data.canCreatePanel = body.canCreatePanel;
+  }
+  if (data.status && !isAmbassadorAccepted(data.status)) data.canCreatePanel = false;
   const updated = await prisma.ambassadorApplication.update({ where: { id: body.id }, data });
 
   let mailWarning = "";
   const accepted = isAmbassadorAccepted(updated.status);
   const cardUrl = accepted ? ambassadorCardUrl(updated.id) : "";
-  if (body.notify !== false && updated.email) {
+  if (body.status && body.notify !== false && updated.email) {
     const statusLine =
       updated.status === "Kabul edildi"
         ? "Başvurunuz kabul edilmiştir. Yerleştirme ve saha bilgisi ayrıca iletilecektir."

@@ -5,6 +5,7 @@ import { pendingProposalCounts } from "@/lib/proposals";
 import { memoGet, memoSet } from "@/lib/memo";
 import { renameAstorgToOxoid } from "@/lib/oxoid";
 import { unitOfEmail, unitTitle } from "@/lib/unit-accounts";
+import { elciMayCreatePanel } from "@/lib/elci-panel";
 
 export async function GET() {
   const session = await readSession();
@@ -18,8 +19,9 @@ export async function GET() {
     return jsonError("Oturum yok", 401);
   }
   const meKey = `me:${session.id}`;
+  const canCreatePanel = session.role === "ELCI" ? await elciMayCreatePanel(session.email) : false;
   const cachedMe = memoGet<Record<string, unknown>>(meKey, 8000);
-  if (cachedMe) return jsonOk(cachedMe);
+  if (cachedMe) return jsonOk({ ...cachedMe, canCreatePanel });
   await renameAstorgToOxoid();
   const staff = session.role === "ADMIN" || session.role === "SAGLIK";
   const heavyKey = `me-heavy:${session.id}:${session.role}`;
@@ -84,6 +86,7 @@ export async function GET() {
       pendingGameSponsors,
       pendingSpeakers,
       pendingAmbassadors,
+      canCreatePanel,
     }),
   );
 }

@@ -8,6 +8,7 @@ import { THEME_TR } from "@/lib/constants";
 import { venueBookingError } from "@/lib/venue-booking";
 import { canonicalVenue, SB_PAVILYON } from "@/lib/venues";
 import { notifySbProposal, PENDING } from "@/lib/proposals";
+import { elciMayCreatePanel } from "@/lib/elci-panel";
 import { companyPanelWhere, isOwnParticipant } from "@/lib/company-panels";
 
 function guestsFromBody(body: {
@@ -59,7 +60,7 @@ export async function GET() {
     panels: visible.map((p) => ({
       ...p,
       companyName: names.get(p.companyId) || "",
-      mine: mine.has(p.id),
+      mine: mine.has(p.id) || (user.role === "ELCI" && p.proposedById === user.id),
       participants: firm ? p.participants.map((row) => ({ ...row, own: isOwnParticipant(row, firm) })) : p.participants,
     })),
     days: Object.entries(THEME_TR).map(([date, theme]) => ({ date, theme })),
@@ -86,11 +87,14 @@ export async function POST(req: NextRequest) {
     });
     return jsonOk(person, 201);
   }
+  const fromElci = user.role === "ELCI" && (await elciMayCreatePanel(user.email));
+  if (user.role === "ELCI" && !fromElci) return jsonError("Yetkiniz yok", 403);
   if (user.role === "FIRMA" && !user.companyId) return jsonError("Firma hesabı gerekli", 403);
-  if (user.role !== "FIRMA" && !canManage(user.role)) return jsonError("Yetkiniz yok", 403);
+  if (user.role !== "FIRMA" && user.role !== "ELCI" && !canManage(user.role)) return jsonError("Yetkiniz yok", 403);
   if (!String(body.title || "").trim()) return jsonError("Başlık gerekli");
   if (!body.date) return jsonError("Gün seçin");
   const kind = body.kind === "sunum" ? "sunum" : "panel";
+  if (fromElci && kind !== "panel") return jsonError("Elçi yalnızca panel ekleyebilir", 403);
   const location = canonicalVenue(String(body.location || "")) || SB_PAVILYON;
   const startTime = String(body.startTime || "");
   const endTime = String(body.endTime || "");
@@ -115,7 +119,7 @@ export async function POST(req: NextRequest) {
       summary: String(body.summary || ""),
       concept: typeof body.concept === "string" ? body.concept : JSON.stringify(body.concept || {}),
       companyId: fromFirma ? user.companyId || "" : "",
-      proposedById: fromFirma ? user.id : "",
+      proposedById: fromFirma || fromElci ? user.id : "",
     },
   });
   if (Array.isArray(body.guests)) {
@@ -125,10 +129,10 @@ export async function POST(req: NextRequest) {
     await setPanelGuests(panel.id, moderator, speakers);
   }
   if (!fromFirma) await syncPanelAgenda(panel);
-  if (fromFirma) {
+  if (fromFirma || fromElci) {
     await notifySbProposal({
-      title: kind === "sunum" ? "Firma sunum önerisi" : "Firma panel önerisi",
-      body: `${company?.name || user.name}: ${panel.title} · ${panel.date} ${panel.startTime}–${panel.endTime}`,
+      title: fromElci ? "Elçi panel ekledi" : kind === "sunum" ? "Firma sunum önerisi" : "Firma panel önerisi",
+      body: `${fromElci ? user.name : company?.name || user.name}: ${panel.title} · ${panel.date} ${panel.startTime}–${panel.endTime}`,
       href: kind === "sunum" ? "/sunumlar" : "/paneller",
     });
   }

@@ -1233,6 +1233,13 @@ export const EN_EXTRA: Record<string, string> = {
   "Dijital oyun": "Digital game",
   "Dijital oyunlar": "Digital games",
   "Endüstri panelleri": "Industry panels",
+  "Yetkiniz açık. Eklediğiniz panel programa yazılır. Yalnızca kendi eklediğiniz paneli düzenleyebilirsiniz.":
+    "Your permission is on. A panel you add is written into the programme. You can edit only the panels you added.",
+  "Panel oluşturma yetkiniz yok. Sağlık Bakanlığı bu yetkiyi elçi kaydınızdan açabilir.":
+    "You do not have permission to create a panel. The Ministry of Health can turn this on from your ambassador record.",
+  "Panel yetkisi ver": "Grant panel permission",
+  "Panel yetkisini kapat": "Remove panel permission",
+  "Panel yetkisi": "Panel permission",
   "Dijital oyun önerin. Sağlık Bakanlığı onaylayınca QR açılır ve programa düşer.":
     "Propose a digital game. The QR and the programme open after the Ministry of Health approves it.",
   "Etkinlikler yalnızca dijital oyunlardır: soru-cevap, çark, hafıza, kilo karbon ve hatıra fotoğrafı. Her slot 1 saattir.":

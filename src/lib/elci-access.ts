@@ -8,6 +8,7 @@ export const ELCI_PAGES = [
   "/anonslar",
   "/uygunluk",
   "/elci-masa",
+  "/paneller",
 ];
 
 const ELCI_API = [
@@ -27,6 +28,7 @@ const ELCI_API = [
   "/api/realtime",
   "/api/qr",
   "/api/pdf/program",
+  "/api/panels",
 ];
 
 export function elciCanOpen(pathname: string) {

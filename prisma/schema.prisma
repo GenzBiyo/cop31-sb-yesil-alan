@@ -326,6 +326,7 @@ model AmbassadorApplication {
   extra          String                 @default("{}")
   status         String                 @default("Beklemede")
   adminNote      String                 @default("")
+  canCreatePanel Boolean                @default(false)
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
   placements     AmbassadorPlacement[]

@@ -58,6 +58,7 @@ type Me = {
   accountKind?: string;
   companyName?: string;
   unit?: string;
+  canCreatePanel?: boolean;
 };
 
 const NAV: { href: string; label: string; icon: typeof Bell; roles: string[]; firmTools?: boolean }[] = [
@@ -162,7 +163,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const kind = accountKind(me?.accountKind);
   const unit = me?.unit || unitOfEmail(me?.email);
   const items = useMemo(() => {
-    if (me?.role === "ELCI") return ELCI_NAV;
+    if (me?.role === "ELCI") {
+      if (!me.canCreatePanel) return ELCI_NAV;
+      return [ELCI_NAV[0], { href: "/paneller", label: "Paneller", icon: Mic2 }, ...ELCI_NAV.slice(1)];
+    }
     if (unit) return UNIT_NAV;
     return NAV.filter((n) => me && n.roles.includes(me.role) && !(me.role === "FIRMA" && n.firmTools && !kind.firmTools));
   }, [me, kind.firmTools, unit]);

@@ -11,6 +11,7 @@ import { venueBookingError } from "@/lib/venue-booking";
 import { canonicalVenue } from "@/lib/venues";
 import { APPROVED, notifyCompanyDecision, notifySbProposal, PENDING, REJECTED } from "@/lib/proposals";
 import { SPEAKER_PENDING, SPEAKER_REJECTED } from "@/lib/speakers";
+import { elciMayCreatePanel } from "@/lib/elci-panel";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { user, error } = await withUser();
@@ -55,7 +56,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   }
 
   const ownPending = user.role === "FIRMA" && existing.companyId === user.companyId && existing.status === PENDING;
-  if (!canManage(user.role) && !ownPending) return jsonError("Yetkiniz yok", 403);
+  const ownElci =
+    user.role === "ELCI" && existing.proposedById === user.id && existing.kind !== "sunum" && (await elciMayCreatePanel(user.email));
+  if (!canManage(user.role) && !ownPending && !ownElci) return jsonError("Yetkiniz yok", 403);
 
   const data: Record<string, unknown> = {};
   if (body.title != null) data.title = String(body.title).trim();
@@ -115,7 +118,9 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
   const existing = await prisma.panel.findUnique({ where: { id } });
   if (!existing) return jsonError("Panel yok", 404);
   const ownPending = user.role === "FIRMA" && existing.companyId === user.companyId && existing.status === PENDING;
-  if (!canManage(user.role) && !ownPending) return jsonError("Yetkiniz yok", 403);
+  const ownElci =
+    user.role === "ELCI" && existing.proposedById === user.id && existing.kind !== "sunum" && (await elciMayCreatePanel(user.email));
+  if (!canManage(user.role) && !ownPending && !ownElci) return jsonError("Yetkiniz yok", 403);
   await prisma.agendaItem.deleteMany({ where: { panelId: id } });
   await prisma.panel.delete({ where: { id } });
   broadcast({ type: "panel" });

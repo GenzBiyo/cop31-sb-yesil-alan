@@ -37,6 +37,7 @@ type Application = {
   extra: string;
   status: string;
   adminNote: string;
+  canCreatePanel?: boolean;
   createdAt: string;
   placements: Placement[];
 };
@@ -128,6 +129,25 @@ export default function AmbassadorsAdminPage() {
     }
   }
 
+  async function togglePanel(app: Application) {
+    setBusyId(app.id);
+    setError("");
+    setInfo("");
+    try {
+      const next = !app.canCreatePanel;
+      await api("/api/ambassador/applications", {
+        method: "PATCH",
+        body: JSON.stringify({ id: app.id, canCreatePanel: next, notify: false }),
+      });
+      setInfo(next ? `${app.fullName} artık panel oluşturabilir.` : `${app.fullName} için panel yetkisi kapatıldı.`);
+      await apps.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tx("Yetki kaydedilemedi"));
+    } finally {
+      setBusyId("");
+    }
+  }
+
   async function decide(status: string) {
     if (!open) return;
     await decideApp(open, status, { note, message });
@@ -192,6 +212,19 @@ export default function AmbassadorsAdminPage() {
                       <span className={`badge ${a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? "ok" : a.status === "Reddedildi" ? "high" : "warn"}`}>{a.status}</span>
                       {a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? (
                         <a className="block text-xs text-[#0077C2] underline mt-1" href={`/elci/kart/${a.id}`} target="_blank" onClick={(e) => e.stopPropagation()}>Kabul belgesi</a>
+                      ) : null}
+                      {a.status === "Kabul edildi" || a.status === "Yerleştirildi" ? (
+                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                          {a.canCreatePanel ? <span className="badge ok">Panel yetkisi</span> : null}
+                          <button
+                            type="button"
+                            className="btn ghost px-2 py-1 text-xs mt-1"
+                            disabled={busyId === a.id}
+                            onClick={() => void togglePanel(a)}
+                          >
+                            {a.canCreatePanel ? "Panel yetkisini kapat" : "Panel yetkisi ver"}
+                          </button>
+                        </div>
                       ) : null}
                       {a.status === "Beklemede" || a.status === "Yedek" ? (
                         <div className="flex flex-wrap gap-1 mt-2" onClick={(e) => e.stopPropagation()}>

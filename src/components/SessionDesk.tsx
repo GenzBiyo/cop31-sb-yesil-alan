@@ -39,6 +39,7 @@ type Session = {
   concept?: string;
   companyName?: string;
   companyId?: string;
+  proposedById?: string;
   mine?: boolean;
   participants: Participant[];
   messages: { id: string; authorId: string; body: string; createdAt: string }[];
@@ -330,13 +331,14 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
   const { tx } = useI18n();
   const talk = mode === "sunum";
   const { data, reload } = useApi<{ panels: Session[] }>("/api/panels");
-  const { data: me } = useApi<{ role: string; companyId?: string | null }>("/api/auth/me");
+  const { data: me } = useApi<{ id: string; role: string; companyId?: string | null; canCreatePanel?: boolean }>("/api/auth/me");
   const canReview = me?.role === "ADMIN" || me?.role === "SAGLIK";
   const { data: speakerData, reload: reloadSpeakers } = useApi<{
     speakers: { id: string; name: string; title: string; organization: string; photoPath: string; status: string; active: boolean }[];
   }>(canReview ? "/api/speakers" : null);
   const speakerChoices = useMemo(() => uniqueSpeakers(speakerData?.speakers || []), [speakerData]);
   const isFirma = me?.role === "FIRMA";
+  const isElci = me?.role === "ELCI" && !!me.canCreatePanel;
   const [openId, setOpenId] = useState<string | null>(null);
   const openedFromQuery = useRef(false);
 
@@ -407,6 +409,7 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
 
   function canEdit(session: Session) {
     if (canReview) return true;
+    if (me?.role === "ELCI") return !!me.canCreatePanel && session.proposedById === me.id;
     return isFirma && session.status === "Onay bekliyor" && session.companyId === (me?.companyId || "");
   }
 
@@ -449,7 +452,9 @@ export function SessionDesk({ mode }: { mode: "panel" | "sunum" }) {
       <div>
         <h1 className="display text-4xl">{tx(talk ? "Konuşmalar ve sunumlar" : "Paneller")}</h1>
         <p className="text-[#57534e]">
-          {isFirma
+          {isElci
+            ? tx("Yetkiniz açık. Eklediğiniz panel programa yazılır. Yalnızca kendi eklediğiniz paneli düzenleyebilirsiniz.")
+            : isFirma
             ? tx(talk ? "Konuşma veya sunum önerin. Onaylanınca programa yazılır." : "Panel önerin. Onaylanınca programa yazılır.")
             : tx(talk
               ? "Konuşmalar ve sunumlar buradan eklenir. Satıra tıklayınca özet ve detaylı konsept düzenlenir."
