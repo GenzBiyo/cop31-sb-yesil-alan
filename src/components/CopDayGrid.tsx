@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import type { PlanDay, PlanItem, PlanKind } from "@/lib/plan-types";
+import { isIndustryPanel } from "@/lib/industry-panels";
 import { PAVILION_CLOSED } from "@/lib/pavilion-program";
 import { useI18n } from "@/components/I18nProvider";
+import "./industry-calendar.css";
 
 const DAY_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
@@ -31,25 +33,33 @@ const KIND: Record<PlanKind, { label: string; color: string; bg: string }> = {
   program: { label: "Program", color: "#3E5568", bg: "#E8EEF2" },
 };
 
-export type ProgramFilter = "all" | "panel" | "sunum" | "event";
+export type ProgramFilter = "all" | "panel" | "sunum" | "event" | "industry";
 
 const FILTERS: { id: ProgramFilter; label: string }[] = [
   { id: "all", label: "Tümü Göster" },
   { id: "panel", label: "Paneller" },
+  { id: "industry", label: "Endüstri panelleri" },
   { id: "sunum", label: "Konuşmalar" },
   { id: "event", label: "Dijital oyunlar" },
 ];
 
-export function planMatchesFilter(kind: PlanKind, filter: ProgramFilter) {
-  return filter === "all" || kind === filter;
+export function planMatchesFilter(item: PlanItem, filter: ProgramFilter) {
+  if (filter === "industry") return Boolean(item.industry);
+  return filter === "all" || item.kind === filter;
 }
 
-export function agendaMatchesFilter(type: string, filter: ProgramFilter) {
-  if (!/panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(type)) return false;
+export function agendaMatchesFilter(
+  item: { type: string; title?: string; startTime?: string; date?: string },
+  filter: ProgramFilter,
+) {
+  if (filter === "industry") {
+    return Boolean(item.date && item.startTime && item.title && isIndustryPanel({ date: item.date, startTime: item.startTime, title: item.title }));
+  }
+  if (!/panel|sunum|seminer|quick talk|konuşma|etkinlik|deneyim|oyun/i.test(item.type)) return false;
   if (filter === "all") return true;
-  if (filter === "panel") return /panel/i.test(type);
-  if (filter === "sunum") return /sunum|seminer|quick talk|konuşma/i.test(type);
-  return /etkinlik|deneyim|oyun/i.test(type);
+  if (filter === "panel") return /panel/i.test(item.type);
+  if (filter === "sunum") return /sunum|seminer|quick talk|konuşma/i.test(item.type);
+  return /etkinlik|deneyim|oyun/i.test(item.type);
 }
 
 export function ProgramFilterBar({
@@ -112,7 +122,7 @@ export function CopDayGrid({
       {onFilterChange ? <ProgramFilterBar value={filter} onChange={onFilterChange} /> : null}
       <div className="cop-day-grid">
         {days.map((d) => {
-          const items = d.items.filter((item) => planMatchesFilter(item.kind, filter));
+          const items = d.items.filter((item) => planMatchesFilter(item, filter));
           const counts = {
             panel: items.filter((i) => i.kind === "panel").length,
             sunum: items.filter((i) => i.kind === "sunum").length,
@@ -146,7 +156,7 @@ export function CopDayGrid({
                   <div key={item.id} className="cop-day-slot">
                     <span className="tabular-nums text-[#0077C2] font-bold">{item.startTime || "—"}</span>
                     <PlanChip kind={item.kind} />
-                    <span className="truncate text-[#0B1C33]">{tx(item.title)}</span>
+                    <span className={`truncate text-[#0B1C33] ${item.industry ? "is-industry" : ""}`}>{tx(item.title)}</span>
                   </div>
                 ))}
                 {items.length > limit ? (
@@ -180,7 +190,7 @@ export function PavilionHourBoard({
           <tr>
             <th>{tx("Saat")}</th>
             {days.map((day) => {
-              const items = day.items.filter((item) => planMatchesFilter(item.kind, filter) && clockMinutes(item.startTime) != null);
+              const items = day.items.filter((item) => planMatchesFilter(item, filter) && clockMinutes(item.startTime) != null);
               const free = PAVILION_CLOSED.includes(day.date) ? 0 : DAY_HOURS.filter((hour) => itemsAtHour(items, hour).length === 0).length;
               const on = selected === day.date;
               return (
@@ -201,7 +211,7 @@ export function PavilionHourBoard({
               <th>{String(hour).padStart(2, "0")}:00</th>
               {days.map((day) => {
                 const closed = PAVILION_CLOSED.includes(day.date);
-                const items = closed ? [] : itemsAtHour(day.items.filter((item) => planMatchesFilter(item.kind, filter)), hour);
+                const items = closed ? [] : itemsAtHour(day.items.filter((item) => planMatchesFilter(item, filter)), hour);
                 return (
                   <td key={day.date} className={closed ? "is-closed" : items.length ? "is-busy" : "is-free"}>
                     {closed ? (hour === 13 ? tx("Yeşil Alan kapalı") : "") : items.length ? (
@@ -209,7 +219,7 @@ export function PavilionHourBoard({
                         {items.map((item) => (
                           <span key={item.id} title={`${item.startTime}–${item.endTime} ${item.title}`}>
                             <PlanChip kind={item.kind} />
-                            {tx(item.title)}
+                            <span className={item.industry ? "is-industry" : ""}>{tx(item.title)}</span>
                           </span>
                         ))}
                       </button>
@@ -230,7 +240,7 @@ export function PavilionHourBoard({
 export function CopDayDetail({ day, filter = "all" }: { day: PlanDay | null; filter?: ProgramFilter }) {
   const { tx } = useI18n();
   if (!day) return null;
-  const items = day.items.filter((item) => planMatchesFilter(item.kind, filter));
+  const items = day.items.filter((item) => planMatchesFilter(item, filter));
   return (
     <div className="card p-5 space-y-3">
       <div>
@@ -252,9 +262,9 @@ export function CopDayDetail({ day, filter = "all" }: { day: PlanDay | null; fil
               <div className="flex flex-wrap gap-2 items-center">
                 <PlanChip kind={item.kind} />
                 {item.href ? (
-                  <Link href={item.href} className="font-semibold hover:underline">{item.title}</Link>
+                  <Link href={item.href} className={`${item.industry ? "is-industry" : "font-semibold"} hover:underline`}>{item.title}</Link>
                 ) : (
-                  <span className="font-semibold">{item.title}</span>
+                  <span className={item.industry ? "is-industry" : "font-semibold"}>{item.title}</span>
                 )}
               </div>
               <p className="text-xs text-[#57534e] mt-1">

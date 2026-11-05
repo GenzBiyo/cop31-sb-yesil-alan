@@ -3,6 +3,7 @@ import { COP_DATES, copDayMeta } from "./cop-days";
 import { hideNonDigitalEvents } from "./events-db";
 import { isDigitalType } from "./event-slots";
 import { memoGet, memoSet } from "./memo";
+import { isIndustryPanel } from "./industry-panels";
 import type { PlanDay, PlanItem, PlanKind } from "./plan-types";
 
 export type { PlanDay, PlanItem, PlanKind } from "./plan-types";
@@ -83,6 +84,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
       location: panel.location,
       people: peopleLine(panel.participants),
       href: kind === "sunum" ? "/sunumlar" : "/paneller",
+      industry: isIndustryPanel(panel),
     });
     byDate.set(panel.date, list);
   }
@@ -117,6 +119,7 @@ export async function loadDayPlan(): Promise<PlanDay[]> {
         location: item.location,
         people: item.type,
         href: "/program",
+        industry: isIndustryPanel({ date: day.date, startTime: item.startTime, title: item.title }),
       });
       byDate.set(day.date, list);
     }

@@ -23,6 +23,7 @@ export type SpeakerSession = {
   headline: string;
   theme: string;
   summary: string;
+  industry: boolean;
   lineup: SpeakerLineupPerson[];
 };
 

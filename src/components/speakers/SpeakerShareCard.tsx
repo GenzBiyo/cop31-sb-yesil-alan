@@ -170,13 +170,14 @@ async function paintCard(speaker: SpeakerShare, session: SpeakerSession | null, 
       }]).slice(0, 5);
   const photos = await Promise.all(people.map((person) => (person.photoPath ? loadImage(person.photoPath) : Promise.resolve(null))));
   const title = session?.title || (english ? "Health Pavilion" : "Sağlık Pavyonu");
-  const titleLines = fitLines(ctx, title, X(400), `600 ${X(42)}px ${fonts.sans}`, X(22), 2);
+  const titleWeight = session?.industry ? 800 : 600;
+  const titleLines = fitLines(ctx, title, X(400), `${titleWeight} ${X(42)}px ${fonts.sans}`, X(22), 2);
   let y = Y(176);
   titleLines.forEach((line, index) => {
     ctx.fillStyle = index === titleLines.length - 1 ? "#178A45" : "#123C46";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.font = `600 ${line.size}px ${fonts.sans}`;
+    ctx.font = `${titleWeight} ${line.size}px ${fonts.sans}`;
     ctx.fillText(line.text, X(36), y);
     y += line.size + Y(4);
   });

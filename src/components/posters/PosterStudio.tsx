@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { CalendarDays, Clock3, Download, MapPin, Upload } from "lucide-react";
+import { isIndustryPanel } from "@/lib/industry-panels";
 import { foldName } from "@/lib/speaker-names";
 import "./poster-studio.css";
 
@@ -20,6 +21,7 @@ type Data = {
   ministryLogo: string;
   copLogo: string;
   footer: string;
+  industry: boolean;
 };
 
 export type StudioPanel = {
@@ -79,6 +81,7 @@ const sample: Data = {
   ministryLogo: LIGHT_LOGOS.ministryLogo,
   copLogo: LIGHT_LOGOS.copLogo,
   footer: "GREEN FINANCE • GREEN FUTURE",
+  industry: true,
 };
 
 const FIELDS = [
@@ -134,7 +137,7 @@ function Meta({ d }: { d: Data }) {
 
 function Dark({ d }: { d: Data }) {
   return (
-    <article className="poster dark">
+    <article className={`poster dark${d.industry ? " is-industry" : ""}`}>
       <header className="brands">
         <Logo src={d.ministryLogo} label="T.C. SAĞLIK BAKANLIĞI" />
         <i />
@@ -172,7 +175,7 @@ function Dark({ d }: { d: Data }) {
 
 function Light({ d }: { d: Data }) {
   return (
-    <article className="poster light">
+    <article className={`poster light${d.industry ? " is-industry" : ""}`}>
       <header className="brands">
         <Logo src={d.copLogo} label="COP31 TÜRKİYE · ANTALYA" />
         <i />
@@ -297,6 +300,7 @@ function fromPanel(panel: StudioPanel, photos: Map<string, string>, logos: Pick<
     ministryLogo: logos.ministryLogo,
     copLogo: logos.copLogo,
     footer: "SAĞLIK PAVYONU",
+    industry: isIndustryPanel({ date: panel.date, startTime: panel.startTime, title: panel.title }),
   };
 }
 
@@ -408,6 +412,7 @@ export function PosterStudio({ panels, speakers }: { panels: StudioPanel[]; spea
             </select>
           </label>
           <p className="hint">Şablon bir moderatör ve üç konuşmacı gösterir. Panelde daha fazla kişi varsa ilk üçü gelir; metin, logo ve fotoğrafı buradan değiştirebilirsiniz.</p>
+          {data.industry ? <p className="hint">Bu oturum endüstri paneli. Başlık kalın yazılır.</p> : null}
           {exportError ? <p className="hint">{exportError}</p> : null}
           <fieldset>
             <legend>Etkinlik bilgileri</legend>

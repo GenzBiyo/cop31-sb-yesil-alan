@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { isIndustryPanel } from "./industry-panels";
 import { foldName } from "./speaker-names";
 import { formatSessionWhen, type SpeakerLineupPerson, type SpeakerSession, type SpeakerShare } from "./speaker-share";
 import { SPEAKER_APPROVED } from "./speakers";
@@ -100,6 +101,7 @@ export async function loadSpeakerShare(id: string): Promise<SpeakerShare | null>
       talkTitle: mine.talkTitle,
       theme: mine.panel.theme || mine.panel.topic,
       summary: mine.panel.summary,
+      industry: isIndustryPanel(mine.panel),
       when: formatSessionWhen(mine.panel.date, mine.panel.startTime, mine.panel.endTime),
       lead: copy.lead,
       headline: copy.headline,

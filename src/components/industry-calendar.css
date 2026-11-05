@@ -1,0 +1,12 @@
+.program-filter-btn[data-kind="industry"].is-on {
+  background: #0B1C33;
+  color: #fff;
+  border-color: #0B1C33;
+  font-weight: 800;
+}
+.phone-card h3.is-industry,
+.hour-board td.is-busy span.is-industry,
+.cop-day-slot .is-industry,
+.is-industry {
+  font-weight: 800;
+}

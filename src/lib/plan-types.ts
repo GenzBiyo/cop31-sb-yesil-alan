@@ -9,6 +9,7 @@ export type PlanItem = {
   location: string;
   people: string;
   href?: string;
+  industry?: boolean;
 };
 
 export type PlanDay = {

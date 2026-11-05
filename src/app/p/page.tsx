@@ -64,7 +64,7 @@ export default function PublicProgramPage() {
       <div className="max-w-3xl mx-auto p-5 space-y-6">
         <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
         {grouped.map(([date, block]) => {
-          const agenda = (block.day?.agenda || []).filter((item) => agendaMatchesFilter(item.type, programFilter));
+          const agenda = (block.day?.agenda || []).filter((item) => agendaMatchesFilter({ ...item, date }, programFilter));
           const events = programFilter === "all" || programFilter === "event" ? block.events : [];
           if (!agenda.length && !events.length) return null;
           return (
@@ -75,7 +75,8 @@ export default function PublicProgramPage() {
               const past = slotIsPast(date, a.endTime);
               const body = (
                 <>
-                  <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span> {tx(a.title)}
+                  <span className="text-[#0077C2]">{a.startTime}–{a.endTime}</span>{" "}
+                  <span className={agendaMatchesFilter({ ...a, date }, "industry") ? "is-industry" : ""}>{tx(a.title)}</span>
                   {a.description && !a.description.includes("boşluğu") ? <div className="text-sm text-[#3E6A88] mt-1 line-clamp-3">{tx(a.description)}</div> : null}
                   <div className="text-xs text-[#57534e]">{tx(a.type)} · {tx(a.location)} · {past ? tx("Geçti") : a.description && !a.description.includes("boşluğu") ? tx("Özeti oku ve kayıt ol") : tx("QR ile kayıt")}</div>
                 </>

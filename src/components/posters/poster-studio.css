@@ -13,6 +13,8 @@
 .poster-studio .dark .section-title{margin:0.5% 0}
 .poster-studio .dark .meta{margin-top:1%;padding:1.8%}
 .poster-studio .dark footer{margin-top:1.2%}
+.poster-studio .poster h1{font-weight:600}
+.poster-studio .poster.is-industry h1{font-weight:800}
 .poster-studio .studio{max-width:none;padding:0}
 .poster-studio .editor{position:sticky;top:0;height:auto;max-height:calc(100vh - 150px)}
 @media(max-width:850px){.poster-studio .studio{padding:0}.poster-studio .editor{position:static;max-height:none}}

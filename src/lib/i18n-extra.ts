@@ -1232,6 +1232,7 @@ export const EN_EXTRA: Record<string, string> = {
     "Every hour from 09:00 to 19:00. A green cell is free; a filled cell shows the session.",
   "Dijital oyun": "Digital game",
   "Dijital oyunlar": "Digital games",
+  "Endüstri panelleri": "Industry panels",
   "Dijital oyun önerin. Sağlık Bakanlığı onaylayınca QR açılır ve programa düşer.":
     "Propose a digital game. The QR and the programme open after the Ministry of Health approves it.",
   "Etkinlikler yalnızca dijital oyunlardır: soru-cevap, çark, hafıza, kilo karbon ve hatıra fotoğrafı. Her slot 1 saattir.":

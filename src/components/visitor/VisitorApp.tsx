@@ -525,7 +525,7 @@ export function VisitorApp() {
             </div>
             {day ? <p className="phone-kicker">{day.theme}</p> : null}
             <ProgramFilterBar value={programFilter} onChange={setProgramFilter} />
-            {(day?.agenda || []).filter((item) => agendaMatchesFilter(item.type, programFilter)).map((item) => {
+            {(day?.agenda || []).filter((item) => agendaMatchesFilter({ ...item, date: day?.date }, programFilter)).map((item) => {
               const on = joined.has(`agenda:${item.id}`);
               const past = day ? slotIsPast(day.date, item.endTime) : false;
               return (
@@ -534,7 +534,7 @@ export function VisitorApp() {
                     <span className={`phone-type is-${item.type}`}>{tx(item.type)}</span>
                     <span>{item.startTime}–{item.endTime}</span>
                   </div>
-                  <h3>{item.title}</h3>
+                  <h3 className={day && agendaMatchesFilter({ ...item, date: day.date }, "industry") ? "is-industry" : ""}>{item.title}</h3>
                   <p>{item.location}</p>
                   {item.description.includes("boşluğu") && !conceptHasDetail(item.concept || emptyConcept()) ? null : (
                     <SessionBrief
@@ -552,7 +552,7 @@ export function VisitorApp() {
                 </article>
               );
             })}
-            {!day?.agenda.filter((item) => agendaMatchesFilter(item.type, programFilter)).length ? (
+            {!day?.agenda.filter((item) => agendaMatchesFilter({ ...item, date: day.date }, programFilter)).length ? (
               <p className="phone-muted">{tx(programFilter === "all" ? "Bu gün için oturum yok." : "Bu filtrede kayıt yok.")}</p>
             ) : null}
           </section>

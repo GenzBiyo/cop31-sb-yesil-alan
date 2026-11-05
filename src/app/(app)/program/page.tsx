@@ -40,7 +40,7 @@ function PavilionDay({
   const { data, reload } = useApi<{ keys: string[] }>("/api/calendar-joins");
   const joined = new Set(data?.keys || []);
   if (!day) return null;
-  const items = day.items.filter((item) => planMatchesFilter(item.kind, filter));
+  const items = day.items.filter((item) => planMatchesFilter(item, filter));
 
   async function toggle(id: string) {
     if (joined.has(id)) await api(`/api/calendar-joins?itemKey=${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -73,7 +73,7 @@ function PavilionDay({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap gap-2 items-center">
                   <PlanChip kind={item.kind} />
-                  <span className="font-semibold">{tx(item.title)}</span>
+                  <span className={item.industry ? "is-industry" : "font-semibold"}>{tx(item.title)}</span>
                 </div>
                 <p className="text-xs text-[#57534e] mt-1">{item.location}{item.people ? ` · ${item.people}` : ""}</p>
               </div>
